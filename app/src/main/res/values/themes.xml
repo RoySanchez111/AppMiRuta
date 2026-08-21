@@ -6,7 +6,7 @@
 
 
     <style name="Theme.MiBanco.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">#FF6650a4</item>
+        <item name="windowSplashScreenBackground">#82C8E5</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/logo_banco</item>
         <item name="postSplashScreenTheme">@style/Theme.AppBanco</item>
 

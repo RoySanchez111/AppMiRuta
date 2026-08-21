@@ -42,7 +42,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    NavegacionBancaria()
+                    NavegacionMiRuta()
                 }
             }
         }
@@ -60,7 +60,7 @@ fun formatCurrency(amount: Double): String {
 }
 
 @Composable
-fun NavegacionBancaria() {
+fun NavegacionMiRuta() {
     val navController = rememberNavController()
 
     var saldo by rememberSaveable { mutableDoubleStateOf(15450.00) }
@@ -68,7 +68,7 @@ fun NavegacionBancaria() {
     NavHost(navController = navController, startDestination = "login") {
         composable("login") { PantallaLogin(navController) }
         composable("principal") { PantallaPrincipal(navController, saldo) }
-        composable("transferencia") { 
+        composable("transferencia") {
             PantallaTransferencia(navController, saldo) { nuevoMonto ->
                 saldo -= nuevoMonto
             } 
