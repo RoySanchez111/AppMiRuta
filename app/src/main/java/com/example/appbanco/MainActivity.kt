@@ -29,20 +29,33 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.appbanco.ui.components.TimeBasedBackground
+import java.util.Calendar
 import java.text.NumberFormat
 import java.util.Locale
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashTheme = when (Calendar.getInstance().get(Calendar.HOUR_OF_DAY)) {
+            in 0..5 -> R.style.Theme_MiBanco_Splash_Madrugada
+            in 6..11 -> R.style.Theme_MiBanco_Splash_Manana
+            in 12..17 -> R.style.Theme_MiBanco_Splash_Atardecer
+            in 18..19 -> R.style.Theme_MiBanco_Splash_Ocaso
+            else -> R.style.Theme_MiBanco_Splash_Noche
+        }
+        setTheme(splashTheme)
+        
         installSplashScreen()
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    NavegacionMiRuta()
+                TimeBasedBackground {
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = Color.Transparent
+                    ) {
+                        NavegacionMiRuta()
+                    }
                 }
             }
         }
@@ -99,23 +112,44 @@ fun PantallaLogin(navController: NavController) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text("Mi Banco", fontSize = 36.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+        Text(
+            "Mi Ruta", 
+            fontSize = 36.sp, 
+            fontWeight = FontWeight.Bold, 
+            color = Color.White
+        )
         Spacer(modifier = Modifier.height(32.dp))
 
         OutlinedTextField(
             value = usuario,
             onValueChange = { usuario = it },
-            label = { Text("Usuario") },
-            modifier = Modifier.fillMaxWidth()
+            label = { Text("Usuario", color = Color.White) },
+            modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedTextColor = Color.White,
+                focusedTextColor = Color.White,
+                unfocusedBorderColor = Color.White.copy(alpha = 0.7f),
+                focusedBorderColor = Color.White,
+                unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
+                focusedLabelColor = Color.White
+            )
         )
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Contraseña") },
+            label = { Text("Contraseña", color = Color.White) },
             visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedTextColor = Color.White,
+                focusedTextColor = Color.White,
+                unfocusedBorderColor = Color.White.copy(alpha = 0.7f),
+                focusedBorderColor = Color.White,
+                unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
+                focusedLabelColor = Color.White
+            )
         )
         Spacer(modifier = Modifier.height(32.dp))
 
@@ -142,7 +176,7 @@ fun PantallaPrincipal(navController: NavController, saldo: Double) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text("Bienvenido de nuevo", fontSize = 18.sp, color = Color.Gray)
+        Text("Bienvenido de nuevo", fontSize = 18.sp, color = Color.White.copy(alpha = 0.8f))
         Spacer(modifier = Modifier.height(8.dp))
 
         Card(
@@ -182,9 +216,9 @@ fun PantallaTransferencia(navController: NavController, saldoActual: Double, onT
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Nueva Transferencia", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+        Text("Nueva Transferencia", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.White)
         Spacer(modifier = Modifier.height(8.dp))
-        Text("Saldo actual: ${formatCurrency(saldoActual)}", color = MaterialTheme.colorScheme.secondary)
+        Text("Saldo actual: ${formatCurrency(saldoActual)}", color = Color.White.copy(alpha = 0.9f))
         
         Spacer(modifier = Modifier.height(32.dp))
 
@@ -194,10 +228,18 @@ fun PantallaTransferencia(navController: NavController, saldoActual: Double, onT
                 cuenta = it
                 if (it.isNotEmpty()) errorMensaje = null
             },
-            label = { Text("Cuenta Destino (CLABE/Tarjeta)") },
+            label = { Text("Cuenta Destino (CLABE/Tarjeta)", color = Color.White) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth(),
-            isError = errorMensaje != null && cuenta.isEmpty()
+            isError = errorMensaje != null && cuenta.isEmpty(),
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedTextColor = Color.White,
+                focusedTextColor = Color.White,
+                unfocusedBorderColor = Color.White.copy(alpha = 0.7f),
+                focusedBorderColor = Color.White,
+                unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
+                focusedLabelColor = Color.White
+            )
         )
         
         Spacer(modifier = Modifier.height(16.dp))
@@ -208,14 +250,22 @@ fun PantallaTransferencia(navController: NavController, saldoActual: Double, onT
                 cantidadStr = it 
                 errorMensaje = null
             },
-            label = { Text("Monto a enviar ($)") },
-            placeholder = { Text("0.00") },
+            label = { Text("Monto a enviar ($)", color = Color.White) },
+            placeholder = { Text("0.00", color = Color.White.copy(alpha = 0.5f)) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             modifier = Modifier.fillMaxWidth(),
             isError = errorMensaje != null && (cantidadStr.isEmpty() || errorMensaje?.contains("fondos") == true || errorMensaje?.contains("Monto") == true),
             trailingIcon = {
                 if (errorMensaje != null) Icon(Icons.Default.Error, "Error", tint = MaterialTheme.colorScheme.error)
-            }
+            },
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedTextColor = Color.White,
+                focusedTextColor = Color.White,
+                unfocusedBorderColor = Color.White.copy(alpha = 0.7f),
+                focusedBorderColor = Color.White,
+                unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
+                focusedLabelColor = Color.White
+            )
         )
 
         if (errorMensaje != null) {
@@ -276,8 +326,8 @@ fun PantallaConfirmacion(navController: NavController) {
         )
         Spacer(modifier = Modifier.height(24.dp))
 
-        Text("¡Transferencia Exitosa!", fontSize = 24.sp, fontWeight = FontWeight.Bold)
-        Text("El dinero ha sido enviado correctamente.", color = Color.Gray, modifier = Modifier.padding(top = 8.dp))
+        Text("¡Transferencia Exitosa!", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.White)
+        Text("El dinero ha sido enviado correctamente.", color = Color.White.copy(alpha = 0.8f), modifier = Modifier.padding(top = 8.dp))
 
         Spacer(modifier = Modifier.height(48.dp))
 

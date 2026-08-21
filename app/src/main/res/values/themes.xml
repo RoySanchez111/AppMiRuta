@@ -1,15 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-
     <style name="Theme.AppBanco" parent="android:Theme.Material.Light.NoActionBar" />
 
-
     <style name="Theme.MiBanco.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">#82C8E5</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/logo_banco</item>
         <item name="postSplashScreenTheme">@style/Theme.AppBanco</item>
+        <item name="windowSplashScreenBackground">#232526</item>
+    </style>
 
+    <style name="Theme.MiBanco.Splash.Madrugada" parent="Theme.MiBanco.Splash">
+        <item name="windowSplashScreenBackground">@drawable/bg_splash_madrugada</item>
+    </style>
+
+    <style name="Theme.MiBanco.Splash.Manana" parent="Theme.MiBanco.Splash">
+        <item name="windowSplashScreenBackground">@drawable/bg_splash_manana</item>
+    </style>
+
+    <style name="Theme.MiBanco.Splash.Atardecer" parent="Theme.MiBanco.Splash">
+        <item name="windowSplashScreenBackground">@drawable/bg_splash_atardecer</item>
+    </style>
+
+    <style name="Theme.MiBanco.Splash.Ocaso" parent="Theme.MiBanco.Splash">
+        <item name="windowSplashScreenBackground">@drawable/bg_splash_ocaso</item>
+    </style>
+
+    <style name="Theme.MiBanco.Splash.Noche" parent="Theme.MiBanco.Splash">
+        <item name="windowSplashScreenBackground">@drawable/bg_splash_noche</item>
     </style>
 
 </resources>
