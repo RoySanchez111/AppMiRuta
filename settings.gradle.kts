@@ -22,6 +22,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "App Banco"
+rootProject.name = "AppMiRuta"
 include(":app")
  
