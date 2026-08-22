@@ -1,32 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Tema base de la app -->
-    <style name="Theme.AppBanco" parent="android:Theme.Material.Light.NoActionBar" />
-    <!-- Splash Screen Transparente -->
-    <style name="Theme.MiBanco.Splash" parent="Theme.SplashScreen">
+    <style name="Theme.MiRuta" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.MiRuta.Splash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenAnimatedIcon">@android:color/transparent</item>
-        <item name="postSplashScreenTheme">@style/Theme.AppBanco</item>
+        <item name="postSplashScreenTheme">@style/Theme.MiRuta</item>
         <item name="windowSplashScreenBackground">#232526</item>
     </style>
 
-    <!-- Color de Fondo de Madrugada -->
-    <style name="Theme.MiBanco.Splash.Madrugada" parent="Theme.MiBanco.Splash">
+    <style name="Theme.MiRuta.Splash.Madrugada" parent="Theme.MiRuta.Splash">
         <item name="windowSplashScreenBackground">@drawable/bg_splash_madrugada</item>
     </style>
-    <!-- Color de Fondo de Mañana -->
-    <style name="Theme.MiBanco.Splash.Manana" parent="Theme.MiBanco.Splash">
+    <style name="Theme.MiRuta.Splash.Manana" parent="Theme.MiRuta.Splash">
         <item name="windowSplashScreenBackground">@drawable/bg_splash_manana</item>
     </style>
-    <!-- Color de Fondo de Atardecer -->
-    <style name="Theme.MiBanco.Splash.Atardecer" parent="Theme.MiBanco.Splash">
+    <style name="Theme.MiRuta.Splash.Atardecer" parent="Theme.MiRuta.Splash">
         <item name="windowSplashScreenBackground">@drawable/bg_splash_atardecer</item>
     </style>
-    <!-- Color de Fondo de Ocaso -->
-    <style name="Theme.MiBanco.Splash.Ocaso" parent="Theme.MiBanco.Splash">
+    <style name="Theme.MiRuta.Splash.Ocaso" parent="Theme.MiRuta.Splash">
         <item name="windowSplashScreenBackground">@drawable/bg_splash_ocaso</item>
     </style>
-    <!-- Color de Fondo de Noche -->
-    <style name="Theme.MiBanco.Splash.Noche" parent="Theme.MiBanco.Splash">
+    <style name="Theme.MiRuta.Splash.Noche" parent="Theme.MiRuta.Splash">
         <item name="windowSplashScreenBackground">@drawable/bg_splash_noche</item>
     </style>
 

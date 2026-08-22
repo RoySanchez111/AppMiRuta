@@ -6,14 +6,15 @@ import androidx.activity.compose.setContent
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -21,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -37,17 +39,20 @@ import java.util.Calendar
 import java.text.NumberFormat
 import java.util.Locale
 import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashTheme = when (Calendar.getInstance().get(Calendar.HOUR_OF_DAY)) {
-            in 0..5 -> R.style.Theme_MiBanco_Splash_Madrugada
-            in 6..11 -> R.style.Theme_MiBanco_Splash_Manana
-            in 12..17 -> R.style.Theme_MiBanco_Splash_Atardecer
-            in 18..19 -> R.style.Theme_MiBanco_Splash_Ocaso
-            else -> R.style.Theme_MiBanco_Splash_Noche
+            in 0..5 -> R.style.Theme_MiRuta_Splash_Madrugada
+            in 6..11 -> R.style.Theme_MiRuta_Splash_Manana
+            in 12..17 -> R.style.Theme_MiRuta_Splash_Atardecer
+            in 18..19 -> R.style.Theme_MiRuta_Splash_Ocaso
+            else -> R.style.Theme_MiRuta_Splash_Noche
         }
         setTheme(splashTheme)
         
@@ -68,32 +73,27 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+data class Lugar(val nombre: String, val icono: ImageVector)
 
-fun formatCurrency(amount: Double): String {
-    val locale = Locale.forLanguageTag("es-MX")
-    return try {
-        NumberFormat.getCurrencyInstance(locale).format(amount)
-    } catch (_: Exception) {
-        "$${String.format(locale, "%.2f", amount)}"
-    }
+fun obtenerDatosGuardados(callback: (List<Lugar>) -> List<Lugar>): List<Lugar> {
+    val lista = listOf(
+        Lugar("Casa", Icons.Default.Home),
+        Lugar("Trabajo", Icons.Default.Work),
+        Lugar("Escuela", Icons.Default.School),
+        Lugar("Gimnasio", Icons.Default.FitnessCenter)
+    )
+    return callback(lista)
 }
 
 @Composable
 fun NavegacionMiRuta() {
     val navController = rememberNavController()
 
-    var saldo by rememberSaveable { mutableDoubleStateOf(15450.00) }
-
     NavHost(navController = navController, startDestination = "splash") {
-        composable("splash"){PantallaSplash(navController)}
+        composable("splash") { PantallaSplash(navController) }
         composable("login") { PantallaLogin(navController) }
-        composable("principal") { PantallaPrincipal(navController, saldo) }
-        composable("transferencia") {
-            PantallaTransferencia(navController, saldo) { nuevoMonto ->
-                saldo -= nuevoMonto
-            }
-        }
-        composable("confirmacion") { PantallaConfirmacion(navController) }
+        composable("principal") { PantallaPrincipal(navController) }
+        composable("guardados") { PantallaGuardados(navController) }
     }
 }
 
@@ -270,7 +270,7 @@ fun PantallaLogin(navController: NavController) {
 }
 
 @Composable
-fun PantallaPrincipal(navController: NavController, saldo: Double) {
+fun PantallaPrincipal(navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -279,170 +279,291 @@ fun PantallaPrincipal(navController: NavController, saldo: Double) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text("Bienvenido de nuevo", fontSize = 18.sp, color = Color.White.copy(alpha = 0.8f))
-        Spacer(modifier = Modifier.height(8.dp))
+        Text("Bienvenido a Mi Ruta", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.White)
+        Spacer(modifier = Modifier.height(16.dp))
 
         Card(
             modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+            colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.15f))
         ) {
             Column(
                 modifier = Modifier.padding(24.dp).fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Saldo Disponible", fontSize = 14.sp)
-                Text(formatCurrency(saldo), fontSize = 32.sp, fontWeight = FontWeight.Bold)
+                Text("¿Listo para tu siguiente viaje?", fontSize = 16.sp, color = Color.White)
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = { navController.navigate("guardados") },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Explorar Mis Rutas")
+                }
             }
         }
 
         Spacer(modifier = Modifier.height(32.dp))
 
         Button(
-            onClick = { navController.navigate("transferencia") },
-            modifier = Modifier.fillMaxWidth().height(55.dp)
+            onClick = { navController.navigate("login") },
+            modifier = Modifier.fillMaxWidth().height(55.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Gray.copy(alpha = 0.5f))
         ) {
-            Text("Hacer una Transferencia")
+            Text("Cerrar Sesión")
         }
     }
 }
 
 @Composable
-fun PantallaTransferencia(navController: NavController, saldoActual: Double, onTransferir: (Double) -> Unit) {
-    var cuenta by remember { mutableStateOf("") }
-    var cantidadStr by remember { mutableStateOf("") }
-    var errorMensaje by remember { mutableStateOf<String?>(null) }
+fun PantallaGuardados(
+    navController: NavController
+) {
+    val lugaresGuardados =
+        obtenerDatosGuardados { lugares ->
+            lugares
+        }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp)
-            .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text("Nueva Transferencia", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.White)
-        Spacer(modifier = Modifier.height(8.dp))
-        Text("Saldo actual: ${formatCurrency(saldoActual)}", color = Color.White.copy(alpha = 0.9f))
-        
-        Spacer(modifier = Modifier.height(32.dp))
+    val rutasCercanas = listOf(
+        "Avenida 25 Poniente",
+        "Plaza Angelópolis",
+        "Universidad Tecmilenio",
+        "Clínica Dénica"
+    )
 
-        OutlinedTextField(
-            value = cuenta,
-            onValueChange = { 
-                cuenta = it
-                if (it.isNotEmpty()) errorMensaje = null
-            },
-            label = { Text("Cuenta Destino (CLABE/Tarjeta)", color = Color.White) },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            modifier = Modifier.fillMaxWidth(),
-            isError = errorMensaje != null && cuenta.isEmpty(),
-            colors = OutlinedTextFieldDefaults.colors(
-                unfocusedTextColor = Color.White,
-                focusedTextColor = Color.White,
-                unfocusedBorderColor = Color.White.copy(alpha = 0.7f),
-                focusedBorderColor = Color.White,
-                unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
-                focusedLabelColor = Color.White
-            )
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
+    var mostrarGuardados by rememberSaveable {
+        mutableStateOf(false)
+    }
 
-        OutlinedTextField(
-            value = cantidadStr,
-            onValueChange = { 
-                cantidadStr = it 
-                errorMensaje = null
-            },
-            label = { Text("Monto a enviar ($)", color = Color.White) },
-            placeholder = { Text("0.00", color = Color.White.copy(alpha = 0.5f)) },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            modifier = Modifier.fillMaxWidth(),
-            isError = errorMensaje != null && (cantidadStr.isEmpty() || errorMensaje?.contains("fondos") == true || errorMensaje?.contains("Monto") == true),
-            trailingIcon = {
-                if (errorMensaje != null) Icon(Icons.Default.Error, "Error", tint = MaterialTheme.colorScheme.error)
-            },
-            colors = OutlinedTextFieldDefaults.colors(
-                unfocusedTextColor = Color.White,
-                focusedTextColor = Color.White,
-                unfocusedBorderColor = Color.White.copy(alpha = 0.7f),
-                focusedBorderColor = Color.White,
-                unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
-                focusedLabelColor = Color.White
-            )
-        )
+    var mostrarRutas by rememberSaveable {
+        mutableStateOf(false)
+    }
 
-        if (errorMensaje != null) {
+    val snackbarHostState =
+        remember {
+            SnackbarHostState()
+        }
+
+    Scaffold(
+        containerColor = Color.Transparent,
+        snackbarHost = {
+            SnackbarHost(snackbarHostState)
+        }
+    ) { paddingValues ->
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(24.dp)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.Top
+        ) {
             Text(
-                text = errorMensaje!!,
-                color = MaterialTheme.colorScheme.error,
-                fontSize = 12.sp,
-                modifier = Modifier.padding(top = 4.dp).align(Alignment.Start)
+                text = "Buenos días,",
+                fontSize = 24.sp,
+                color = Color.White.copy(alpha = 0.8f),
+                modifier = Modifier.padding(top = 16.dp)
             )
-        }
 
-        Spacer(modifier = Modifier.height(48.dp))
+            Text(
+                text = "Usuario",
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
 
-        Button(
-            onClick = {
+            Text(
+                text = "¿A dónde vamos?",
+                fontSize = 18.sp,
+                color = Color.White.copy(alpha = 0.7f),
+                modifier = Modifier.padding(bottom = 28.dp)
+            )
 
-                try {
-                    if (cuenta.isEmpty()) throw Exception("Ingresa una cuenta destino")
-                    
-                    val monto = cantidadStr.toDoubleOrNull() ?: throw Exception("Monto inválido: ingresa un número")
-                    
-                    if (monto <= 0) throw Exception("El monto debe ser mayor a 0")
-                    if (monto > saldoActual) throw Exception("Fondos insuficientes")
+            Button(
+                onClick = {
+                    mostrarGuardados = !mostrarGuardados
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White.copy(alpha = 0.18f)
+                ),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Favorite,
+                    contentDescription = "Guardados"
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = "Guardados",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                Icon(
+                    imageVector =
+                        if (mostrarGuardados)
+                            Icons.Default.KeyboardArrowUp
+                        else
+                            Icons.Default.KeyboardArrowDown,
+                    contentDescription = "Mostrar guardados"
+                )
+            }
 
+            if (mostrarGuardados) {
+                Spacer(modifier = Modifier.height(8.dp))
 
-                    onTransferir(monto)
-                    navController.navigate("confirmacion")
-                } catch (e: Exception) {
-                    errorMensaje = e.message
+                lugaresGuardados.forEach { lugar ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                            .clickable {
+                                CoroutineScope(Dispatchers.Main).launch {
+                                    snackbarHostState.showSnackbar(
+                                        "Seleccionaste: ${lugar.nombre}"
+                                    )
+                                }
+                            },
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color.White.copy(alpha = 0.12f)
+                        ),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = lugar.icono,
+                                contentDescription = lugar.nombre,
+                                tint = Color.White,
+                                modifier = Modifier.size(26.dp)
+                            )
+                            Spacer(modifier = Modifier.width(14.dp))
+                            Text(
+                                text = lugar.nombre,
+                                color = Color.White,
+                                fontSize = 16.sp,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Icon(
+                                imageVector = Icons.Default.ChevronRight,
+                                contentDescription = "Seleccionar",
+                                tint = Color.White.copy(alpha = 0.7f)
+                            )
+                        }
+                    }
                 }
-            },
-            modifier = Modifier.fillMaxWidth().height(50.dp)
-        ) {
-            Text("Transferir ahora", fontWeight = FontWeight.Bold)
-        }
+            }
 
-        TextButton(onClick = { navController.popBackStack() }, modifier = Modifier.padding(top = 8.dp)) {
-            Text("Cancelar")
-        }
-    }
-}
+            Spacer(modifier = Modifier.height(16.dp))
 
-@Composable
-fun PantallaConfirmacion(navController: NavController) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp)
-            .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Icon(
-            imageVector = Icons.Default.CheckCircle,
-            contentDescription = "Éxito",
-            tint = Color(0xFF4CAF50),
-            modifier = Modifier.size(120.dp)
-        )
-        Spacer(modifier = Modifier.height(24.dp))
+            Button(
+                onClick = {
+                    mostrarRutas = !mostrarRutas
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White.copy(alpha = 0.18f)
+                ),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.LocationOn,
+                    contentDescription = "Rutas cercanas"
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = "Rutas cercanas",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                Icon(
+                    imageVector =
+                        if (mostrarRutas)
+                            Icons.Default.KeyboardArrowUp
+                        else
+                            Icons.Default.KeyboardArrowDown,
+                    contentDescription = "Mostrar rutas"
+                )
+            }
 
-        Text("¡Transferencia Exitosa!", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.White)
-        Text("El dinero ha sido enviado correctamente.", color = Color.White.copy(alpha = 0.8f), modifier = Modifier.padding(top = 8.dp))
+            if (mostrarRutas) {
+                Spacer(modifier = Modifier.height(8.dp))
 
-        Spacer(modifier = Modifier.height(48.dp))
-
-        Button(
-            onClick = {
-                navController.navigate("principal") {
-                    popUpTo("principal") { inclusive = false }
+                rutasCercanas.forEach { ruta ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                            .clickable {
+                                CoroutineScope(Dispatchers.Main).launch {
+                                    snackbarHostState.showSnackbar(
+                                        "Ruta seleccionada: $ruta"
+                                    )
+                                }
+                            },
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color.White.copy(alpha = 0.12f)
+                        ),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.LocationOn,
+                                contentDescription = "Ruta",
+                                tint = Color.White,
+                                modifier = Modifier.size(26.dp)
+                            )
+                            Spacer(modifier = Modifier.width(14.dp))
+                            Text(
+                                text = ruta,
+                                color = Color.White,
+                                fontSize = 16.sp,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Icon(
+                                imageVector = Icons.Default.ChevronRight,
+                                contentDescription = "Seleccionar ruta",
+                                tint = Color.White.copy(alpha = 0.7f)
+                            )
+                        }
+                    }
                 }
-            },
-            modifier = Modifier.fillMaxWidth().height(50.dp)
-        ) {
-            Text("Volver a Inicio")
+            }
+
+            Spacer(modifier = Modifier.height(28.dp))
+
+            Button(
+                onClick = {
+                    navController.popBackStack()
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Volver"
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Volver")
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
