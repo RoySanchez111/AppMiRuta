@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -19,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -30,6 +32,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.appbanco.ui.components.TimeBasedBackground
+import kotlinx.coroutines.delay
 import java.util.Calendar
 import java.text.NumberFormat
 import java.util.Locale
@@ -78,15 +81,38 @@ fun NavegacionMiRuta() {
 
     var saldo by rememberSaveable { mutableDoubleStateOf(15450.00) }
 
-    NavHost(navController = navController, startDestination = "login") {
+    NavHost(navController = navController, startDestination = "splash") {
+        composable("splash"){PantallaSplash(navController)}
         composable("login") { PantallaLogin(navController) }
         composable("principal") { PantallaPrincipal(navController, saldo) }
         composable("transferencia") {
             PantallaTransferencia(navController, saldo) { nuevoMonto ->
                 saldo -= nuevoMonto
-            } 
+            }
         }
         composable("confirmacion") { PantallaConfirmacion(navController) }
+    }
+}
+
+@Composable
+fun PantallaSplash(navController: NavController){
+    LaunchedEffect(Unit) {
+        delay(2000)
+        navController.navigate("login"){
+            popUpTo("splash"){
+                inclusive = true
+            }
+        }
+    }
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ){
+        Image(
+            painter = painterResource(id = R.drawable.logo_miruta),
+            contentDescription = "Logo MiRuta",
+            modifier = Modifier.size(240.dp)
+        )
     }
 }
 
