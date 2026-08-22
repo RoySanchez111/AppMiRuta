@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -32,10 +33,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.appbanco.ui.components.TimeBasedBackground
-import kotlinx.coroutines.delay
 import java.util.Calendar
 import java.text.NumberFormat
 import java.util.Locale
+import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.delay
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -97,7 +100,7 @@ fun NavegacionMiRuta() {
 @Composable
 fun PantallaSplash(navController: NavController){
     LaunchedEffect(Unit) {
-        delay(2000)
+        delay(2000.milliseconds)
         navController.navigate("login"){
             popUpTo("splash"){
                 inclusive = true
@@ -118,8 +121,13 @@ fun PantallaSplash(navController: NavController){
 
 @Composable
 fun PantallaLogin(navController: NavController) {
+    //Colección
+    val usuarios = mapOf(
+        "roy" to "123"
+    )
     var usuario by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var mensajeError by remember {mutableStateOf("")} //Variable de mensaje de error
     var iniciarAnimacion by remember { mutableStateOf(false) }
     
     val alpha by animateFloatAsState(
@@ -146,18 +154,37 @@ fun PantallaLogin(navController: NavController) {
         )
         Spacer(modifier = Modifier.height(32.dp))
 
+        //Muestra el mensaje de error
+        if (mensajeError.isNotEmpty()){
+            Text(
+                text = mensajeError,
+                color = Color.White
+            )
+        }
         OutlinedTextField(
             value = usuario,
             onValueChange = { usuario = it },
-            label = { Text("Usuario", color = Color.White) },
+            label = {
+                Text(
+                    "Usuario", color = Color.Black,
+                    modifier = Modifier.background(Color.White))//Fondo Blanco para la etiqueta)
+                },
             modifier = Modifier.fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(
-                unfocusedTextColor = Color.White,
-                focusedTextColor = Color.White,
-                unfocusedBorderColor = Color.White.copy(alpha = 0.7f),
-                focusedBorderColor = Color.White,
-                unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
-                focusedLabelColor = Color.White
+                //Fondo del recuadro
+                unfocusedContainerColor =Color.White,
+                focusedContainerColor = Color.White,
+
+                //Color del texto
+                unfocusedTextColor = Color.Black,
+                focusedTextColor = Color.Black,
+
+                //Color del borde
+                unfocusedBorderColor = Color.Transparent,
+                focusedBorderColor = Color.Transparent,
+
+                //Color del cursor
+                cursorColor = Color.Black
             )
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -165,29 +192,79 @@ fun PantallaLogin(navController: NavController) {
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Contraseña", color = Color.White) },
+            label = { Text(
+                "Contraseña", color = Color.Black,//Color del texto Contraseña
+                modifier = Modifier.background(Color.White))//Fondo Blanco para la etiqueta
+                    },
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(
-                unfocusedTextColor = Color.White,
-                focusedTextColor = Color.White,
-                unfocusedBorderColor = Color.White.copy(alpha = 0.7f),
-                focusedBorderColor = Color.White,
-                unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
-                focusedLabelColor = Color.White
+                unfocusedContainerColor = Color.White,
+                focusedContainerColor =Color.White,
+
+                //Color del texto
+                unfocusedTextColor = Color.Black,
+                focusedTextColor = Color.Black,
+
+                //Color del borde
+                unfocusedBorderColor = Color.Transparent,
+                focusedBorderColor = Color.Transparent,
+
+                //Color del cursor
+                cursorColor = Color.Black
             )
         )
         Spacer(modifier = Modifier.height(32.dp))
 
         Button(
             onClick = {
-                navController.navigate("principal") {
-                    popUpTo("login") { inclusive = true }
+                if (usuarios[usuario]== password) {
+                    navController.navigate("principal") {
+                        popUpTo("login") { inclusive = true }
+                    }
+                } else {
+                    mensajeError = "Usuario  o contraseña incorrecto"
                 }
-            },
+        },
             modifier = Modifier.fillMaxWidth().height(50.dp)
         ) {
             Text("Iniciar Sesión", fontSize = 18.sp)
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+
+        //Botón de iniciar sesión con Google
+        Button(
+            onClick = {
+
+            },
+            modifier = Modifier.fillMaxWidth().height(50.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.White,
+                contentColor = Color.Black)
+        )
+        {
+            Text("Iniciar sesión con Google")
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text(
+            text = "O",
+            color = Color.White,
+            fontSize = 18.sp
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+
+        //Boton de iniciar sesión como invitado
+        Button(
+            onClick = {
+            },
+            modifier = Modifier.fillMaxWidth().height(50.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Gray,
+                contentColor = Color.White
+            )
+        ) {
+            Text("Continuar como invitado")
         }
     }
 }
