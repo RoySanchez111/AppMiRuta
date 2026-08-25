@@ -43,7 +43,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import androidx.navigation.compose.currentBackStackEntryAsState
 
+
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
+import com.example.appbanco.ui.components.obtenerColoresFondo
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,13 +65,11 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme {
-                TimeBasedBackground {
-                    Surface(
-                        modifier = Modifier.fillMaxSize(),
-                        color = Color.Transparent
-                    ) {
-                        NavegacionMiRuta()
-                    }
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = Color(0xFF121212) // Fondo oscuro base para todas las pantallas
+                ) {
+                    NavegacionMiRuta()
                 }
             }
         }
@@ -111,12 +114,159 @@ val usuarios = listOf(
 @Composable
 fun NavegacionMiRuta() {
     val navController = rememberNavController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val rutaActual = navBackStackEntry?.destination?.route
 
-    NavHost(navController = navController, startDestination = "splash") {
-        composable("splash") { PantallaSplash(navController) }
-        composable("login") { PantallaLogin(navController) }
-        composable("principal") { PantallaPrincipal(navController) }
-        composable("guardados") { PantallaGuardados(navController) }
+    // Mostrar barra y encabezado solo en pantallas de la app (no splash ni login)
+    val esPantallaApp = rutaActual != "splash" && rutaActual != "login"
+
+    Scaffold(
+        containerColor = Color.Transparent,
+        topBar = {
+            if (esPantallaApp) {
+                EncabezadoUsuario()
+            }
+        },
+        bottomBar = {
+            if (esPantallaApp) {
+                BarraNavegacionInferior(navController, rutaActual)
+            }
+        }
+    ) { paddingValues ->
+        NavHost(
+            navController = navController, 
+            startDestination = "splash",
+            modifier = Modifier.padding(paddingValues)
+        ) {
+            composable("splash") {
+                TimeBasedBackground { PantallaSplash(navController) }
+            }
+            composable("login") {
+                TimeBasedBackground { PantallaLogin(navController) }
+            }
+            composable("principal") { PantallaPrincipal(navController) }
+            composable("guardados") { PantallaGuardados(navController) }
+            composable("horario") { PantallaGenerica("Horario", Icons.Default.Schedule) }
+            composable("alertas") { PantallaGenerica("Alertas", Icons.Default.Notifications) }
+            composable("cuenta") { PantallaGenerica("Cuenta", Icons.Default.Person) }
+        }
+    }
+}
+
+@Composable
+fun EncabezadoUsuario() {
+    val hora = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+    val saludo = when (hora) {
+        in 6..11 -> "Buenos días"
+        in 12..18 -> "Buenas tardes"
+        else -> "Buenas noches"
+    }
+
+    TimeBasedBackground(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(140.dp)
+            .clip(RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp))
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp, vertical = 20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column {
+                Text(
+                    text = "$saludo,",
+                    fontSize = 18.sp,
+                    color = Color.White.copy(alpha = 0.8f)
+                )
+                Text(
+                    text = "Roy Sanchez", // Nombre estático por ahora
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            }
+            
+            // Círculo para foto de perfil
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.2f))
+                    .clickable { /* Acción de perfil */ },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Perfil",
+                    tint = Color.White,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun BarraNavegacionInferior(navController: NavController, rutaActual: String?) {
+    NavigationBar(
+        containerColor = Color.White.copy(alpha = 0.85f),
+        contentColor = Color(0xFF282869) // Azul oscuro de los degradados
+    ) {
+        val items = listOf(
+            Triple("principal", "Inicio", Icons.Default.Home),
+            Triple("horario", "Horario", Icons.Default.Schedule),
+            Triple("alertas", "Alertas", Icons.Default.Notifications),
+            Triple("cuenta", "Cuenta", Icons.Default.Person)
+        )
+
+        items.forEach { (ruta, etiqueta, icono) ->
+            NavigationBarItem(
+                icon = { Icon(icono, contentDescription = etiqueta) },
+                label = { Text(etiqueta) },
+                selected = rutaActual == ruta,
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = Color(0xFFF4556D), // Pink/Red Ocaso
+                    selectedTextColor = Color(0xFFF4556D),
+                    unselectedIconColor = Color(0xFF282869),
+                    unselectedTextColor = Color(0xFF282869),
+                    indicatorColor = Color(0xFFFEB30F).copy(alpha = 0.2f) // Orange Amanecer tenue
+                ),
+                onClick = {
+                    if (rutaActual != ruta) {
+                        navController.navigate(ruta) {
+                            popUpTo("principal") { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun PantallaGenerica(titulo: String, icono: ImageVector) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(icono, contentDescription = null, modifier = Modifier.size(64.dp), tint = Color.White)
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(titulo, fontSize = 24.sp, color = Color.White, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+fun obtenerLogoSegunHora(): Int {
+    return when (Calendar.getInstance().get(Calendar.HOUR_OF_DAY)) {
+        in 6..11 -> R.drawable.logo_miruta_amanecer
+        in 12..19 -> R.drawable.logo_miruta_atardecer
+        else -> R.drawable.logo_miruta_anochecer
     }
 }
 
@@ -135,7 +285,7 @@ fun PantallaSplash(navController: NavController){
         contentAlignment = Alignment.Center
     ){
         Image(
-            painter = painterResource(id = R.drawable.logo_miruta),
+            painter = painterResource(id = obtenerLogoSegunHora()),
             contentDescription = "Logo MiRuta",
             modifier = Modifier.size(240.dp)
         )
@@ -246,12 +396,16 @@ fun PantallaLogin(navController: NavController) {
                         }
                     }
                 } else {
-                    mensajeError = "Usuario  o contraseña incorrecto"
+                    mensajeError = "Usuario o contraseña incorrecto"
                 }
-        },
-        modifier = Modifier.fillMaxWidth().height(50.dp)
+            },
+            modifier = Modifier.fillMaxWidth().height(50.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFFFEB30F), // Color Naranja Amanecer
+                contentColor = Color.White
+            )
         ) {
-            Text("Iniciar Sesión", fontSize = 18.sp)
+            Text("Iniciar Sesión", fontSize = 18.sp, fontWeight = FontWeight.Bold)
         }
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -300,9 +454,8 @@ fun PantallaPrincipal(navController: NavController) {
             .padding(24.dp)
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Top
     ) {
-        Text("Bienvenido a Mi Ruta", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.White)
         Spacer(modifier = Modifier.height(16.dp))
 
         Card(
@@ -317,9 +470,13 @@ fun PantallaPrincipal(navController: NavController) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(
                     onClick = { navController.navigate("guardados") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFF4556D), // Color Rosado/Rojo Ocaso
+                        contentColor = Color.White
+                    )
                 ) {
-                    Text("Explorar Mis Rutas")
+                    Text("Explorar Mis Rutas", fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -365,42 +522,20 @@ fun PantallaGuardados(
             SnackbarHostState()
         }
 
-    Scaffold(
-        containerColor = Color.Transparent,
-        snackbarHost = {
-            SnackbarHost(snackbarHostState)
-        }
-    ) { paddingValues ->
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(24.dp)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.Start,
-            verticalArrangement = Arrangement.Top
-        ) {
-            Text(
-                text = "Buenos días,",
-                fontSize = 24.sp,
-                color = Color.White.copy(alpha = 0.8f),
-                modifier = Modifier.padding(top = 16.dp)
-            )
-
-            Text(
-                text = "Usuario",
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
-
-            Text(
-                text = "¿A dónde vamos?",
-                fontSize = 18.sp,
-                color = Color.White.copy(alpha = 0.7f),
-                modifier = Modifier.padding(bottom = 28.dp)
-            )
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp)
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.Top
+    ) {
+        Text(
+            text = "¿A dónde vamos hoy?",
+            fontSize = 18.sp,
+            color = Color.White.copy(alpha = 0.7f),
+            modifier = Modifier.padding(bottom = 28.dp)
+        )
 
             Button(
                 onClick = {
@@ -410,7 +545,7 @@ fun PantallaGuardados(
                     .fillMaxWidth()
                     .height(60.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White.copy(alpha = 0.18f)
+                    containerColor = Color(0xFF2697B5).copy(alpha = 0.8f) // Azul Atardecer con transparencia
                 ),
                 shape = RoundedCornerShape(12.dp)
             ) {
@@ -494,7 +629,7 @@ fun PantallaGuardados(
                     .fillMaxWidth()
                     .height(60.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White.copy(alpha = 0.18f)
+                    containerColor = Color(0xFF2697B5).copy(alpha = 0.8f) // Azul Atardecer con transparencia
                 ),
                 shape = RoundedCornerShape(12.dp)
             ) {
@@ -576,17 +711,20 @@ fun PantallaGuardados(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp)
+                    .height(50.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF2697B5), // Color Azul Atardecer
+                    contentColor = Color.White
+                )
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Volver"
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Volver")
+                Text("Volver", fontWeight = FontWeight.Bold)
             }
 
             Spacer(modifier = Modifier.height(24.dp))
         }
-    }
 }
