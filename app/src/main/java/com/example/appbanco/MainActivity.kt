@@ -15,6 +15,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import kotlinx.coroutines.launch
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,6 +29,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
@@ -38,7 +43,55 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import androidx.compose.ui.draw.clip
+import androidx.navigation.compose.currentBackStackEntryAsState
+
+// CONDICION 4: Interfaz simple
+interface Autenticable {
+    fun validar(usuario: String, pass: String): Boolean
+}
+
+// CONDICION 4: Objeto (Singleton) para configuración
+object AppConfig {
+    const val NOMBRE_APP = "Mi Ruta"
+    // CONDICION 2: Colección para almacenar datos de usuario (Mapa)
+    val usuariosPermitidos = mutableMapOf(
+        "roy" to "123",
+        "admin" to "admin"
+    )
+}
+
+// CONDICION 4: Clase que implementa una interfaz
+class ServicioAutenticacion : Autenticable {
+    override fun validar(usuario: String, pass: String): Boolean {
+        return AppConfig.usuariosPermitidos[usuario] == pass
+    }
+}
+
+// CONDICION 1: Función con parámetros y retorno
+fun obtenerMensajeBienvenida(usuario: String?): String {
+    // CONDICION 3: Uso de null seguro (operador Elvis)
+    val nombre = usuario ?: "Invitado"
+    val hora = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+    val saludo = when (hora) {
+        in 6..11 -> "Buenos días"
+        in 12..18 -> "Buenas tardes"
+        else -> "Buenas noches"
+    }
+    return "$saludo, $nombre"
+}
+
+fun formatearRuta(nombre: String): String {
+    return "Ruta: ${nombre.uppercase()}"
+}
+
+fun obtenerLogoSegunHora(): Int {
+    return when (Calendar.getInstance().get(Calendar.HOUR_OF_DAY)) {
+        in 6..11 -> R.drawable.logo_miruta_amanecer
+        in 12..18 -> R.drawable.logo_miruta_atardecer
+        else -> R.drawable.logo_miruta_anochecer
+    }
+}
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,13 +108,11 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme {
-                TimeBasedBackground {
-                    Surface(
-                        modifier = Modifier.fillMaxSize(),
-                        color = Color.Transparent
-                    ) {
-                        NavegacionMiRuta()
-                    }
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = Color(0xFF121212)
+                ) {
+                    NavegacionMiRuta()
                 }
             }
         }
@@ -113,11 +164,144 @@ val usuarios = listOf(roy, alex)
 @Composable
 fun NavegacionMiRuta() {
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = "splash") {
-        composable("splash") { PantallaSplash(navController) }
-        composable("login") { PantallaLogin(navController) }
-        composable("principal") { PantallaPrincipal(navController) }
-        composable("guardados") { PantallaGuardados(navController) }
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val rutaActual = navBackStackEntry?.destination?.route
+
+    val esPantallaApp = rutaActual != "splash" && rutaActual != "login"
+
+    Scaffold(
+        containerColor = Color.Transparent,
+        topBar = {
+            if (esPantallaApp) {
+                EncabezadoUsuario()
+            }
+        },
+        bottomBar = {
+            if (esPantallaApp) {
+                BarraNavegacionInferior(navController, rutaActual)
+            }
+        }
+    ) { paddingValues ->
+        NavHost(
+            navController = navController, 
+            startDestination = "splash",
+            modifier = Modifier.padding(paddingValues)
+        ) {
+            composable("splash") {
+                TimeBasedBackground { PantallaSplash(navController) }
+            }
+            composable("login") {
+                TimeBasedBackground { PantallaLogin(navController) }
+            }
+            composable("principal") { PantallaPrincipal(navController) }
+            composable("guardados") { PantallaGuardados(navController) }
+            composable("horario") { PantallaGenerica("Horario", Icons.Default.Schedule) }
+            composable("alertas") { PantallaGenerica("Alertas", Icons.Default.Notifications) }
+            composable("cuenta") { PantallaGenerica("Cuenta", Icons.Default.Person) }
+        }
+    }
+}
+
+@Composable
+fun EncabezadoUsuario() {
+    val saludo = obtenerMensajeBienvenida("Roy Sanchez")
+
+    TimeBasedBackground(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(140.dp)
+            .clip(RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp))
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp, vertical = 20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column {
+                Text(
+                    text = saludo.split(",")[0] + ",",
+                    fontSize = 18.sp,
+                    color = Color.White.copy(alpha = 0.8f)
+                )
+                Text(
+                    text = saludo.split(",")[1].trim(),
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            }
+            
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.2f))
+                    .clickable { },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Perfil",
+                    tint = Color.White,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun BarraNavegacionInferior(navController: NavController, rutaActual: String?) {
+    NavigationBar(
+        containerColor = Color.White.copy(alpha = 0.85f),
+        contentColor = Color(0xFF282869)
+    ) {
+        val items = listOf(
+            Triple("principal", "Inicio", Icons.Default.Home),
+            Triple("horario", "Horario", Icons.Default.Schedule),
+            Triple("alertas", "Alertas", Icons.Default.Notifications),
+            Triple("cuenta", "Cuenta", Icons.Default.Person)
+        )
+
+        items.forEach { (ruta, etiqueta, icono) ->
+            NavigationBarItem(
+                icon = { Icon(icono, contentDescription = etiqueta) },
+                label = { Text(etiqueta) },
+                selected = rutaActual == ruta,
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = Color(0xFFF4556D),
+                    selectedTextColor = Color(0xFFF4556D),
+                    unselectedIconColor = Color(0xFF282869),
+                    unselectedTextColor = Color(0xFF282869),
+                    indicatorColor = Color(0xFF00BCD4).copy(alpha = 0.2f)
+                ),
+                onClick = {
+                    if (rutaActual != ruta) {
+                        navController.navigate(ruta) {
+                            popUpTo("principal") { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun PantallaGenerica(titulo: String, icono: ImageVector) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(icono, contentDescription = null, modifier = Modifier.size(64.dp), tint = Color.White)
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(titulo, fontSize = 24.sp, color = Color.White, fontWeight = FontWeight.Bold)
+        }
     }
 }
 
@@ -134,7 +318,7 @@ fun PantallaSplash(navController: NavController){
         contentAlignment = Alignment.Center
     ){
         Image(
-            painter = painterResource(id = R.drawable.logo_miruta),
+            painter = painterResource(id = obtenerLogoSegunHora()),
             contentDescription = "Logo MiRuta",
             modifier = Modifier.size(240.dp)
         )
@@ -219,9 +403,13 @@ fun PantallaLogin(navController: NavController) {
                     mensajeError = "Usuario o contraseña incorrecto"
                 }
             },
-            modifier = Modifier.fillMaxWidth().height(50.dp)
+            modifier = Modifier.fillMaxWidth().height(50.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFFFEB30F),
+                contentColor = Color.White
+            )
         ) {
-            Text("Iniciar Sesión", fontSize = 18.sp)
+            Text("Iniciar Sesión", fontSize = 18.sp, fontWeight = FontWeight.Bold)
         }
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -247,49 +435,193 @@ fun PantallaLogin(navController: NavController) {
     }
 }
 
+
 @Composable
 fun PantallaPrincipal(navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp)
-            .verticalScroll(rememberScrollState()),
+            .verticalScroll(rememberScrollState())
+            .padding(bottom = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Top
     ) {
-        Text("Bienvenido a Mi Ruta", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.White)
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
-        Card(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.15f))
+        // =================================================
+        // BUSCADOR
+        // =================================================
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+                .height(52.dp),
+            shape = RoundedCornerShape(18.dp),
+            color = Color.White,
+            shadowElevation = 4.dp
         ) {
-            Column(
-                modifier = Modifier.padding(24.dp).fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("¿Listo para tu siguiente viaje?", fontSize = 16.sp, color = Color.White)
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(
-                    onClick = { navController.navigate("guardados") },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Explorar Mis Rutas")
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "Buscar",
+                    tint = Color(0xFFFF6B4A)
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(
+                    text = "Buscar línea o parada...",
+                    color = Color.Gray,
+                    fontSize = 14.sp
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // =================================================
+        // MAPA SIMULADO
+        // =================================================
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(300.dp)
+                .padding(horizontal = 20.dp)
+                .background(
+                    color = Color(0xFFE7E3DB),
+                    shape = RoundedCornerShape(20.dp)
+                )
+        ) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                // Calles horizontales
+                drawLine(
+                    color = Color(0xFFCFCBC4),
+                    start = Offset(0f, size.height * 0.30f),
+                    end = Offset(size.width, size.height * 0.30f),
+                    strokeWidth = 28f
+                )
+                drawLine(
+                    color = Color(0xFFCFCBC4),
+                    start = Offset(0f, size.height * 0.60f),
+                    end = Offset(size.width, size.height * 0.60f),
+                    strokeWidth = 32f
+                )
+
+                // Calles verticales
+                drawLine(
+                    color = Color(0xFFCFCBC4),
+                    start = Offset(size.width * 0.25f, 0f),
+                    end = Offset(size.width * 0.25f, size.height),
+                    strokeWidth = 28f
+                )
+                drawLine(
+                    color = Color(0xFFCFCBC4),
+                    start = Offset(size.width * 0.70f, 0f),
+                    end = Offset(size.width * 0.70f, size.height),
+                    strokeWidth = 28f
+                )
+
+                // Ruta azul
+                drawLine(
+                    color = Color(0xFF4DA3E8),
+                    start = Offset(size.width * 0.15f, size.height * 0.67f),
+                    end = Offset(size.width * 0.85f, size.height * 0.67f),
+                    strokeWidth = 12f,
+                    cap = StrokeCap.Round
+                )
+
+                // Ruta naranja
+                drawLine(
+                    color = Color(0xFFFFA23A),
+                    start = Offset(size.width * 0.20f, size.height * 0.40f),
+                    end = Offset(size.width * 0.75f, size.height * 0.40f),
+                    strokeWidth = 10f,
+                    cap = StrokeCap.Round
+                )
+
+                // Paradas
+                val paradas = listOf(
+                    Offset(size.width * 0.25f, size.height * 0.67f),
+                    Offset(size.width * 0.45f, size.height * 0.67f),
+                    Offset(size.width * 0.65f, size.height * 0.67f),
+                    Offset(size.width * 0.80f, size.height * 0.67f)
+                )
+                paradas.forEach {
+                    drawCircle(color = Color.White, radius = 13f, center = it)
+                    drawCircle(color = Color(0xFFE53935), radius = 7f, center = it)
+                }
+
+                // Ubicación usuario
+                val ubicacion = Offset(size.width * 0.52f, size.height * 0.78f)
+                drawCircle(color = Color.White, radius = 18f, center = ubicacion)
+                drawCircle(color = Color(0xFF4285F4), radius = 11f, center = ubicacion)
+            }
+
+            // Botón de ubicación
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(14.dp)
+                    .size(45.dp),
+                shape = RoundedCornerShape(50),
+                color = Color.White,
+                shadowElevation = 4.dp
+            ) {
+                IconButton(onClick = { /* GPS Logic */ }) {
+                    Icon(
+                        imageVector = Icons.Default.MyLocation,
+                        contentDescription = "Mi ubicación",
+                        tint = Color(0xFF4285F4)
+                    )
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // =================================================
+        // BOTÓN EXPLORAR
+        // =================================================
+        Card(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.15f))
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp).fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("¿Listo para tu siguiente viaje?", fontSize = 15.sp, color = Color.White)
+                Spacer(modifier = Modifier.height(12.dp))
+                Button(
+                    onClick = { navController.navigate("guardados") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFF4556D),
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text("Explorar Mis Rutas", fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
 
         Button(
             onClick = { navController.navigate("login") },
-            modifier = Modifier.fillMaxWidth().height(55.dp),
+            modifier = Modifier.padding(horizontal = 20.dp).fillMaxWidth().height(50.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Gray.copy(alpha = 0.5f))
         ) {
             Text("Cerrar Sesión")
         }
+        
+        Spacer(modifier = Modifier.height(20.dp))
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -297,143 +629,156 @@ fun PantallaGuardados(navController: NavController) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = CoroutineScope(Dispatchers.Main)
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = Color.Transparent
-    ) { paddingValues ->
-
-        Column(
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp, vertical = 20.dp)
+    ) {
+        OutlinedTextField(
+            value = "",
+            onValueChange = {},
+            placeholder = { Text("Buscar línea o parada...", color = Color.White.copy(alpha = 0.7f), fontSize = 14.sp) },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Buscar", tint = Color.White.copy(alpha = 0.7f)) },
             modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 20.dp)
+                .fillMaxWidth()
+                .height(50.dp)
+                .background(Color.White.copy(alpha = 0.15f), RoundedCornerShape(10.dp)),
+            shape = RoundedCornerShape(10.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedBorderColor = Color.Transparent,
+                focusedBorderColor = Color.Transparent,
+                cursorColor = Color.White,
+                unfocusedContainerColor = Color.Transparent,
+                focusedContainerColor = Color.Transparent,
+                unfocusedTextColor = Color.White,
+                focusedTextColor = Color.White
+            ),
+            singleLine = true
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            OutlinedTextField(
-                value = "",
-                onValueChange = {},
-                placeholder = { Text("Buscar línea o parada...", color = Color.White.copy(alpha = 0.7f), fontSize = 14.sp) },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Buscar", tint = Color.White.copy(alpha = 0.7f)) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp)
-                    .background(Color.White.copy(alpha = 0.15f), RoundedCornerShape(10.dp)),
-                shape = RoundedCornerShape(10.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = Color.Transparent,
-                    focusedBorderColor = Color.Transparent,
-                    cursorColor = Color.White,
-                    unfocusedContainerColor = Color.Transparent,
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedTextColor = Color.White,
-                    focusedTextColor = Color.White
-                ),
-                singleLine = true
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            Surface(
+                color = Color(0xFFFF3B30).copy(alpha = 0.9f),
+                shape = RoundedCornerShape(20.dp),
+                modifier = Modifier.wrapContentSize()
             ) {
+                Text(
+                    text = "Ahora - 09:24",
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                )
+            }
+            listOf("Mañana", "Lun 25 ago", "Mar 26 ago").forEach { texto ->
                 Surface(
-                    color = Color(0xFFFF3B30).copy(alpha = 0.9f),
+                    color = Color.White.copy(alpha = 0.1f),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.3f)),
                     shape = RoundedCornerShape(20.dp),
                     modifier = Modifier.wrapContentSize()
                 ) {
                     Text(
-                        text = "Ahora - 09:24",
+                        text = texto,
                         color = Color.White,
                         fontSize = 12.sp,
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                     )
                 }
-                listOf("Mañana", "Lun 25 ago", "Mar 26 ago").forEach { texto ->
-                    Surface(
-                        color = Color.White.copy(alpha = 0.1f),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.3f)),
-                        shape = RoundedCornerShape(20.dp),
-                        modifier = Modifier.wrapContentSize()
-                    ) {
-                        Text(
-                            text = texto,
-                            color = Color.White,
-                            fontSize = 12.sp,
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                        )
-                    }
-                }
             }
+        }
 
-            Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Default.StarBorder,
-                    contentDescription = null,
-                    tint = Color.White.copy(alpha = 0.7f),
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = "TODAS LAS LÍNEAS",
-                    color = Color.White.copy(alpha = 0.7f),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            lineasDeRuta.forEach { linea ->
-                LineCard(linea = linea, scope = scope, snackbarHostState = snackbarHostState)
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = Icons.Default.StarBorder,
+                contentDescription = null,
+                tint = Color.White.copy(alpha = 0.7f),
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(modifier = Modifier.width(4.dp))
             Text(
-                text = "Próximas salidas desde Plaza Mayor",
+                text = "TODAS LAS LÍNEAS",
                 color = Color.White.copy(alpha = 0.7f),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold
             )
-            Spacer(modifier = Modifier.height(8.dp))
+        }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+        Spacer(modifier = Modifier.height(10.dp))
+
+        lineasDeRuta.forEach { linea ->
+            LineCard(linea = linea, scope = scope, snackbarHostState = snackbarHostState)
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Text(
+            text = "Próximas salidas desde Plaza Mayor",
+            color = Color.White.copy(alpha = 0.7f),
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Surface(
+                color = Color(0xFF389338).copy(alpha = 0.9f),
+                shape = RoundedCornerShape(20.dp),
+                modifier = Modifier.wrapContentSize()
             ) {
+                Text(
+                    text = "09:25 - ahora",
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                )
+            }
+            listOf("09:35", "09:45", "09:55", "10:05").forEach { hora ->
                 Surface(
-                    color = Color(0xFF389338).copy(alpha = 0.9f),
+                    color = Color.White.copy(alpha = 0.1f),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.3f)),
                     shape = RoundedCornerShape(20.dp),
                     modifier = Modifier.wrapContentSize()
                 ) {
                     Text(
-                        text = "09:25 - ahora",
+                        text = hora,
                         color = Color.White,
                         fontSize = 12.sp,
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                     )
                 }
-                listOf("09:35", "09:45", "09:55", "10:05").forEach { hora ->
-                    Surface(
-                        color = Color.White.copy(alpha = 0.1f),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.3f)),
-                        shape = RoundedCornerShape(20.dp),
-                        modifier = Modifier.wrapContentSize()
-                    ) {
-                        Text(
-                            text = hora,
-                            color = Color.White,
-                            fontSize = 12.sp,
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                        )
-                    }
-                }
             }
+        }
 
-            Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Button(
+            onClick = {
+                navController.popBackStack()
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF2697B5),
+                contentColor = Color.White
+            )
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Volver"
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Volver", fontWeight = FontWeight.Bold)
         }
     }
 }
