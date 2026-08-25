@@ -90,7 +90,6 @@ open class Usuario(
     val password: String,
     val rol: String
 )
-
 class Persona(
     usuario: String,
     password: String,
