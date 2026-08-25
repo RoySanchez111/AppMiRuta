@@ -84,7 +84,31 @@ fun obtenerDatosGuardados(callback: (List<Lugar>) -> List<Lugar>): List<Lugar> {
     )
     return callback(lista)
 }
+//Clases nuevas
+open class Usuario(
+    val usuario: String,
+    val password: String,
+    val rol: String
+)
 
+class Persona(
+    usuario: String,
+    password: String,
+    rol: String
+): Usuario(usuario, password, rol)
+class Conductor(
+    usuario: String,
+    password: String,
+    rol: String
+): Usuario(usuario, password, rol)
+
+val roy = Persona("roy", "123", "Conductor")
+val alex = Conductor("alex", "456", "Conductor")
+
+val usuarios = listOf(
+    roy,
+    alex
+)
 @Composable
 fun NavegacionMiRuta() {
     val navController = rememberNavController()
@@ -121,10 +145,6 @@ fun PantallaSplash(navController: NavController){
 
 @Composable
 fun PantallaLogin(navController: NavController) {
-    //Colección
-    val usuarios = mapOf(
-        "roy" to "123"
-    )
     var usuario by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var mensajeError by remember {mutableStateOf("")} //Variable de mensaje de error
@@ -167,7 +187,7 @@ fun PantallaLogin(navController: NavController) {
             label = {
                 Text(
                     "Usuario", color = Color.Black,
-                    modifier = Modifier.background(Color.White))//Fondo Blanco para la etiqueta)
+                    modifier = Modifier.background(Color.White))//Fondo Blanco para la etiqueta
                 },
             modifier = Modifier.fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(
@@ -218,15 +238,19 @@ fun PantallaLogin(navController: NavController) {
 
         Button(
             onClick = {
-                if (usuarios[usuario]== password) {
+                if (usuarios.any{
+                    it.usuario == usuario && it.password == password
+                    }) {
                     navController.navigate("principal") {
-                        popUpTo("login") { inclusive = true }
+                        popUpTo("login") {
+                            inclusive = true
+                        }
                     }
                 } else {
                     mensajeError = "Usuario  o contraseña incorrecto"
                 }
         },
-            modifier = Modifier.fillMaxWidth().height(50.dp)
+        modifier = Modifier.fillMaxWidth().height(50.dp)
         ) {
             Text("Iniciar Sesión", fontSize = 18.sp)
         }
