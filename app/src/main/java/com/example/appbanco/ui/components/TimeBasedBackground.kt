@@ -17,9 +17,8 @@ enum class PeriodoDia {
     NOCHE
 }
 
-@Composable
-fun TimeBasedBackground(content: @Composable () -> Unit) {
-    val horaActual = remember { Calendar.getInstance().get(Calendar.HOUR_OF_DAY) }
+fun obtenerColoresFondo(): List<Color> {
+    val horaActual = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
     
     val periodo = when (horaActual) {
         in 0..5 -> PeriodoDia.MADRUGADA
@@ -29,7 +28,7 @@ fun TimeBasedBackground(content: @Composable () -> Unit) {
         else -> PeriodoDia.NOCHE
     }
 
-    val coloresFondo = when (periodo) {
+    return when (periodo) {
         PeriodoDia.MADRUGADA -> listOf(
             Color(0xFF0F2027),
             Color(0xFF203A43),
@@ -41,23 +40,29 @@ fun TimeBasedBackground(content: @Composable () -> Unit) {
             Color(0xFF00C6FF)
         )
         PeriodoDia.ATARDECER -> listOf(
-            Color(0xFF2193b0),
-            Color(0xFF6dd5ed)
+            Color(0xFF2193B0),
+            Color(0xFF47B4CB),
+            Color(0xFF6DD5ED)
         )
         PeriodoDia.OCASO -> listOf(
-            Color(0xFFf12711),
-            Color(0xFFf5af19),
-            Color(0xFF654ea3)
+            Color(0xFFF12711),
+            Color(0xFFF5AF19),
+            Color(0xFF654EA3)
         )
         PeriodoDia.NOCHE -> listOf(
             Color(0xFF232526),
+            Color(0xFF323436),
             Color(0xFF414345)
         )
     }
+}
+
+@Composable
+fun TimeBasedBackground(modifier: Modifier = Modifier.fillMaxSize(), content: @Composable () -> Unit) {
+    val coloresFondo = remember { obtenerColoresFondo() }
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
+        modifier = modifier
             .background(Brush.verticalGradient(coloresFondo))
     ) {
         content()
