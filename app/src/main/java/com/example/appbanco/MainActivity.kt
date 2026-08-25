@@ -5,6 +5,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.ui.draw.scale
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.Image
@@ -46,12 +52,12 @@ import kotlinx.coroutines.delay
 import androidx.compose.ui.draw.clip
 import androidx.navigation.compose.currentBackStackEntryAsState
 
-// CONDICION 4: Interfaz simple
+
 interface Autenticable {
     fun validar(usuario: String, pass: String): Boolean
 }
 
-// CONDICION 4: Objeto (Singleton) para configuración
+
 object AppConfig {
     const val NOMBRE_APP = "Mi Ruta"
     // CONDICION 2: Colección para almacenar datos de usuario (Mapa)
@@ -61,14 +67,14 @@ object AppConfig {
     )
 }
 
-// CONDICION 4: Clase que implementa una interfaz
+
 class ServicioAutenticacion : Autenticable {
     override fun validar(usuario: String, pass: String): Boolean {
         return AppConfig.usuariosPermitidos[usuario] == pass
     }
 }
 
-// CONDICION 1: Función con parámetros y retorno
+
 fun obtenerMensajeBienvenida(usuario: String?): String {
     // CONDICION 3: Uso de null seguro (operador Elvis)
     val nombre = usuario ?: "Invitado"
@@ -110,7 +116,7 @@ class MainActivity : ComponentActivity() {
             MaterialTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = Color(0xFF121212)
+                    color = Color(0xFFF0E8E4)
                 ) {
                     NavegacionMiRuta()
                 }
@@ -167,7 +173,7 @@ fun NavegacionMiRuta() {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val rutaActual = navBackStackEntry?.destination?.route
 
-    val esPantallaApp = rutaActual != "splash" && rutaActual != "login"
+    val esPantallaApp = rutaActual != "splash" && rutaActual != "login" && rutaActual != "loading"
 
     Scaffold(
         containerColor = Color.Transparent,
@@ -189,6 +195,9 @@ fun NavegacionMiRuta() {
         ) {
             composable("splash") {
                 TimeBasedBackground { PantallaSplash(navController) }
+            }
+            composable("loading") {
+                TimeBasedBackground { PantallaLoading(navController) }
             }
             composable("login") {
                 TimeBasedBackground { PantallaLogin(navController) }
@@ -305,10 +314,68 @@ fun PantallaGenerica(titulo: String, icono: ImageVector) {
 }
 
 @Composable
+fun PantallaLoading(navController: NavController) {
+    LaunchedEffect(Unit) {
+        delay(3000.milliseconds) // Duración de la animación de búsqueda
+        navController.navigate("login") {
+            popUpTo("loading") { inclusive = true }
+        }
+    }
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        MinimalistAnimation()
+    }
+}
+
+@Composable
+fun MinimalistAnimation() {
+    val infiniteTransition = rememberInfiniteTransition(label = "minimalist")
+    val scale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.5f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "scale"
+    )
+    val alpha by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 0.3f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "alpha"
+    )
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Icon(
+            imageVector = Icons.Default.Place,
+            contentDescription = "Loading",
+            modifier = Modifier
+                .size(80.dp)
+                .scale(scale)
+                .alpha(alpha),
+            tint = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        Text(
+            text = "Buscando ubicación...", 
+            fontSize = 18.sp, 
+            color = MaterialTheme.colorScheme.primary, 
+            fontWeight = FontWeight.Medium
+        )
+    }
+}
+
+@Composable
 fun PantallaSplash(navController: NavController){
     LaunchedEffect(Unit) {
         delay(2000.milliseconds)
-        navController.navigate("login"){
+        navController.navigate("loading"){
             popUpTo("splash"){ inclusive = true }
         }
     }
