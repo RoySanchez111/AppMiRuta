@@ -194,8 +194,7 @@ fun NavegacionMiRuta() {
                 TimeBasedBackground { PantallaLogin(navController) }
             }
             composable("principal") { PantallaPrincipal(navController) }
-            composable("guardados") { PantallaGuardados(navController) }
-            composable("horario") { PantallaGenerica("Horario", Icons.Default.Schedule) }
+            composable("horario") { PantallaHorarios(navController) }
             composable("alertas") { PantallaGenerica("Alertas", Icons.Default.Notifications) }
             composable("cuenta") { PantallaGenerica("Cuenta", Icons.Default.Person) }
         }
@@ -488,8 +487,8 @@ fun PantallaPrincipal(navController: NavController) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(300.dp)
-                .padding(horizontal = 20.dp)
+                .weight(1f) // Hace que el mapa ocupe el espacio disponible
+                .padding(horizontal = 20.dp, vertical = 10.dp)
                 .background(
                     color = Color(0xFFE7E3DB),
                     shape = RoundedCornerShape(20.dp)
@@ -581,51 +580,14 @@ fun PantallaPrincipal(navController: NavController) {
         }
 
         Spacer(modifier = Modifier.height(20.dp))
-
-        // =================================================
-        // BOTÓN EXPLORAR
-        // =================================================
-        Card(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.15f))
-        ) {
-            Column(
-                modifier = Modifier.padding(20.dp).fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text("¿Listo para tu siguiente viaje?", fontSize = 15.sp, color = Color.White)
-                Spacer(modifier = Modifier.height(12.dp))
-                Button(
-                    onClick = { navController.navigate("guardados") },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFF4556D),
-                        contentColor = Color.White
-                    )
-                ) {
-                    Text("Explorar Mis Rutas", fontWeight = FontWeight.Bold)
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Button(
-            onClick = { navController.navigate("login") },
-            modifier = Modifier.padding(horizontal = 20.dp).fillMaxWidth().height(50.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Gray.copy(alpha = 0.5f))
-        ) {
-            Text("Cerrar Sesión")
-        }
-        
-        Spacer(modifier = Modifier.height(20.dp))
     }
 }
 
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PantallaGuardados(navController: NavController) {
+fun PantallaHorarios(navController: NavController) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = CoroutineScope(Dispatchers.Main)
 
