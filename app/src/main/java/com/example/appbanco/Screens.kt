@@ -24,6 +24,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.appbanco.ui.components.TimeBasedBackground
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -492,6 +496,244 @@ fun OpcionCuenta(texto: String) {
                 tint = Color.Gray,
                 modifier = Modifier.size(20.dp)
             )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PantallaHorarios(navController: NavController) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = CoroutineScope(Dispatchers.Main)
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp, vertical = 20.dp)
+    ) {
+        OutlinedTextField(
+            value = "",
+            onValueChange = {},
+            placeholder = { Text("Buscar línea o parada...", color = Color.White.copy(alpha = 0.7f), fontSize = 14.sp) },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Buscar", tint = Color.White.copy(alpha = 0.7f)) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+                .background(Color.White.copy(alpha = 0.15f), RoundedCornerShape(10.dp)),
+            shape = RoundedCornerShape(10.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedBorderColor = Color.Transparent,
+                focusedBorderColor = Color.Transparent,
+                cursorColor = Color.White,
+                unfocusedContainerColor = Color.Transparent,
+                focusedContainerColor = Color.Transparent,
+                unfocusedTextColor = Color.White,
+                focusedTextColor = Color.White
+            ),
+            singleLine = true
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Surface(
+                color = Color(0xFFFF3B30).copy(alpha = 0.9f),
+                shape = RoundedCornerShape(20.dp),
+                modifier = Modifier.wrapContentSize()
+            ) {
+                Text(
+                    text = "Ahora - 09:24",
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                )
+            }
+            listOf("Mañana", "Lun 25 ago", "Mar 26 ago").forEach { texto ->
+                Surface(
+                    color = Color.White.copy(alpha = 0.1f),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.3f)),
+                    shape = RoundedCornerShape(20.dp),
+                    modifier = Modifier.wrapContentSize()
+                ) {
+                    Text(
+                        text = texto,
+                        color = Color.White,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = Icons.Default.StarBorder,
+                contentDescription = null,
+                tint = Color.White.copy(alpha = 0.7f),
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = "TODAS LAS LÍNEAS",
+                color = Color.White.copy(alpha = 0.7f),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        lineasDeRuta.forEach { linea ->
+            LineCard(linea = linea, scope = scope, snackbarHostState = snackbarHostState)
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Text(
+            text = "Próximas salidas desde Plaza Mayor",
+            color = Color.White.copy(alpha = 0.7f),
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Surface(
+                color = Color(0xFF389338).copy(alpha = 0.9f),
+                shape = RoundedCornerShape(20.dp),
+                modifier = Modifier.wrapContentSize()
+            ) {
+                Text(
+                    text = "09:25 - ahora",
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                )
+            }
+            listOf("09:35", "09:45", "09:55", "10:05").forEach { hora ->
+                Surface(
+                    color = Color.White.copy(alpha = 0.1f),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.3f)),
+                    shape = RoundedCornerShape(20.dp),
+                    modifier = Modifier.wrapContentSize()
+                ) {
+                    Text(
+                        text = hora,
+                        color = Color.White,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Button(
+            onClick = {
+                navController.popBackStack()
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF2697B5),
+                contentColor = Color.White
+            )
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Volver"
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Volver", fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+fun LineCard(linea: LineaRuta, scope: CoroutineScope, snackbarHostState: SnackbarHostState) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp)
+            .clickable {
+                scope.launch {
+                    snackbarHostState.showSnackbar("Seleccionaste: ${linea.nombre}")
+                }
+            },
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White.copy(alpha = 0.15f)
+        ),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .background(linea.color, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = linea.numero,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = linea.nombre,
+                        color = Color.White,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Icon(
+                        imageVector = linea.iconoEstado,
+                        contentDescription = null,
+                        tint = linea.color,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+                Text(
+                    text = linea.destino,
+                    color = Color.White.copy(alpha = 0.7f),
+                    fontSize = 13.sp
+                )
+            }
+
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = linea.frecuencia,
+                    color = linea.color,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Icon(
+                    imageVector = Icons.Default.ChevronRight,
+                    contentDescription = "Seleccionar",
+                    tint = Color.White.copy(alpha = 0.5f),
+                    modifier = Modifier.size(20.dp)
+                )
+            }
         }
     }
 }

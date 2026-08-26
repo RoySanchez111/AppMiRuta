@@ -15,7 +15,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashTheme = when (Calendar.getInstance().get(Calendar.HOUR_OF_DAY)) {
             in 0..5 -> R.style.Theme_MiRuta_Splash_Madrugada
-            in 6..11 -> R.style.Theme_MiRuta_Splash_Manana
+            in 6..11 -> R.style.Theme_MiRuta_Splash_Atardecer
             in 12..17 -> R.style.Theme_MiRuta_Splash_Atardecer
             in 18..19 -> R.style.Theme_MiRuta_Splash_Ocaso
             else -> R.style.Theme_MiRuta_Splash_Noche

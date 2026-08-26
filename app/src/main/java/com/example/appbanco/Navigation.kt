@@ -54,7 +54,7 @@ fun NavegacionMiRuta() {
             composable("loading") { TimeBasedBackground { PantallaLoading(navController) } }
             composable("login") { TimeBasedBackground { PantallaLogin(navController) } }
             composable("principal") { PantallaPrincipal(navController) }
-            composable("horario") { PantallaGenerica("Horarios", Icons.Default.Schedule) }
+            composable("horario") { PantallaHorarios(navController) }
             composable("alertas") { PantallaGenerica("Alertas", Icons.Default.Notifications) }
             composable("cuenta") { PantallaCuenta() }
         }
