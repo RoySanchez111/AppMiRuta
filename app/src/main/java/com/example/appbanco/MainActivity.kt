@@ -117,7 +117,7 @@ class MainActivity : ComponentActivity() {
             MaterialTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = Color(0xFFF0E8E4)
+                    color = Color(0xFF212020)
                 ) {
                     NavegacionMiRuta()
                 }
@@ -142,6 +142,196 @@ val lineasDeRuta = listOf(
     LineaRuta("MA", Color(0xFFA149A1), "Metro A", "Central → Torre Central", "Cada 4 min"),
     LineaRuta("L5", Color(0xFFFF8E56), "Línea 5", "Mercado → Estadio", "Cada 15 min")
 )
+
+data class AlertaIncidencia(
+    val tipo: String,
+    val tipoColor: Color,
+    val ruta: String,
+    val rutaColor: Color,
+    val titulo: String,
+    val descripcion: String,
+    val tiempo: String,
+    val icono: ImageVector,
+    val iconoContainerColor: Color
+)
+
+val alertasSimuladas = listOf(
+    AlertaIncidencia(
+        tipo = "Retraso grave",
+        tipoColor = Color(0xFFC0392B),
+        ruta = "L5",
+        rutaColor = Color(0xFFFF8E56),
+        titulo = "Retraso grave – Ruta Guadalupana (Centro Puebla – Las lomas)",
+        descripcion = "Interrupción parcial del servicio por falla técnica en la Colonia Serdán.\nRetrasos estimados de entre 10 a 30 minutos.\nUse Rutas alternas",
+        tiempo = "Hace 10 min",
+        icono = Icons.Default.Warning,
+        iconoContainerColor = Color(0xFFFADBD8)
+    ),
+    AlertaIncidencia(
+        tipo = "Desvío de Ruta",
+        tipoColor = Color(0xFFF39C12),
+        ruta = "MA",
+        rutaColor = Color(0xFFA149A1),
+        titulo = "Desvío de Ruta – Ruta Angelópolis (Angelópolis – Plaza Loreto)",
+        descripcion = "Cierre de vialidad por manifestación en Av. Insurgentes Norte.\nDesvío temporal entre la calle Colorines y Tlatelolco\nUse Rutas alternas",
+        tiempo = "Hace 30 min",
+        icono = Icons.Default.Directions,
+        iconoContainerColor = Color(0xFFFDEBD0)
+    )
+)
+
+@Composable
+fun PantallaAlertas() {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            alertasSimuladas.forEach { alerta ->
+                AlertCard(alerta)
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+            
+            Spacer(modifier = Modifier.height(80.dp)) // Espacio para el botón
+        }
+
+        // Botón Reportar Incidencia
+        Surface(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 24.dp)
+                .height(56.dp)
+                .width(280.dp),
+            shape = RoundedCornerShape(28.dp),
+            color = Color.White,
+            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF282869).copy(alpha = 0.3f)),
+            shadowElevation = 4.dp
+        ) {
+            Row(
+                modifier = Modifier.fillMaxSize().clickable { },
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .background(Color(0xFF282869), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.PriorityHigh,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = "Reportar Incidencia",
+                    color = Color(0xFF282869),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun AlertCard(alerta: AlertaIncidencia) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Badge Tipo
+                Surface(
+                    color = alerta.tipoColor,
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        text = alerta.tipo,
+                        color = Color.White,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                
+                // Badge Ruta
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .background(alerta.rutaColor, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = alerta.ruta,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(verticalAlignment = Alignment.Top) {
+                // Icono Incidencia
+                Box(
+                    modifier = Modifier
+                        .size(60.dp)
+                        .background(alerta.iconoContainerColor, RoundedCornerShape(12.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = alerta.icono,
+                        contentDescription = null,
+                        tint = alerta.tipoColor,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Column {
+                    Text(
+                        text = alerta.titulo,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp,
+                        color = Color.Black
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = alerta.descripcion,
+                        fontSize = 13.sp,
+                        color = Color.DarkGray,
+                        lineHeight = 18.sp
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            Text(
+                text = alerta.tiempo,
+                fontSize = 12.sp,
+                color = Color.Gray,
+                modifier = Modifier.align(Alignment.Start)
+            )
+        }
+    }
+}
 
 data class Lugar(val nombre: String, val icono: ImageVector)
 
@@ -205,7 +395,7 @@ fun NavegacionMiRuta() {
             }
             composable("principal") { PantallaPrincipal(navController) }
             composable("horario") { PantallaHorarios(navController) }
-            composable("alertas") { PantallaGenerica("Alertas", Icons.Default.Notifications) }
+            composable("alertas") { PantallaAlertas() }
             composable("cuenta") { PantallaCuenta() }
         }
     }
