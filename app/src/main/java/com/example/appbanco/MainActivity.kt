@@ -51,6 +51,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import androidx.compose.ui.draw.clip
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.compose.ui.graphics.Brush
 
 
 interface Autenticable {
@@ -178,7 +179,7 @@ fun NavegacionMiRuta() {
     Scaffold(
         containerColor = Color.Transparent,
         topBar = {
-            if (esPantallaApp) {
+            if (esPantallaApp && rutaActual != "cuenta") {
                 EncabezadoUsuario()
             }
         },
@@ -205,7 +206,7 @@ fun NavegacionMiRuta() {
             composable("principal") { PantallaPrincipal(navController) }
             composable("horario") { PantallaHorarios(navController) }
             composable("alertas") { PantallaGenerica("Alertas", Icons.Default.Notifications) }
-            composable("cuenta") { PantallaGenerica("Cuenta", Icons.Default.Person) }
+            composable("cuenta") { PantallaCuenta() }
         }
     }
 }
@@ -312,7 +313,385 @@ fun PantallaGenerica(titulo: String, icono: ImageVector) {
         }
     }
 }
+// pantalla cuenta :P
+@Composable
+fun PantallaCuenta() {
 
+    var modoOffline by remember {
+        mutableStateOf(true)
+    }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
+
+        TimeBasedBackground(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(145.dp)
+                .clip(
+                    RoundedCornerShape(
+                        bottomStart = 30.dp,
+                        bottomEnd = 30.dp
+                    )
+                )
+        ) {
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 18.dp, vertical = 18.dp)
+            ) {
+
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
+                    Text(
+                        text = "Perfil",
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Box(
+                        modifier = Modifier
+                            .size(34.dp)
+                            .background(
+                                Color.White.copy(alpha = 0.85f),
+                                CircleShape
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+
+                        Text(
+                            text = "L",
+                            color = Color.DarkGray,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
+                        )
+                    }
+                }
+
+                Spacer(
+                    modifier = Modifier.weight(1f)
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+
+                    Text(
+                        text = "Editar imagen →",
+                        color = Color.White.copy(alpha = 0.85f),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.clickable {
+                        }
+                    )
+                }
+            }
+        }
+
+        Spacer(
+            modifier = Modifier.height(18.dp)
+        )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 18.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
+            Box(
+                modifier = Modifier
+                    .size(42.dp)
+                    .background(
+                        Color(0xFFEAE1DA),
+                        CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+
+                Text(
+                    text = "L",
+                    fontWeight = FontWeight.Bold,
+                    color = Color.DarkGray,
+                    fontSize = 22.sp
+                )
+            }
+
+            Spacer(
+                modifier = Modifier.width(12.dp)
+            )
+
+            // Nombre y correo
+            Column {
+
+                Text(
+                    text = "Leo",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    color = Color.Black
+                )
+
+                Text(
+                    text = "leo.sabroso.lo@gmail.com",
+                    fontSize = 12.sp,
+                    color = Color.Gray
+                )
+            }
+        }
+
+        Spacer(
+            modifier = Modifier.height(20.dp)
+        )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 18.dp)
+        ) {
+
+            Text(
+                text = "Rutas frecuentes",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            )
+
+            Spacer(
+                modifier = Modifier.height(10.dp)
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+
+                Surface(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(78.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    color = Color(0xFF4A86F7)
+                ) {
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(10.dp),
+                        verticalArrangement = Arrangement.SpaceBetween
+                    ) {
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+
+                            Icon(
+                                imageVector = Icons.Default.Home,
+                                contentDescription = "Casa",
+                                tint = Color.White,
+                                modifier = Modifier.size(22.dp)
+                            )
+
+                            Spacer(
+                                modifier = Modifier.width(6.dp)
+                            )
+
+                            Text(
+                                text = "Casa",
+                                color = Color.White,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+
+                        Text(
+                            text = "Registrar ubicación",
+                            color = Color.White.copy(alpha = 0.85f),
+                            fontSize = 10.sp
+                        )
+                    }
+                }
+
+                Surface(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(78.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    color = Color(0xFFF26E68)
+                ) {
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(10.dp),
+                        verticalArrangement = Arrangement.SpaceBetween
+                    ) {
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+
+                            Icon(
+                                imageVector = Icons.Default.School,
+                                contentDescription = "Universidad",
+                                tint = Color.White,
+                                modifier = Modifier.size(22.dp)
+                            )
+
+                            Spacer(
+                                modifier = Modifier.width(6.dp)
+                            )
+
+                            Text(
+                                text = "Universidad",
+                                color = Color.White,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+
+                        Text(
+                            text = "Registrar ubicación",
+                            color = Color.White.copy(alpha = 0.85f),
+                            fontSize = 10.sp
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(
+            modifier = Modifier.height(20.dp)
+        )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 18.dp)
+        ) {
+
+            Text(
+                text = "Modo Offline",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            )
+
+            Spacer(
+                modifier = Modifier.height(8.dp)
+            )
+
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(18.dp),
+                color = Color.White,
+                shadowElevation = 3.dp
+            ) {
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
+                    Text(
+                        text = "Lorem ipsum dolor sit amet",
+                        fontSize = 12.sp,
+                        color = Color.DarkGray,
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    Switch(
+                        checked = modoOffline,
+                        onCheckedChange = {
+                            modoOffline = it
+                        },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color.White,
+                            checkedTrackColor = Color(0xFF34348A),
+                            uncheckedThumbColor = Color.Gray,
+                            uncheckedTrackColor = Color.LightGray
+                        )
+                    )
+                }
+            }
+        }
+
+        Spacer(
+            modifier = Modifier.height(18.dp)
+        )
+// opciones cuenta
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 18.dp),
+            shape = RoundedCornerShape(18.dp),
+            color = Color(0xFFCBCBCB)
+        ) {
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(10.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+
+                OpcionCuenta("Configuración")
+                OpcionCuenta("Alertas")
+                OpcionCuenta("Privacidad y Seguridad")
+                OpcionCuenta("Ayuda y Soporte")
+            }
+        }
+
+        Spacer(
+            modifier = Modifier.height(20.dp)
+        )
+    }
+}
+@Composable
+fun OpcionCuenta(texto: String) {
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(38.dp)
+            .clickable {
+
+            },
+        shape = RoundedCornerShape(20.dp),
+        color = Color(0xFFE4E4E4)
+    ) {
+
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+
+            Text(
+                text = texto,
+                fontSize = 12.sp,
+                color = Color.DarkGray
+            )
+
+            Icon(
+                imageVector = Icons.Default.ChevronRight,
+                contentDescription = "Abrir $texto",
+                tint = Color.Gray,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+    }
+}
 @Composable
 fun PantallaLoading(navController: NavController) {
     LaunchedEffect(Unit) {
