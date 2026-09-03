@@ -26,6 +26,7 @@ import androidx.navigation.NavController
 import com.example.appbanco.data.alertasSimuladas
 import com.example.appbanco.data.lineasDeRuta
 import com.example.appbanco.ui.components.*
+import com.example.appbanco.ui.viewmodel.MainViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -54,9 +55,9 @@ fun PantallaPrincipal(navController: NavController) {
                 Text("Buscar línea o parada...", color = onBackground.copy(alpha = 0.4f), fontSize = 14.sp)
             }
         }
-        
+
         Spacer(modifier = Modifier.height(20.dp))
-        
+
         // MAPA
         Box(modifier = Modifier.fillMaxWidth().height(400.dp).background(Color(0xFFE7E3DB), RoundedCornerShape(20.dp))) {
             Canvas(modifier = Modifier.fillMaxSize()) {
@@ -96,97 +97,120 @@ fun PantallaHorarios(navController: NavController) {
             .padding(16.dp)
     ) {
         OutlinedTextField(
-            value = "", 
-            onValueChange = {}, 
-            placeholder = { Text("Buscar línea o parada...", color = onBackground.copy(alpha = 0.5f), fontSize = 14.sp) }, 
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Buscar", tint = onBackground.copy(alpha = 0.5f)) }, 
-            modifier = Modifier.fillMaxWidth().height(52.dp).background(onBackground.copy(alpha = 0.05f), RoundedCornerShape(12.dp)), 
-            shape = RoundedCornerShape(12.dp), 
+            value = "",
+            onValueChange = {},
+            placeholder = { Text("Buscar línea o parada...", color = onBackground.copy(alpha = 0.5f), fontSize = 14.sp) },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Buscar", tint = onBackground.copy(alpha = 0.5f)) },
+            modifier = Modifier.fillMaxWidth().height(52.dp).background(onBackground.copy(alpha = 0.05f), RoundedCornerShape(12.dp)),
+            shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                unfocusedBorderColor = onBackground.copy(alpha = 0.1f), 
+                unfocusedBorderColor = onBackground.copy(alpha = 0.1f),
                 focusedBorderColor = onBackground.copy(alpha = 0.3f),
                 cursorColor = onBackground,
                 unfocusedContainerColor = Color.Transparent,
                 focusedContainerColor = Color.Transparent,
                 unfocusedTextColor = onBackground,
                 focusedTextColor = onBackground
-            ), 
+            ),
             singleLine = true
         )
-        
+
         Spacer(modifier = Modifier.height(20.dp))
-        
+
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Surface(color = Color(0xFFFF3B30), shape = RoundedCornerShape(20.dp)) { 
-                Text("Ahora - 09:24", color = Color.White, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), fontWeight = FontWeight.Bold) 
+            Surface(color = Color(0xFFFF3B30), shape = RoundedCornerShape(20.dp)) {
+                Text("Ahora - 09:24", color = Color.White, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), fontWeight = FontWeight.Bold)
             }
-            listOf("Mañana", "Lun 25 ago").forEach { texto -> 
+            listOf("Mañana", "Lun 25 ago").forEach { texto ->
                 Surface(
-                    color = onBackground.copy(alpha = 0.05f), 
-                    border = BorderStroke(1.dp, onBackground.copy(alpha = 0.1f)), 
+                    color = onBackground.copy(alpha = 0.05f),
+                    border = BorderStroke(1.dp, onBackground.copy(alpha = 0.1f)),
                     shape = RoundedCornerShape(20.dp)
-                ) { 
-                    Text(texto, color = onBackground.copy(alpha = 0.7f), fontSize = 12.sp, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)) 
-                } 
+                ) {
+                    Text(texto, color = onBackground.copy(alpha = 0.7f), fontSize = 12.sp, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp))
+                }
             }
         }
-        
+
         Spacer(modifier = Modifier.height(24.dp))
-        
-        Row(verticalAlignment = Alignment.CenterVertically) { 
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.StarBorder, null, tint = onBackground.copy(alpha = 0.6f), modifier = Modifier.size(18.dp))
             Spacer(modifier = Modifier.width(6.dp))
-            Text("TODAS LAS LÍNEAS", color = onBackground.copy(alpha = 0.6f), fontSize = 13.sp, fontWeight = FontWeight.Bold) 
+            Text("TODAS LAS LÍNEAS", color = onBackground.copy(alpha = 0.6f), fontSize = 13.sp, fontWeight = FontWeight.Bold)
         }
-        
+
         Spacer(modifier = Modifier.height(12.dp))
         lineasDeRuta.forEach { LineCard(it, scope, snackbarHostState) }
-        
+
         Spacer(modifier = Modifier.height(24.dp))
         Text("Próximas salidas Plaza Mayor", color = onBackground.copy(alpha = 0.6f), fontSize = 13.sp, fontWeight = FontWeight.Bold)
-        
+
         Spacer(modifier = Modifier.height(12.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Surface(color = Color(0xFF389338), shape = RoundedCornerShape(20.dp)) { 
-                Text("09:25 - ahora", color = Color.White, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), fontWeight = FontWeight.Bold) 
+            Surface(color = Color(0xFF389338), shape = RoundedCornerShape(20.dp)) {
+                Text("09:25 - ahora", color = Color.White, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), fontWeight = FontWeight.Bold)
             }
-            listOf("09:35", "09:45").forEach { texto -> 
+            listOf("09:35", "09:45").forEach { texto ->
                 Surface(
-                    color = onBackground.copy(alpha = 0.05f), 
-                    border = BorderStroke(1.dp, onBackground.copy(alpha = 0.1f)), 
+                    color = onBackground.copy(alpha = 0.05f),
+                    border = BorderStroke(1.dp, onBackground.copy(alpha = 0.1f)),
                     shape = RoundedCornerShape(20.dp)
-                ) { 
-                    Text(texto, color = onBackground.copy(alpha = 0.7f), fontSize = 12.sp, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)) 
-                } 
+                ) {
+                    Text(texto, color = onBackground.copy(alpha = 0.7f), fontSize = 12.sp, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp))
+                }
             }
         }
-        
+
         Spacer(modifier = Modifier.height(32.dp))
         Button(
-            onClick = { navController.popBackStack() }, 
-            modifier = Modifier.fillMaxWidth().height(52.dp), 
+            onClick = { navController.popBackStack() },
+            modifier = Modifier.fillMaxWidth().height(52.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2697B5), contentColor = Color.White),
             shape = RoundedCornerShape(12.dp)
-        ) { 
+        ) {
             Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver")
             Spacer(modifier = Modifier.width(8.dp))
-            Text("Volver", fontWeight = FontWeight.Bold) 
+            Text("Volver", fontWeight = FontWeight.Bold)
         }
     }
 }
 
+// MODELO DE DATOS PARA ALERTAS
+data class Incidencia(
+    val tipo: String,
+    val ruta: String,
+    val titulo: String,
+    val descripcion: String,
+    val tiempo: String,
+    val colorEtiqueta: Color,
+    val colorRuta: Color
+)
+
 @Composable
-fun PantallaAlertas(navController: NavController) {
+fun PantallaAlertas(navController: NavController, viewModel: MainViewModel) {
     val onSurface = MaterialTheme.colorScheme.onSurface
     val surfaceColor = MaterialTheme.colorScheme.surface
     val primaryColor = Color(0xFF282869)
 
+    val listaIncidencias = viewModel.listaIncidencias
+    var mostrarDialogo by remember { mutableStateOf(false) }
+
     Box(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            alertasSimuladas.forEach { AlertCard(it); Spacer(modifier = Modifier.height(16.dp)) }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            listaIncidencias.forEach { incidencia ->
+                TarjetaAlerta(incidencia)
+                Spacer(modifier = Modifier.height(16.dp))
+            }
             Spacer(modifier = Modifier.height(100.dp))
         }
-        
+
         Surface(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -194,87 +218,109 @@ fun PantallaAlertas(navController: NavController) {
                 .height(56.dp)
                 .width(280.dp)
                 .shadow(elevation = 8.dp, shape = RoundedCornerShape(28.dp))
-                .clickable { navController.navigate("reportar") }, 
-            shape = RoundedCornerShape(28.dp), 
-            color = surfaceColor, 
+                .clickable { mostrarDialogo = true },
+            shape = RoundedCornerShape(28.dp),
+            color = surfaceColor,
             border = BorderStroke(1.dp, onSurface.copy(alpha = 0.1f))
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-                Box(modifier = Modifier.size(32.dp).background(primaryColor, CircleShape), contentAlignment = Alignment.Center) { 
-                    Icon(Icons.Default.PriorityHigh, null, tint = Color.White, modifier = Modifier.size(18.dp)) 
+                Box(modifier = Modifier.size(32.dp).background(primaryColor, CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Default.PriorityHigh, null, tint = Color.White, modifier = Modifier.size(18.dp))
                 }
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = "Reportar Incidencia", 
-                    color = onSurface, 
-                    fontWeight = FontWeight.Bold, 
+                    text = "Reportar Incidencia",
+                    color = onSurface,
+                    fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
                 )
             }
         }
     }
+
+    if (mostrarDialogo) {
+        DialogoReporte(
+            onDismiss = { mostrarDialogo = false },
+            onConfirm = { nuevaRuta, nuevaDescripcion ->
+                viewModel.agregarIncidencia(
+                    Incidencia(
+                        tipo = "Reporte de Usuario",
+                        ruta = nuevaRuta.take(2).uppercase(),
+                        titulo = "Incidencia en Ruta $nuevaRuta",
+                        descripcion = nuevaDescripcion,
+                        tiempo = "Hace un momento",
+                        colorEtiqueta = Color(0xFF3498DB),
+                        colorRuta = Color.Gray
+                    )
+                )
+                mostrarDialogo = false
+            }
+        )
+    }
 }
 
 @Composable
-fun PantallaReportarIncidente(navController: NavController) {
-    val surfaceColor = MaterialTheme.colorScheme.surface
-    val onSurface = MaterialTheme.colorScheme.onSurface
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .background(surfaceColor)
-            .padding(16.dp)
+fun TarjetaAlerta(incidencia: Incidencia) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
+        shape = RoundedCornerShape(20.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
     ) {
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        Card(
-            modifier = Modifier.fillMaxWidth(), 
-            shape = RoundedCornerShape(24.dp), 
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)), 
-            elevation = CardDefaults.cardElevation(0.dp), 
-            border = BorderStroke(1.dp, onSurface.copy(alpha = 0.1f))
-        ) {
-            Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("¿Qué tipo de incidente deseas reportar?", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = onSurface, textAlign = TextAlign.Center)
-                Spacer(modifier = Modifier.height(24.dp))
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Surface(color = Color(0xFFC0392B), shape = RoundedCornerShape(12.dp)) { Text("Retraso grave", color = Color.White, fontSize = 11.sp, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), fontWeight = FontWeight.Bold) }
-                        Spacer(modifier = Modifier.height(12.dp)); Box(modifier = Modifier.size(72.dp).background(Color(0xFFFADBD8), RoundedCornerShape(18.dp)), contentAlignment = Alignment.Center) { Icon(Icons.Default.Warning, null, tint = Color(0xFFC0392B), modifier = Modifier.size(40.dp)) }
-                    }
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Surface(color = Color(0xFFF39C12), shape = RoundedCornerShape(12.dp)) { Text("Desvío de Ruta", color = Color.White, fontSize = 11.sp, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), fontWeight = FontWeight.Bold) }
-                        Spacer(modifier = Modifier.height(12.dp)); Box(modifier = Modifier.size(72.dp).background(Color(0xFFFDEBD0), RoundedCornerShape(18.dp)), contentAlignment = Alignment.Center) { Icon(Icons.AutoMirrored.Filled.Shortcut, null, tint = Color(0xFFF39C12), modifier = Modifier.size(40.dp)) }
-                    }
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Surface(color = incidencia.colorEtiqueta, shape = RoundedCornerShape(12.dp)) {
+                    Text(incidencia.tipo, color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
                 }
-                
-                Spacer(modifier = Modifier.height(32.dp))
-                Text("¿En que ruta sucedió?", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = onSurface)
-                
-                Spacer(modifier = Modifier.height(20.dp))
-                val rutas = listOf(Triple("L1", Color(0xFFE57373), "Plaza Mayor - Aeropuerto"), Triple("L4", Color(0xFF64B5F6), "Universidad - Puerto"), Triple("L7", Color(0xFF66BB6A), "Centro - Hospital Norte"), Triple("L5", Color(0xFFFFB74D), "Ruta Guadalupana (Centro - Las Lomas)"), Triple("MA", Color(0xFF9575CD), "Ruta Angelópolis (Angelópolis - Loreto)"))
-                rutas.forEach { (tag, color, desc) ->
-                    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Box(modifier = Modifier.size(42.dp).background(color, RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) { Text(tag, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp) }
-                        Spacer(modifier = Modifier.width(16.dp)); Text(desc, fontSize = 14.sp, color = onSurface.copy(alpha = 0.7f), fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
-                    }
+                Surface(color = incidencia.colorRuta, shape = CircleShape, modifier = Modifier.size(32.dp)) {
+                    Box(contentAlignment = Alignment.Center) { Text(incidencia.ruta, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp) }
                 }
             }
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(incidencia.titulo, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(incidencia.descripcion, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f), lineHeight = 18.sp)
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(incidencia.tiempo, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
         }
-        
-        Spacer(modifier = Modifier.height(32.dp))
-        Button(
-            onClick = { navController.popBackStack() }, 
-            modifier = Modifier.align(Alignment.CenterHorizontally).height(52.dp).width(220.dp), 
-            colors = ButtonDefaults.buttonColors(containerColor = onSurface.copy(alpha = 0.1f), contentColor = onSurface), 
-            shape = RoundedCornerShape(26.dp)
-        ) { 
-            Text("Enviar Reporte", fontWeight = FontWeight.Bold, fontSize = 16.sp) 
-        }
-        Spacer(modifier = Modifier.height(40.dp))
     }
+}
+
+@Composable
+fun DialogoReporte(onDismiss: () -> Unit, onConfirm: (String, String) -> Unit) {
+    var ruta by remember { mutableStateOf("") }
+    var descripcion by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Reportar nueva incidencia", fontWeight = FontWeight.Bold) },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = ruta,
+                    onValueChange = { ruta = it },
+                    label = { Text("Línea/Ruta (Ej. L4)") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = descripcion,
+                    onValueChange = { descripcion = it },
+                    label = { Text("Descripción del problema") },
+                    modifier = Modifier.fillMaxWidth().height(120.dp)
+                )
+            }
+        },
+        confirmButton = {
+            Button(onClick = { if (ruta.isNotBlank() && descripcion.isNotBlank()) onConfirm(ruta, descripcion) }) {
+                Text("Reportar")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancelar") }
+        }
+    )
 }
 
 @Composable
@@ -293,38 +339,38 @@ fun PantallaCuenta(sessionManager: SessionManager, navController: NavController)
             .padding(16.dp)
     ) {
         Spacer(modifier = Modifier.height(8.dp))
-        
+
         Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(modifier = Modifier.size(52.dp).background(onSurface.copy(alpha = 0.1f), CircleShape), contentAlignment = Alignment.Center) { 
-                Text("L", fontWeight = FontWeight.Bold, color = onSurface, fontSize = 24.sp) 
+            Box(modifier = Modifier.size(52.dp).background(onSurface.copy(alpha = 0.1f), CircleShape), contentAlignment = Alignment.Center) {
+                Text("L", fontWeight = FontWeight.Bold, color = onSurface, fontSize = 24.sp)
             }
             Spacer(modifier = Modifier.width(16.dp))
-            Column { 
+            Column {
                 Text("Leo Sanchez", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = onSurface)
-                Text("leo.sanchez.lo@gmail.com", fontSize = 13.sp, color = onSurface.copy(alpha = 0.6f)) 
+                Text("leo.sanchez.lo@gmail.com", fontSize = 13.sp, color = onSurface.copy(alpha = 0.6f))
             }
         }
-        
+
         Spacer(modifier = Modifier.height(32.dp))
         Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)) {
             Text("Rutas frecuentes", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = onSurface)
             Spacer(modifier = Modifier.height(16.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Surface(modifier = Modifier.weight(1f).height(80.dp), shape = RoundedCornerShape(16.dp), color = Color(0xFF4A86F7)) { 
-                    Column(modifier = Modifier.fillMaxSize().padding(12.dp), verticalArrangement = Arrangement.SpaceBetween) { 
+                Surface(modifier = Modifier.weight(1f).height(80.dp), shape = RoundedCornerShape(16.dp), color = Color(0xFF4A86F7)) {
+                    Column(modifier = Modifier.fillMaxSize().padding(12.dp), verticalArrangement = Arrangement.SpaceBetween) {
                         Row(verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Default.Home, "Casa", tint = Color.White, modifier = Modifier.size(20.dp)); Spacer(modifier = Modifier.width(8.dp)); Text("Casa", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold) }
-                        Text("Registrar ubicación", color = Color.White.copy(alpha = 0.8f), fontSize = 11.sp) 
-                    } 
+                        Text("Registrar ubicación", color = Color.White.copy(alpha = 0.8f), fontSize = 11.sp)
+                    }
                 }
-                Surface(modifier = Modifier.weight(1f).height(80.dp), shape = RoundedCornerShape(16.dp), color = Color(0xFFF26E68)) { 
-                    Column(modifier = Modifier.fillMaxSize().padding(12.dp), verticalArrangement = Arrangement.SpaceBetween) { 
+                Surface(modifier = Modifier.weight(1f).height(80.dp), shape = RoundedCornerShape(16.dp), color = Color(0xFFF26E68)) {
+                    Column(modifier = Modifier.fillMaxSize().padding(12.dp), verticalArrangement = Arrangement.SpaceBetween) {
                         Row(verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Default.School, "Universidad", tint = Color.White, modifier = Modifier.size(20.dp)); Spacer(modifier = Modifier.width(8.dp)); Text("Universidad", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold) }
-                        Text("Registrar ubicación", color = Color.White.copy(alpha = 0.8f), fontSize = 11.sp) 
-                    } 
+                        Text("Registrar ubicación", color = Color.White.copy(alpha = 0.8f), fontSize = 11.sp)
+                    }
                 }
             }
         }
-        
+
         Spacer(modifier = Modifier.height(32.dp))
         Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)) {
             Text("Modo Offline", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = onSurface)
@@ -336,16 +382,16 @@ fun PantallaCuenta(sessionManager: SessionManager, navController: NavController)
                 }
             }
         }
-        
+
         Spacer(modifier = Modifier.height(24.dp))
         Surface(modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp), shape = RoundedCornerShape(24.dp), color = onBackground.copy(alpha = 0.03f)) {
             Column(modifier = Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OpcionCuenta("Configuración"); OpcionCuenta("Alertas"); OpcionCuenta("Privacidad y Seguridad"); OpcionCuenta("Ayuda y Soporte")
             }
         }
-        
+
         Spacer(modifier = Modifier.height(32.dp))
-        
+
         Button(
             onClick = {
                 scope.launch {
@@ -361,7 +407,7 @@ fun PantallaCuenta(sessionManager: SessionManager, navController: NavController)
         ) {
             Text("Cerrar Sesión", fontWeight = FontWeight.Bold)
         }
-        
+
         Spacer(modifier = Modifier.height(40.dp))
     }
 }

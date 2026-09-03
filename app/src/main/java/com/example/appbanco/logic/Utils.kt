@@ -62,3 +62,37 @@ fun obtenerLogoSegunHora(): Int {
 fun obtenerDatosGuardados(callback: (List<Lugar>) -> List<Lugar>): List<Lugar> {
     return callback(obtenerLugaresMock())
 }
+// NUEVO: Modelo de datos para las Alertas
+data class Incidencia(
+    val tipo: String,
+    val ruta: String,
+    val titulo: String,
+    val descripcion: String,
+    val tiempo: String,
+    val colorEtiqueta: Color,
+    val colorRuta: Color
+)
+
+// NUEVO: Función para cargar las alertas base (simulando una base de datos)
+fun obtenerAlertasIniciales(): List<Incidencia> {
+    return listOf(
+        Incidencia(
+            tipo = "Retraso grave",
+            ruta = "L5",
+            titulo = "Retraso grave - Ruta Guadalupana\n(Centro Puebla - Las lomas)",
+            descripcion = "Interrupción parcial del servicio por falla técnica en la Colonia Serdán.\nRetrasos estimados de entre 10 a 30 minutos.\nUse Rutas alternas",
+            tiempo = "Hace 10 min",
+            colorEtiqueta = Color(0xFFC63F32), // Rojo
+            colorRuta = Color(0xFFF37844)      // Naranja
+        ),
+        Incidencia(
+            tipo = "Desvío de Ruta",
+            ruta = "MA",
+            titulo = "Desvío de Ruta - Ruta Angelópolis\n(Angelópolis - Plaza Loreto)",
+            descripcion = "Cierre de vialidad por manifestación en Av. Insurgentes Norte.\nDesvío temporal entre la calle Colorines y Tlatelolco.\nUse Rutas alternas",
+            tiempo = "Hace 30 min",
+            colorEtiqueta = Color(0xFFF59E0B), // Amarillo/Naranja
+            colorRuta = Color(0xFF9D4EDD)      // Morado
+        )
+    )
+}

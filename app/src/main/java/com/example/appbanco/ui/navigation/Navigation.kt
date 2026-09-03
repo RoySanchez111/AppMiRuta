@@ -27,8 +27,8 @@ import androidx.lifecycle.ViewModelProvider
 
 @Composable
 fun NavegacionMiRuta(
-    viewModel: MainViewModel, 
-    database: AppDatabase, 
+    viewModel: MainViewModel,
+    database: AppDatabase,
     sessionManager: SessionManager
 ) {
     val startDest by viewModel.startDestination
@@ -43,7 +43,6 @@ fun NavegacionMiRuta(
         "horario" -> "Planea tu viaje"
         "alertas" -> "Alertas importantes"
         "cuenta" -> "Perfil"
-        "reportar" -> "Reportar un incidente"
         else -> ""
     }
     val subtituloHeader = if (rutaActual == "principal") {
@@ -52,34 +51,34 @@ fun NavegacionMiRuta(
 
     Scaffold(
         containerColor = Color.Transparent,
-        topBar = { 
+        topBar = {
             if (esPantallaApp) {
                 EncabezadoGlobal(
                     titulo = tituloHeader,
                     subtitulo = subtituloHeader,
-                    onBackClick = if (rutaActual == "reportar" || rutaActual == "cuenta") { 
-                        { navController.popBackStack() } 
+                    onBackClick = if (rutaActual == "cuenta") {
+                        { navController.popBackStack() }
                     } else null,
-                    onProfileClick = { 
+                    onProfileClick = {
                         if (rutaActual != "cuenta") {
                             navController.navigate("cuenta") {
                                 popUpTo("principal") { saveState = true }
                                 launchSingleTop = true
                                 restoreState = true
                             }
-                        } 
+                        }
                     }
                 )
             }
         },
-        bottomBar = { if (esPantallaApp && rutaActual != "reportar") BarraNavegacionInferior(navController, rutaActual) }
+        bottomBar = { if (esPantallaApp) BarraNavegacionInferior(navController, rutaActual) }
     ) { paddingValues ->
         val modifier = if (esPantallaApp) Modifier.padding(paddingValues) else Modifier.fillMaxSize()
-        
+
         NavHost(navController = navController, startDestination = "splash", modifier = modifier) {
             composable("splash") { TimeBasedBackground { PantallaSplash(navController) } }
             composable("loading") { TimeBasedBackground { PantallaLoading(navController, startDest) } }
-            composable("login") { 
+            composable("login") {
                 val loginViewModel: LoginViewModel = viewModel(
                     factory = object : ViewModelProvider.Factory {
                         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -87,13 +86,12 @@ fun NavegacionMiRuta(
                         }
                     }
                 )
-                TimeBasedBackground { PantallaLogin(navController, loginViewModel) } 
+                TimeBasedBackground { PantallaLogin(navController, loginViewModel) }
             }
             composable("principal") { PantallaPrincipal(navController) }
             composable("horario") { PantallaHorarios(navController) }
-            composable("alertas") { PantallaAlertas(navController) }
+            composable("alertas") { PantallaAlertas(navController, viewModel) }
             composable("cuenta") { PantallaCuenta(sessionManager, navController) }
-            composable("reportar") { PantallaReportarIncidente(navController) }
         }
     }
 }
