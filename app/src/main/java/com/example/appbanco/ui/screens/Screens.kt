@@ -317,27 +317,117 @@ fun PantallaAlertas(navController: NavController, viewModel: MainViewModel) {
 
 @Composable
 fun TarjetaAlerta(incidencia: Incidencia) {
+
+    // Controla si la información está desplegada
+    var expandida by remember { mutableStateOf(false) }
+
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                expandida = !expandida
+            },
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+        ),
         shape = RoundedCornerShape(20.dp),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
+        border = BorderStroke(
+            1.dp,
+            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
+        )
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Surface(color = incidencia.colorEtiqueta, shape = RoundedCornerShape(12.dp)) {
-                    Text(incidencia.tipo, color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+
+            // Parte que siempre permanece visible
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Surface(
+                    color = incidencia.colorEtiqueta,
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        text = incidencia.tipo,
+                        color = Color.White,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(
+                            horizontal = 10.dp,
+                            vertical = 4.dp
+                        )
+                    )
                 }
-                Surface(color = incidencia.colorRuta, shape = CircleShape, modifier = Modifier.size(32.dp)) {
-                    Box(contentAlignment = Alignment.Center) { Text(incidencia.ruta, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp) }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        color = incidencia.colorRuta,
+                        shape = CircleShape,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Box(
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = incidencia.ruta,
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Icon(
+                        imageVector = if (expandida) {
+                            Icons.Default.KeyboardArrowUp
+                        } else {
+                            Icons.Default.KeyboardArrowDown
+                        },
+                        contentDescription = if (expandida) {
+                            "Contraer información"
+                        } else {
+                            "Mostrar información"
+                        },
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
                 }
             }
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(incidencia.titulo, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(incidencia.descripcion, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f), lineHeight = 18.sp)
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(incidencia.tiempo, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+
+            // Esta información solamente aparece al tocar la tarjeta
+            if (expandida) {
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = incidencia.titulo,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Text(
+                    text = incidencia.descripcion,
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                    lineHeight = 18.sp
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = incidencia.tiempo,
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                )
+            }
         }
     }
 }
