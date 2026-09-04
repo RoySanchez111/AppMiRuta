@@ -44,6 +44,7 @@ import org.maplibre.android.location.LocationComponentActivationOptions
 import android.Manifest
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.delay
 
 @Composable
 fun PantallaPrincipal(navController: NavController) {
@@ -251,6 +252,7 @@ fun PantallaAlertas(navController: NavController, viewModel: MainViewModel) {
 
     val listaIncidencias = viewModel.listaIncidencias
     var mostrarDialogo by remember { mutableStateOf(false) }
+    var mostrarExito by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -310,6 +312,15 @@ fun PantallaAlertas(navController: NavController, viewModel: MainViewModel) {
                     )
                 )
                 mostrarDialogo = false
+
+                mostrarExito = true
+            }
+        )
+    }
+    if (mostrarExito) {
+        AnimacionReporteExitoso(
+            onFinished = {
+                mostrarExito = false
             }
         )
     }
@@ -467,6 +478,92 @@ fun DialogoReporte(onDismiss: () -> Unit, onConfirm: (String, String) -> Unit) {
             TextButton(onClick = onDismiss) { Text("Cancelar") }
         }
     )
+}
+
+@Composable
+fun AnimacionReporteExitoso(
+    onFinished: () -> Unit
+) {
+    LaunchedEffect(Unit) {
+
+        // Tiempo que permanece la confirmación en pantalla
+        delay(2000)
+
+        // Después de 2 segundos regresa a la pantalla normal
+        onFinished()
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Color.Black.copy(alpha = 0.35f)
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+
+        // TARJETA DE CONFIRMACIÓN
+        Surface(
+            modifier = Modifier
+                .width(280.dp)
+                .wrapContentHeight(),
+            shape = RoundedCornerShape(24.dp),
+            color = Color.White,
+            shadowElevation = 8.dp
+        ) {
+
+            Column(
+                modifier = Modifier
+                    .padding(
+                        horizontal = 30.dp,
+                        vertical = 28.dp
+                    ),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+
+                // CÍRCULO CON LA PALOMITA
+                Box(
+                    modifier = Modifier
+                        .size(90.dp)
+                        .background(
+                            color = Color(0xFFE8F5E9),
+                            shape = CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+
+                    Text(
+                        text = "✓",
+                        fontSize = 55.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF4CAF50)
+                    )
+                }
+
+                Spacer(
+                    modifier = Modifier.height(18.dp)
+                )
+
+                Text(
+                    text = "¡Reporte enviado!",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
+
+                Spacer(
+                    modifier = Modifier.height(6.dp)
+                )
+
+                Text(
+                    text = "La incidencia fue registrada correctamente.",
+                    fontSize = 14.sp,
+                    color = Color.Gray,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+    }
 }
 
 @Composable
