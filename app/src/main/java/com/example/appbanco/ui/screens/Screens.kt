@@ -442,40 +442,107 @@ fun TarjetaAlerta(incidencia: Incidencia) {
         }
     }
 }
-
 @Composable
-fun DialogoReporte(onDismiss: () -> Unit, onConfirm: (String, String) -> Unit) {
+fun DialogoReporte(
+    onDismiss: () -> Unit,
+    onConfirm: (String, String) -> Unit
+) {
     var ruta by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
 
+    var errorRuta by remember { mutableStateOf(false) }
+    var errorDescripcion by remember { mutableStateOf(false) }
+
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Reportar nueva incidencia", fontWeight = FontWeight.Bold) },
+
+        title = {
+            Text(
+                "Reportar nueva incidencia",
+                fontWeight = FontWeight.Bold
+            )
+        },
+
         text = {
             Column {
+
+                // CAMPO RUTA
                 OutlinedTextField(
                     value = ruta,
-                    onValueChange = { ruta = it },
-                    label = { Text("Línea/Ruta (Ej. L4)") },
+                    onValueChange = {
+                        ruta = it
+                        errorRuta = false
+                    },
+                    label = {
+                        Text("Línea/Ruta (Ej. L4)")
+                    },
                     singleLine = true,
+                    isError = errorRuta,
                     modifier = Modifier.fillMaxWidth()
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+
+                if (errorRuta) {
+                    Text(
+                        text = "Debes ingresar una línea o ruta.",
+                        color = MaterialTheme.colorScheme.error,
+                        fontSize = 12.sp
+                    )
+                }
+
+                Spacer(
+                    modifier = Modifier.height(8.dp)
+                )
+
+                // CAMPO DESCRIPCIÓN
                 OutlinedTextField(
                     value = descripcion,
-                    onValueChange = { descripcion = it },
-                    label = { Text("Descripción del problema") },
-                    modifier = Modifier.fillMaxWidth().height(120.dp)
+                    onValueChange = {
+                        descripcion = it
+                        errorDescripcion = false
+                    },
+                    label = {
+                        Text("Descripción del problema")
+                    },
+                    isError = errorDescripcion,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(120.dp)
                 )
+
+                if (errorDescripcion) {
+                    Text(
+                        text = "Debes ingresar una descripción.",
+                        color = MaterialTheme.colorScheme.error,
+                        fontSize = 12.sp
+                    )
+                }
             }
         },
+
         confirmButton = {
-            Button(onClick = { if (ruta.isNotBlank() && descripcion.isNotBlank()) onConfirm(ruta, descripcion) }) {
+            Button(
+                onClick = {
+
+                    // Comprobamos cada campo
+                    errorRuta = ruta.isBlank()
+                    errorDescripcion = descripcion.isBlank()
+
+                    // Si ninguno tiene error, enviamos
+                    if (!errorRuta && !errorDescripcion) {
+                        onConfirm(ruta, descripcion)
+                    }
+                }
+            ) {
                 Text("Reportar")
             }
         },
+
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
+            TextButton(
+                onClick = onDismiss
+            ) {
+                Text("Cancelar")
+            }
         }
     )
 }
@@ -487,7 +554,7 @@ fun AnimacionReporteExitoso(
     LaunchedEffect(Unit) {
 
         // Tiempo que permanece la confirmación en pantalla
-        delay(2000)
+        delay(1000)
 
         // Después de 2 segundos regresa a la pantalla normal
         onFinished()
