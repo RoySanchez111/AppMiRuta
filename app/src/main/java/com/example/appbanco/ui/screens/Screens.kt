@@ -30,10 +30,35 @@ import com.example.appbanco.ui.viewmodel.MainViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.maplibre.android.MapLibre
+import org.maplibre.android.camera.CameraPosition
+import org.maplibre.android.geometry.LatLng
+import org.maplibre.android.maps.MapView
+import org.maplibre.android.maps.Style
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import org.maplibre.android.location.LocationComponentActivationOptions
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 
 @Composable
 fun PantallaPrincipal(navController: NavController) {
     val onBackground = MaterialTheme.colorScheme.onBackground
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    // Coordenadas de Tecmilenio Campus Puebla
+    val tecmilenioPuebla = LatLng(18.999446, -98.261833)
+
+    // Inicializar MapLibre (solo una vez)
+    remember {
+        MapLibre.getInstance(context)
+        true
+    }
 
     Column(
         modifier = Modifier
@@ -58,22 +83,53 @@ fun PantallaPrincipal(navController: NavController) {
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // MAPA
-        Box(modifier = Modifier.fillMaxWidth().height(400.dp).background(Color(0xFFE7E3DB), RoundedCornerShape(20.dp))) {
-            Canvas(modifier = Modifier.fillMaxSize()) {
-                drawLine(Color(0xFFCFCBC4), Offset(0f, size.height * 0.3f), Offset(size.width, size.height * 0.3f), 28f)
-                drawLine(Color(0xFFCFCBC4), Offset(0f, size.height * 0.6f), Offset(size.width, size.height * 0.6f), 32f)
-                drawLine(Color(0xFFCFCBC4), Offset(size.width * 0.25f, 0f), Offset(size.width * 0.25f, size.height), 28f)
-                drawLine(Color(0xFFCFCBC4), Offset(size.width * 0.7f, 0f), Offset(size.width * 0.7f, size.height), 28f)
-                drawLine(Color(0xFF4DA3E8), Offset(size.width * 0.15f, size.height * 0.67f), Offset(size.width * 0.85f, size.height * 0.67f), 12f, cap = StrokeCap.Round)
-                drawLine(Color(0xFFFFA23A), Offset(size.width * 0.2f, size.height * 0.4f), Offset(size.width * 0.75f, size.height * 0.4f), 10f, cap = StrokeCap.Round)
-                val paradas = listOf(Offset(size.width * 0.25f, size.height * 0.67f), Offset(size.width * 0.45f, size.height * 0.67f), Offset(size.width * 0.65f, size.height * 0.67f))
-                paradas.forEach { drawCircle(Color.White, 13f, it); drawCircle(Color(0xFFE53935), 7f, it) }
-                drawCircle(Color.White, 18f, Offset(size.width * 0.52f, size.height * 0.78f))
-                drawCircle(Color(0xFF4285F4), 11f, Offset(size.width * 0.52f, size.height * 0.78f))
+        // MAPA MAPLIBRE CON OPENFREEMAP (Sin bloqueos, sin tarjetas)
+        Box(modifier = Modifier.fillMaxWidth().height(400.dp).clip(RoundedCornerShape(20.dp))) {
+            AndroidView(
+                factory = { ctx ->
+                    MapView(ctx).apply {
+                        getMapAsync { map ->
+                            // Estilo de OpenFreeMap (Libre y nítido)
+                            map.setStyle(Style.Builder().fromUri("https://tiles.openfreemap.org/styles/liberty"))
+                            
+                            // Configuración inicial de cámara
+                            map.cameraPosition = CameraPosition.Builder()
+                                .target(tecmilenioPuebla)
+                                .zoom(15.0)
+                                .build()
+                            
+                            // Activar ubicación si los permisos están concedidos
+                            if (ContextCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+                                ContextCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                                map.locationComponent.apply {
+                                    activateLocationComponent(
+                                        LocationComponentActivationOptions.builder(ctx, map.style!!).build()
+                                    )
+                                    isLocationComponentEnabled = true
+                                }
+                            }
+                        }
+                    }
+                },
+                modifier = Modifier.fillMaxSize(),
+                update = { mapView ->
+                    // El update se dispara cuando cambia el estado de Compose
+                }
+            )
+
+            // Manejo de ciclos de vida de MapLibre
+            DisposableEffect(lifecycleOwner) {
+                val observer = LifecycleEventObserver { _, event ->
+                    // Aquí se podrían propagar los eventos onStart, onResume, etc. al MapView si fuera necesario
+                }
+                lifecycleOwner.lifecycle.addObserver(observer)
+                onDispose {
+                    lifecycleOwner.lifecycle.removeObserver(observer)
+                }
             }
+
             IconButton(
-                onClick = { },
+                onClick = { /* Acción para centrar */ },
                 modifier = Modifier.align(Alignment.BottomEnd).padding(14.dp).background(Color.White, CircleShape).shadow(4.dp, CircleShape)
             ) {
                 Icon(Icons.Default.MyLocation, contentDescription = "Mi ubicación", tint = Color(0xFF4285F4))

@@ -50,3 +50,14 @@ fun obtenerLugaresMock(): List<Lugar> {
         Lugar("Gimnasio", Icons.Default.FitnessCenter)
     )
 }
+
+// NUEVO: Modelo de datos para las Alertas
+data class Incidencia(
+    val tipo: String,
+    val ruta: String,
+    val titulo: String,
+    val descripcion: String,
+    val tiempo: String,
+    val colorEtiqueta: Color,
+    val colorRuta: Color
+)

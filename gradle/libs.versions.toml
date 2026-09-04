@@ -12,6 +12,8 @@ composeBom = "2026.02.01"
 room = "2.8.4"
 datastore = "1.1.1"
 jbcrypt = "0.4"
+# MapLibre (Alternativa gratuita)
+maplibre = "11.5.2"
 
 #Roy Was Here
 [libraries]
@@ -35,6 +37,7 @@ androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = 
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 jbcrypt = { group = "org.mindrot", name = "jbcrypt", version.ref = "jbcrypt" }
+maplibre = { group = "org.maplibre.gl", name = "android-sdk", version.ref = "maplibre" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

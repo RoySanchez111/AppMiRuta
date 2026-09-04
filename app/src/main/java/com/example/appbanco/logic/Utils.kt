@@ -5,6 +5,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
 import com.example.appbanco.R
+import com.example.appbanco.data.Incidencia
 import com.example.appbanco.data.Lugar
 import com.example.appbanco.data.obtenerLugaresMock
 import java.util.Calendar
@@ -62,16 +63,6 @@ fun obtenerLogoSegunHora(): Int {
 fun obtenerDatosGuardados(callback: (List<Lugar>) -> List<Lugar>): List<Lugar> {
     return callback(obtenerLugaresMock())
 }
-// NUEVO: Modelo de datos para las Alertas
-data class Incidencia(
-    val tipo: String,
-    val ruta: String,
-    val titulo: String,
-    val descripcion: String,
-    val tiempo: String,
-    val colorEtiqueta: Color,
-    val colorRuta: Color
-)
 
 // NUEVO: Función para cargar las alertas base (simulando una base de datos)
 fun obtenerAlertasIniciales(): List<Incidencia> {
