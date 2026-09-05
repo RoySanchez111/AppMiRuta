@@ -19,8 +19,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.appbanco.logic.AppConfig
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import com.example.appbanco.ui.viewmodel.LoginViewModel
 
 @Composable
@@ -121,9 +119,23 @@ fun PantallaLogin(navController: NavController, viewModel: LoginViewModel) {
         ) {
             Text("Iniciar Sesión", fontSize = 18.sp, fontWeight = FontWeight.Bold)
         }
-        
-        Spacer(modifier = Modifier.height(12.dp))
-        
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        TextButton(
+            onClick = {
+                navController.navigate("registro")
+            }
+        ) {
+            Text(
+                text = "¿No tienes cuenta? Crear cuenta",
+                color = Color.White,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
         Button(
             onClick = { },
             modifier = Modifier.fillMaxWidth().height(50.dp),

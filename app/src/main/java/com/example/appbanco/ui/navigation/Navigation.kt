@@ -35,7 +35,8 @@ fun NavegacionMiRuta(
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val rutaActual = navBackStackEntry?.destination?.route
-    val esPantallaApp = rutaActual != "splash" && rutaActual != "login" && rutaActual != "loading"
+    val esPantallaApp = rutaActual != "splash" && rutaActual != "login" && rutaActual != "loading" &&
+            rutaActual != "registro"
 
     val mensajeBienvenida = obtenerMensajeBienvenida("Roy Sanchez")
     val tituloHeader = when (rutaActual) {
@@ -78,7 +79,8 @@ fun NavegacionMiRuta(
         NavHost(navController = navController, startDestination = "splash", modifier = modifier) {
             composable("splash") { TimeBasedBackground { PantallaSplash(navController) } }
             composable("loading") { TimeBasedBackground { PantallaLoading(navController, startDest) } }
-            composable("login") {
+            composable("login")
+                                                                     {
                 val loginViewModel: LoginViewModel = viewModel(
                     factory = object : ViewModelProvider.Factory {
                         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -87,6 +89,11 @@ fun NavegacionMiRuta(
                     }
                 )
                 TimeBasedBackground { PantallaLogin(navController, loginViewModel) }
+            }
+            composable("registro") {
+                TimeBasedBackground {
+                    PantallaRegistro(navController)
+                }
             }
             composable("principal") { PantallaPrincipal(navController) }
             composable("horario") { PantallaHorarios(navController) }
