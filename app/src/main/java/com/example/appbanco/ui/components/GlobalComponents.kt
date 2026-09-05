@@ -32,6 +32,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 import androidx.navigation.NavController
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 
 @Composable
 fun BarraNavegacionInferior(navController: NavController, rutaActual: String?) {
@@ -118,7 +125,9 @@ fun EncabezadoGlobal(
 
                     Column(
                         verticalArrangement = Arrangement.Center,
-                        modifier = Modifier.padding(start = if (onBackClick == null) 8.dp else 0.dp)
+                        modifier = Modifier
+                            .padding(start = if (onBackClick == null) 8.dp else 0.dp)
+                            .semantics { heading() }
                     ) {
                         if (subtitulo != null) {
                             Text(
@@ -142,12 +151,16 @@ fun EncabezadoGlobal(
                         .clip(CircleShape)
                         .background(Color.White.copy(alpha = 0.25f))
                         .border(1.dp, Color.White.copy(alpha = 0.3f), CircleShape)
-                        .clickable { onProfileClick() },
+                        .clickable { onProfileClick() }
+                        .semantics {
+                            role = Role.Button
+                            contentDescription = "Ir a mi perfil"
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.Person,
-                        contentDescription = "Perfil",
+                        contentDescription = null,
                         tint = Color.White,
                         modifier = Modifier.size(28.dp)
                     )
@@ -179,10 +192,16 @@ fun MinimalistAnimation() {
         label = "alpha"
     )
 
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.semantics {
+            liveRegion = LiveRegionMode.Polite
+            contentDescription = "Buscando ubicación actual"
+        }
+    ) {
         Icon(
             imageVector = Icons.Default.Place,
-            contentDescription = "Loading",
+            contentDescription = null,
             modifier = Modifier
                 .size(80.dp)
                 .scale(scale)
@@ -207,6 +226,10 @@ fun LineCard(linea: LineaRuta, scope: CoroutineScope, snackbarHostState: Snackba
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 6.dp)
+            .semantics(mergeDescendants = true) {
+                role = Role.Button
+                contentDescription = "Línea ${linea.numero}, ${linea.nombre}, ${linea.destino}, frecuencia ${linea.frecuencia}"
+            }
             .clickable {
                 scope.launch {
                     snackbarHostState.showSnackbar("Seleccionaste: ${linea.nombre}")
@@ -271,7 +294,7 @@ fun LineCard(linea: LineaRuta, scope: CoroutineScope, snackbarHostState: Snackba
                 )
                 Icon(
                     imageVector = Icons.Default.ChevronRight,
-                    contentDescription = "Seleccionar",
+                    contentDescription = null,
                     tint = onSurfaceColor.copy(alpha = 0.5f),
                     modifier = Modifier.size(20.dp)
                 )
@@ -285,7 +308,11 @@ fun AlertCard(alerta: AlertaIncidencia) {
     val onSurfaceColor = MaterialTheme.colorScheme.onSurface
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) {
+                contentDescription = "Alerta ${alerta.tipo} en ruta ${alerta.ruta}: ${alerta.titulo}. ${alerta.descripcion}. Hace ${alerta.tiempo}"
+            },
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
@@ -375,14 +402,22 @@ fun AlertCard(alerta: AlertaIncidencia) {
 }
 
 @Composable
-fun OpcionCuenta(texto: String) {
+fun OpcionCuenta(
+    texto: String, 
+    subtexto: String? = null, 
+    onClick: () -> Unit = {}
+) {
     val onSurfaceColor = MaterialTheme.colorScheme.onSurface
 
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .height(38.dp)
-            .clickable { },
+            .height(42.dp)
+            .semantics(mergeDescendants = true) {
+                role = Role.Button
+                contentDescription = if (subtexto != null) "$texto: $subtexto" else texto
+            }
+            .clickable { onClick() },
         shape = RoundedCornerShape(20.dp),
         color = onSurfaceColor.copy(alpha = 0.05f)
     ) {
@@ -393,14 +428,25 @@ fun OpcionCuenta(texto: String) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(
-                text = texto,
-                fontSize = 12.sp,
-                color = onSurfaceColor.copy(alpha = 0.8f)
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = texto,
+                    fontSize = 12.sp,
+                    color = onSurfaceColor.copy(alpha = 0.8f)
+                )
+                if (subtexto != null) {
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "($subtexto)",
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
             Icon(
                 imageVector = Icons.Default.ChevronRight,
-                contentDescription = "Abrir $texto",
+                contentDescription = null,
                 tint = onSurfaceColor.copy(alpha = 0.4f),
                 modifier = Modifier.size(20.dp)
             )

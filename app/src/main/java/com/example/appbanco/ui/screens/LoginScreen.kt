@@ -12,13 +12,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.appbanco.logic.AppConfig
-
 import com.example.appbanco.ui.viewmodel.LoginViewModel
 
 @Composable
@@ -61,13 +66,21 @@ fun PantallaLogin(navController: NavController, viewModel: LoginViewModel) {
             fontSize = 36.sp, 
             fontWeight = FontWeight.Bold, 
             color = Color.White,
-            style = MaterialTheme.typography.displayLarge
+            style = MaterialTheme.typography.displayLarge,
+            modifier = Modifier.semantics { heading() }
         )
         
         Spacer(modifier = Modifier.height(32.dp))
 
         if (errorMessage != null) {
-            Text(text = errorMessage, color = Color.White)
+            Text(
+                text = errorMessage, 
+                color = Color(0xFFFFD2D2),
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 16.sp,
+                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
+            )
+            Spacer(modifier = Modifier.height(16.dp))
         }
         
         OutlinedTextField(
@@ -76,7 +89,9 @@ fun PantallaLogin(navController: NavController, viewModel: LoginViewModel) {
             label = {
                 Text("Usuario", color = Color.Black, modifier = Modifier.background(Color.White))
             },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .semantics { contentDescription = "Campo para ingresar usuario" },
             colors = OutlinedTextFieldDefaults.colors(
                 unfocusedContainerColor = Color.White,
                 focusedContainerColor = Color.White,
@@ -95,7 +110,9 @@ fun PantallaLogin(navController: NavController, viewModel: LoginViewModel) {
                 Text("Contraseña", color = Color.Black, modifier = Modifier.background(Color.White))
             },
             visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .semantics { contentDescription = "Campo para ingresar contraseña" },
             colors = OutlinedTextFieldDefaults.colors(
                 unfocusedContainerColor = Color.White,
                 focusedContainerColor = Color.White,
@@ -111,7 +128,13 @@ fun PantallaLogin(navController: NavController, viewModel: LoginViewModel) {
             onClick = {
                 viewModel.onLoginClick(usuario, password)
             },
-            modifier = Modifier.fillMaxWidth().height(50.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+                .semantics {
+                    role = Role.Button
+                    contentDescription = "Boton iniciar sesión"
+                },
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFFFEB30F),
                 contentColor = Color.White
@@ -119,26 +142,37 @@ fun PantallaLogin(navController: NavController, viewModel: LoginViewModel) {
         ) {
             Text("Iniciar Sesión", fontSize = 18.sp, fontWeight = FontWeight.Bold)
         }
-
+        
         Spacer(modifier = Modifier.height(8.dp))
 
         TextButton(
             onClick = {
                 navController.navigate("registro")
+            },
+            modifier = Modifier.semantics {
+                role = Role.Button
+                contentDescription = "Crear nueva cuenta"
             }
         ) {
             Text(
                 text = "¿No tienes cuenta? Crear cuenta",
                 color = Color.White,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.Bold
             )
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
-
+        Spacer(modifier = Modifier.height(12.dp))
+        
         Button(
             onClick = { },
-            modifier = Modifier.fillMaxWidth().height(50.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+                .semantics {
+                    role = Role.Button
+                    contentDescription = "Boton iniciar sesión con Google"
+                },
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color.White.copy(alpha = 0.15f), 
                 contentColor = Color.White
@@ -148,12 +182,18 @@ fun PantallaLogin(navController: NavController, viewModel: LoginViewModel) {
         }
         
         Spacer(modifier = Modifier.height(12.dp))
-        Text(text = "O", color = Color.White, fontSize = 18.sp)
+        Text(text = "O", color = Color.White, fontSize = 18.sp, modifier = Modifier.semantics { contentDescription = "O" })
         Spacer(modifier = Modifier.height(12.dp))
         
         Button(
             onClick = { },
-            modifier = Modifier.fillMaxWidth().height(50.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+                .semantics {
+                    role = Role.Button
+                    contentDescription = "Boton continuar como invitado"
+                },
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color.White.copy(alpha = 0.1f), 
                 contentColor = Color.White

@@ -10,30 +10,36 @@ import com.example.appbanco.data.Lugar
 import com.example.appbanco.data.obtenerLugaresMock
 import java.util.Calendar
 
+fun obtenerEsquemaColoresClaro(): ColorScheme {
+    return lightColorScheme(
+        surface = Color(0xFFF0E8E4),
+        onSurface = Color(0xFF000000),
+        background = Color(0xFFF0E8E4),
+        onBackground = Color(0xFF000000),
+        surfaceVariant = Color(0xFFFFFFFF),
+        onSurfaceVariant = Color(0xFF000000),
+        primary = Color(0xFFFEB30F)
+    )
+}
+
+fun obtenerEsquemaColoresOscuro(): ColorScheme {
+    return darkColorScheme(
+        surface = Color(0xFF212020),
+        onSurface = Color(0xFFFFFFFF),
+        background = Color(0xFF212020),
+        onBackground = Color(0xFFFFFFFF),
+        surfaceVariant = Color(0xFF333333),
+        onSurfaceVariant = Color(0xFFFFFFFF),
+        primary = Color(0xFFFEB30F)
+    )
+}
+
 fun obtenerEsquemaColoresDinamico(): ColorScheme {
     val hora = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
     return if (hora in 6..18) {
-        // Esquema de Día (Cream)
-        lightColorScheme(
-            surface = Color(0xFFF0E8E4),
-            onSurface = Color(0xFF000000),
-            background = Color(0xFFF0E8E4),
-            onBackground = Color(0xFF000000),
-            surfaceVariant = Color(0xFFFFFFFF),
-            onSurfaceVariant = Color(0xFF000000),
-            primary = Color(0xFFFEB30F)
-        )
+        obtenerEsquemaColoresClaro()
     } else {
-        // Esquema de Noche (Dark)
-        darkColorScheme(
-            surface = Color(0xFF212020),
-            onSurface = Color(0xFFFFFFFF),
-            background = Color(0xFF212020),
-            onBackground = Color(0xFFFFFFFF),
-            surfaceVariant = Color(0xFF333333),
-            onSurfaceVariant = Color(0xFFFFFFFF),
-            primary = Color(0xFFFEB30F)
-        )
+        obtenerEsquemaColoresOscuro()
     }
 }
 

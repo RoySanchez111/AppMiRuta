@@ -9,15 +9,27 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.appbanco.data.database.UserDao
+import com.example.appbanco.data.database.UserEntity
+import com.example.appbanco.logic.SecurityUtils
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
-fun PantallaRegistro(navController: NavController) {
+fun PantallaRegistro(navController: NavController, userDao: UserDao? = null) {
 
     var correo by remember { mutableStateOf("") }
     var telefono by remember { mutableStateOf("") }
@@ -27,6 +39,7 @@ fun PantallaRegistro(navController: NavController) {
 
     var mensajeError by remember { mutableStateOf("") }
     var datosCorrectos by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier
@@ -40,7 +53,8 @@ fun PantallaRegistro(navController: NavController) {
             text = "Crear cuenta",
             fontSize = 32.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.White
+            color = Color.White,
+            modifier = Modifier.semantics { heading() }
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -59,7 +73,9 @@ fun PantallaRegistro(navController: NavController) {
                 keyboardType = KeyboardType.Email
             ),
             singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .semantics { contentDescription = "Campo de correo electrónico" },
             colors = coloresRegistro()
         )
 
@@ -85,7 +101,9 @@ fun PantallaRegistro(navController: NavController) {
                 keyboardType = KeyboardType.Phone
             ),
             singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .semantics { contentDescription = "Campo de teléfono de 10 dígitos" },
             colors = coloresRegistro()
         )
 
@@ -106,7 +124,9 @@ fun PantallaRegistro(navController: NavController) {
                 keyboardType = KeyboardType.Password
             ),
             singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .semantics { contentDescription = "Campo de contraseña" },
             colors = coloresRegistro()
         )
 
@@ -127,7 +147,9 @@ fun PantallaRegistro(navController: NavController) {
                 keyboardType = KeyboardType.Password
             ),
             singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .semantics { contentDescription = "Campo para confirmar contraseña" },
             colors = coloresRegistro()
         )
 
@@ -153,7 +175,9 @@ fun PantallaRegistro(navController: NavController) {
                 keyboardType = KeyboardType.Number
             ),
             singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .semantics { contentDescription = "Campo de edad" },
             colors = coloresRegistro()
         )
 
@@ -163,7 +187,8 @@ fun PantallaRegistro(navController: NavController) {
             Text(
                 text = mensajeError,
                 color = Color(0xFFFFCDD2),
-                fontSize = 14.sp
+                fontSize = 14.sp,
+                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -171,10 +196,11 @@ fun PantallaRegistro(navController: NavController) {
 
         if (datosCorrectos) {
             Text(
-                text = "Los datos son correctos",
+                text = "Cuenta creada exitosamente. Redirigiendo...",
                 color = Color(0xFFB9F6CA),
                 fontSize = 14.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -190,11 +216,29 @@ fun PantallaRegistro(navController: NavController) {
                     edad = edad
                 )
 
-                datosCorrectos = mensajeError.isEmpty()
+                if (mensajeError.isEmpty()) {
+                    datosCorrectos = true
+                    scope.launch {
+                        userDao?.registerUser(
+                            UserEntity(
+                                username = correo,
+                                passwordHash = SecurityUtils.hashPassword(password)
+                            )
+                        )
+                        delay(1000)
+                        navController.popBackStack()
+                    }
+                } else {
+                    datosCorrectos = false
+                }
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(52.dp),
+                .height(52.dp)
+                .semantics {
+                    role = Role.Button
+                    contentDescription = "Boton registrar cuenta"
+                },
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFFFFB313),
                 contentColor = Color.White
@@ -211,6 +255,10 @@ fun PantallaRegistro(navController: NavController) {
         TextButton(
             onClick = {
                 navController.popBackStack()
+            },
+            modifier = Modifier.semantics {
+                role = Role.Button
+                contentDescription = "Volver al inicio de sesión"
             }
         ) {
             Text(

@@ -23,6 +23,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import com.example.appbanco.data.alertasSimuladas
 import com.example.appbanco.data.lineasDeRuta
 import com.example.appbanco.ui.components.*
@@ -70,13 +77,19 @@ fun PantallaPrincipal(navController: NavController) {
     ) {
         // BUSCADOR
         Surface(
-            modifier = Modifier.fillMaxWidth().height(52.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp)
+                .semantics(mergeDescendants = true) {
+                    role = Role.Button
+                    contentDescription = "Buscar línea o parada de transporte"
+                },
             shape = RoundedCornerShape(18.dp),
             color = onBackground.copy(alpha = 0.05f),
             border = BorderStroke(1.dp, onBackground.copy(alpha = 0.1f))
         ) {
             Row(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Search, contentDescription = "Buscar", tint = onBackground.copy(alpha = 0.4f))
+                Icon(Icons.Default.Search, contentDescription = null, tint = onBackground.copy(alpha = 0.4f))
                 Spacer(modifier = Modifier.width(10.dp))
                 Text("Buscar línea o parada...", color = onBackground.copy(alpha = 0.4f), fontSize = 14.sp)
             }
@@ -85,7 +98,15 @@ fun PantallaPrincipal(navController: NavController) {
         Spacer(modifier = Modifier.height(20.dp))
 
         // MAPA MAPLIBRE CON OPENFREEMAP (Sin bloqueos, sin tarjetas)
-        Box(modifier = Modifier.fillMaxWidth().height(400.dp).clip(RoundedCornerShape(20.dp))) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(400.dp)
+                .clip(RoundedCornerShape(20.dp))
+                .semantics {
+                    contentDescription = "Mapa interactivo con rutas y ubicación actual"
+                }
+        ) {
             AndroidView(
                 factory = { ctx ->
                     MapView(ctx).apply {
@@ -131,9 +152,17 @@ fun PantallaPrincipal(navController: NavController) {
 
             IconButton(
                 onClick = { /* Acción para centrar */ },
-                modifier = Modifier.align(Alignment.BottomEnd).padding(14.dp).background(Color.White, CircleShape).shadow(4.dp, CircleShape)
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(14.dp)
+                    .background(Color.White, CircleShape)
+                    .shadow(4.dp, CircleShape)
+                    .semantics {
+                        role = Role.Button
+                        contentDescription = "Centrar mapa en mi ubicación"
+                    }
             ) {
-                Icon(Icons.Default.MyLocation, contentDescription = "Mi ubicación", tint = Color(0xFF4285F4))
+                Icon(Icons.Default.MyLocation, contentDescription = null, tint = Color(0xFF4285F4))
             }
         }
         Spacer(modifier = Modifier.height(20.dp))
@@ -157,8 +186,14 @@ fun PantallaHorarios(navController: NavController) {
             value = "",
             onValueChange = {},
             placeholder = { Text("Buscar línea o parada...", color = onBackground.copy(alpha = 0.5f), fontSize = 14.sp) },
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Buscar", tint = onBackground.copy(alpha = 0.5f)) },
-            modifier = Modifier.fillMaxWidth().height(52.dp).background(onBackground.copy(alpha = 0.05f), RoundedCornerShape(12.dp)),
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = onBackground.copy(alpha = 0.5f)) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp)
+                .background(onBackground.copy(alpha = 0.05f), RoundedCornerShape(12.dp))
+                .semantics {
+                    contentDescription = "Campo de búsqueda para horarios de línea o parada"
+                },
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 unfocusedBorderColor = onBackground.copy(alpha = 0.1f),
@@ -175,14 +210,25 @@ fun PantallaHorarios(navController: NavController) {
         Spacer(modifier = Modifier.height(20.dp))
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Surface(color = Color(0xFFFF3B30), shape = RoundedCornerShape(20.dp)) {
+            Surface(
+                color = Color(0xFFFF3B30), 
+                shape = RoundedCornerShape(20.dp),
+                modifier = Modifier.semantics(mergeDescendants = true) {
+                    role = Role.Button
+                    contentDescription = "Filtro activo: Ahora, 09:24"
+                }
+            ) {
                 Text("Ahora - 09:24", color = Color.White, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), fontWeight = FontWeight.Bold)
             }
             listOf("Mañana", "Lun 25 ago").forEach { texto ->
                 Surface(
                     color = onBackground.copy(alpha = 0.05f),
                     border = BorderStroke(1.dp, onBackground.copy(alpha = 0.1f)),
-                    shape = RoundedCornerShape(20.dp)
+                    shape = RoundedCornerShape(20.dp),
+                    modifier = Modifier.semantics(mergeDescendants = true) {
+                        role = Role.Button
+                        contentDescription = "Filtro de fecha: $texto"
+                    }
                 ) {
                     Text(texto, color = onBackground.copy(alpha = 0.7f), fontSize = 12.sp, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp))
                 }
@@ -191,7 +237,10 @@ fun PantallaHorarios(navController: NavController) {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.semantics { heading() }
+        ) {
             Icon(Icons.Default.StarBorder, null, tint = onBackground.copy(alpha = 0.6f), modifier = Modifier.size(18.dp))
             Spacer(modifier = Modifier.width(6.dp))
             Text("TODAS LAS LÍNEAS", color = onBackground.copy(alpha = 0.6f), fontSize = 13.sp, fontWeight = FontWeight.Bold)
@@ -201,18 +250,33 @@ fun PantallaHorarios(navController: NavController) {
         lineasDeRuta.forEach { LineCard(it, scope, snackbarHostState) }
 
         Spacer(modifier = Modifier.height(24.dp))
-        Text("Próximas salidas Plaza Mayor", color = onBackground.copy(alpha = 0.6f), fontSize = 13.sp, fontWeight = FontWeight.Bold)
+        Text(
+            "Próximas salidas Plaza Mayor", 
+            color = onBackground.copy(alpha = 0.6f), 
+            fontSize = 13.sp, 
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.semantics { heading() }
+        )
 
         Spacer(modifier = Modifier.height(12.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Surface(color = Color(0xFF389338), shape = RoundedCornerShape(20.dp)) {
+            Surface(
+                color = Color(0xFF389338), 
+                shape = RoundedCornerShape(20.dp),
+                modifier = Modifier.semantics(mergeDescendants = true) {
+                    contentDescription = "Salida inmediata: 09:25 ahora"
+                }
+            ) {
                 Text("09:25 - ahora", color = Color.White, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), fontWeight = FontWeight.Bold)
             }
             listOf("09:35", "09:45").forEach { texto ->
                 Surface(
                     color = onBackground.copy(alpha = 0.05f),
                     border = BorderStroke(1.dp, onBackground.copy(alpha = 0.1f)),
-                    shape = RoundedCornerShape(20.dp)
+                    shape = RoundedCornerShape(20.dp),
+                    modifier = Modifier.semantics(mergeDescendants = true) {
+                        contentDescription = "Salida a las $texto"
+                    }
                 ) {
                     Text(texto, color = onBackground.copy(alpha = 0.7f), fontSize = 12.sp, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp))
                 }
@@ -222,11 +286,17 @@ fun PantallaHorarios(navController: NavController) {
         Spacer(modifier = Modifier.height(32.dp))
         Button(
             onClick = { navController.popBackStack() },
-            modifier = Modifier.fillMaxWidth().height(52.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp)
+                .semantics {
+                    role = Role.Button
+                    contentDescription = "Volver a la pantalla anterior"
+                },
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2697B5), contentColor = Color.White),
             shape = RoundedCornerShape(12.dp)
         ) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver")
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
             Spacer(modifier = Modifier.width(8.dp))
             Text("Volver", fontWeight = FontWeight.Bold)
         }
@@ -276,6 +346,10 @@ fun PantallaAlertas(navController: NavController, viewModel: MainViewModel) {
                 .height(56.dp)
                 .width(280.dp)
                 .shadow(elevation = 8.dp, shape = RoundedCornerShape(28.dp))
+                .semantics(mergeDescendants = true) {
+                    role = Role.Button
+                    contentDescription = "Reportar nueva incidencia"
+                }
                 .clickable { mostrarDialogo = true },
             shape = RoundedCornerShape(28.dp),
             color = surfaceColor,
@@ -283,7 +357,7 @@ fun PantallaAlertas(navController: NavController, viewModel: MainViewModel) {
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
                 Box(modifier = Modifier.size(32.dp).background(primaryColor, CircleShape), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Default.PriorityHigh, null, tint = Color.White, modifier = Modifier.size(18.dp))
+                    Icon(Icons.Default.PriorityHigh, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
                 }
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
@@ -335,6 +409,10 @@ fun TarjetaAlerta(incidencia: Incidencia) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .semantics(mergeDescendants = true) {
+                role = Role.Button
+                contentDescription = "Alerta ${incidencia.tipo} en ruta ${incidencia.ruta}: ${incidencia.titulo}. ${incidencia.descripcion}. ${incidencia.tiempo}. ${if (expandida) "Toca para contraer" else "Toca para expandir"}"
+            }
             .clickable {
                 expandida = !expandida
             },
@@ -565,7 +643,11 @@ fun AnimacionReporteExitoso(
             .fillMaxSize()
             .background(
                 Color.Black.copy(alpha = 0.35f)
-            ),
+            )
+            .semantics {
+                liveRegion = LiveRegionMode.Polite
+                contentDescription = "¡Reporte enviado! La incidencia fue registrada correctamente."
+            },
         contentAlignment = Alignment.Center
     ) {
 
@@ -634,11 +716,12 @@ fun AnimacionReporteExitoso(
 }
 
 @Composable
-fun PantallaCuenta(sessionManager: SessionManager, navController: NavController) {
+fun PantallaCuenta(sessionManager: SessionManager, navController: NavController, viewModel: MainViewModel) {
     val onSurface = MaterialTheme.colorScheme.onSurface
     val onBackground = MaterialTheme.colorScheme.onBackground
     val surfaceColor = MaterialTheme.colorScheme.surface
     var modoOffline by remember { mutableStateOf(true) }
+    var mostrarDialogoTema by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     Column(
@@ -650,7 +733,15 @@ fun PantallaCuenta(sessionManager: SessionManager, navController: NavController)
     ) {
         Spacer(modifier = Modifier.height(8.dp))
 
-        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp)
+                .semantics(mergeDescendants = true) {
+                    contentDescription = "Usuario Leo Sanchez, leo.sanchez.lo@gmail.com"
+                }, 
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Box(modifier = Modifier.size(52.dp).background(onSurface.copy(alpha = 0.1f), CircleShape), contentAlignment = Alignment.Center) {
                 Text("L", fontWeight = FontWeight.Bold, color = onSurface, fontSize = 24.sp)
             }
@@ -663,18 +754,44 @@ fun PantallaCuenta(sessionManager: SessionManager, navController: NavController)
 
         Spacer(modifier = Modifier.height(32.dp))
         Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)) {
-            Text("Rutas frecuentes", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = onSurface)
+            Text(
+                "Rutas frecuentes", 
+                fontSize = 16.sp, 
+                fontWeight = FontWeight.Bold, 
+                color = onSurface,
+                modifier = Modifier.semantics { heading() }
+            )
             Spacer(modifier = Modifier.height(16.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Surface(modifier = Modifier.weight(1f).height(80.dp), shape = RoundedCornerShape(16.dp), color = Color(0xFF4A86F7)) {
+                Surface(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(80.dp)
+                        .semantics(mergeDescendants = true) {
+                            role = Role.Button
+                            contentDescription = "Ruta frecuente Casa, registrar ubicación"
+                        }, 
+                    shape = RoundedCornerShape(16.dp), 
+                    color = Color(0xFF4A86F7)
+                ) {
                     Column(modifier = Modifier.fillMaxSize().padding(12.dp), verticalArrangement = Arrangement.SpaceBetween) {
-                        Row(verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Default.Home, "Casa", tint = Color.White, modifier = Modifier.size(20.dp)); Spacer(modifier = Modifier.width(8.dp)); Text("Casa", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold) }
+                        Row(verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Default.Home, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp)); Spacer(modifier = Modifier.width(8.dp)); Text("Casa", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold) }
                         Text("Registrar ubicación", color = Color.White.copy(alpha = 0.8f), fontSize = 11.sp)
                     }
                 }
-                Surface(modifier = Modifier.weight(1f).height(80.dp), shape = RoundedCornerShape(16.dp), color = Color(0xFFF26E68)) {
+                Surface(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(80.dp)
+                        .semantics(mergeDescendants = true) {
+                            role = Role.Button
+                            contentDescription = "Ruta frecuente Universidad, registrar ubicación"
+                        }, 
+                    shape = RoundedCornerShape(16.dp), 
+                    color = Color(0xFFF26E68)
+                ) {
                     Column(modifier = Modifier.fillMaxSize().padding(12.dp), verticalArrangement = Arrangement.SpaceBetween) {
-                        Row(verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Default.School, "Universidad", tint = Color.White, modifier = Modifier.size(20.dp)); Spacer(modifier = Modifier.width(8.dp)); Text("Universidad", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold) }
+                        Row(verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Default.School, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp)); Spacer(modifier = Modifier.width(8.dp)); Text("Universidad", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold) }
                         Text("Registrar ubicación", color = Color.White.copy(alpha = 0.8f), fontSize = 11.sp)
                     }
                 }
@@ -683,9 +800,24 @@ fun PantallaCuenta(sessionManager: SessionManager, navController: NavController)
 
         Spacer(modifier = Modifier.height(32.dp))
         Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)) {
-            Text("Modo Offline", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = onSurface)
+            Text(
+                "Modo Offline", 
+                fontSize = 16.sp, 
+                fontWeight = FontWeight.Bold, 
+                color = onSurface,
+                modifier = Modifier.semantics { heading() }
+            )
             Spacer(modifier = Modifier.height(12.dp))
-            Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp), color = onSurface.copy(alpha = 0.05f)) {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .semantics(mergeDescendants = true) {
+                        role = Role.Switch
+                        contentDescription = "Modo Offline, Habilitar descarga de mapas: ${if (modoOffline) "Activado" else "Desactivado"}"
+                    }, 
+                shape = RoundedCornerShape(18.dp), 
+                color = onSurface.copy(alpha = 0.05f)
+            ) {
                 Row(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text("Habilitar descarga de mapas", fontSize = 13.sp, color = onSurface.copy(alpha = 0.7f), modifier = Modifier.weight(1f))
                     Switch(checked = modoOffline, onCheckedChange = { modoOffline = it }, colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = Color(0xFFFEB30F)))
@@ -696,7 +828,14 @@ fun PantallaCuenta(sessionManager: SessionManager, navController: NavController)
         Spacer(modifier = Modifier.height(24.dp))
         Surface(modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp), shape = RoundedCornerShape(24.dp), color = onBackground.copy(alpha = 0.03f)) {
             Column(modifier = Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OpcionCuenta("Configuración"); OpcionCuenta("Alertas"); OpcionCuenta("Privacidad y Seguridad"); OpcionCuenta("Ayuda y Soporte")
+                OpcionCuenta("Configuración")
+                OpcionCuenta(
+                    texto = "Tema de la APP", 
+                    subtexto = viewModel.modoTema.value,
+                    onClick = { mostrarDialogoTema = true }
+                )
+                OpcionCuenta("Privacidad y Seguridad")
+                OpcionCuenta("Ayuda y Soporte")
             }
         }
 
@@ -711,7 +850,14 @@ fun PantallaCuenta(sessionManager: SessionManager, navController: NavController)
                     }
                 }
             },
-            modifier = Modifier.fillMaxWidth().height(52.dp).padding(horizontal = 4.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp)
+                .padding(horizontal = 4.dp)
+                .semantics {
+                    role = Role.Button
+                    contentDescription = "Cerrar sesión"
+                },
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC0392B), contentColor = Color.White),
             shape = RoundedCornerShape(12.dp)
         ) {
@@ -720,4 +866,70 @@ fun PantallaCuenta(sessionManager: SessionManager, navController: NavController)
 
         Spacer(modifier = Modifier.height(40.dp))
     }
+
+    if (mostrarDialogoTema) {
+        DialogoTema(
+            temaActual = viewModel.modoTema.value,
+            onDismiss = { mostrarDialogoTema = false },
+            onSeleccionarTema = { nuevoTema ->
+                viewModel.cambiarTema(nuevoTema)
+                mostrarDialogoTema = false
+            }
+        )
+    }
+}
+
+@Composable
+fun DialogoTema(
+    temaActual: String,
+    onDismiss: () -> Unit,
+    onSeleccionarTema: (String) -> Unit
+) {
+    val opciones = listOf("Degradados", "Claro", "Oscuro")
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Seleccionar Tema de la APP",
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.semantics { heading() }
+            )
+        },
+        text = {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                opciones.forEach { opcion ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .semantics(mergeDescendants = true) {
+                                role = Role.RadioButton
+                                contentDescription = if (opcion == "Degradados") "Tema Degradados por defecto" else "Tema $opcion"
+                            }
+                            .clickable { onSeleccionarTema(opcion) }
+                            .padding(horizontal = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = (opcion == temaActual),
+                            onClick = { onSeleccionarTema(opcion) }
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = if (opcion == "Degradados") "Degradados (por defecto)" else opcion,
+                            fontSize = 15.sp,
+                            fontWeight = if (opcion == temaActual) FontWeight.Bold else FontWeight.Normal
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cerrar")
+            }
+        }
+    )
 }

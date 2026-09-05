@@ -17,6 +17,11 @@ import com.example.appbanco.ui.components.TimeBasedBackground
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
+
 @Composable
 fun PantallaSplash(navController: NavController) {
     LaunchedEffect(Unit) {
@@ -26,12 +31,16 @@ fun PantallaSplash(navController: NavController) {
         }
     }
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .semantics {
+                contentDescription = "Pantalla de bienvenida, cargando MiRuta"
+            },
         contentAlignment = Alignment.Center
     ) {
         Image(
             painter = painterResource(id = obtenerLogoSegunHora()),
-            contentDescription = "Logo MiRuta",
+            contentDescription = "Logotipo de MiRuta",
             modifier = Modifier.size(240.dp)
         )
     }

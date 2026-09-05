@@ -13,6 +13,8 @@ import com.example.appbanco.ui.theme.obtenerTipografiaPersonalizada
 import java.util.Calendar
 
 import com.example.appbanco.logic.obtenerEsquemaColoresDinamico
+import com.example.appbanco.logic.obtenerEsquemaColoresClaro
+import com.example.appbanco.logic.obtenerEsquemaColoresOscuro
 import com.example.appbanco.logic.SessionManager
 import com.example.appbanco.ui.viewmodel.MainViewModel
 import com.example.appbanco.data.database.AppDatabase
@@ -54,7 +56,11 @@ class MainActivity : ComponentActivity() {
                 }
             )
             
-            val colorScheme = obtenerEsquemaColoresDinamico()
+            val colorScheme = when (mainViewModel.modoTema.value) {
+                "Claro" -> obtenerEsquemaColoresClaro()
+                "Oscuro" -> obtenerEsquemaColoresOscuro()
+                else -> obtenerEsquemaColoresDinamico()
+            }
             MaterialTheme(
                 colorScheme = colorScheme,
                 typography = obtenerTipografiaPersonalizada()

@@ -15,6 +15,13 @@ class MainViewModel(private val sessionManager: SessionManager) : ViewModel() {
     private val _startDestination = mutableStateOf("loading")
     val startDestination: State<String> = _startDestination
 
+    // Tema dinámico de la app: "Degradados", "Claro", "Oscuro"
+    val modoTema = mutableStateOf("Degradados")
+
+    fun cambiarTema(nuevoTema: String) {
+        modoTema.value = nuevoTema
+    }
+
     // Lista global de incidencias que sobrevive al cambio de pestañas
     val listaIncidencias = mutableStateListOf(
         Incidencia(

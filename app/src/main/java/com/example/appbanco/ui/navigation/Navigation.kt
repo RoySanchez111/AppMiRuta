@@ -92,13 +92,13 @@ fun NavegacionMiRuta(
             }
             composable("registro") {
                 TimeBasedBackground {
-                    PantallaRegistro(navController)
+                    PantallaRegistro(navController, database.userDao())
                 }
             }
             composable("principal") { PantallaPrincipal(navController) }
             composable("horario") { PantallaHorarios(navController) }
             composable("alertas") { PantallaAlertas(navController, viewModel) }
-            composable("cuenta") { PantallaCuenta(sessionManager, navController) }
+            composable("cuenta") { PantallaCuenta(sessionManager, navController, viewModel) }
         }
     }
 }
