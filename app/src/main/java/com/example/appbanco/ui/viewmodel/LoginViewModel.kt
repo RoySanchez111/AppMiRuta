@@ -6,7 +6,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.appbanco.data.database.UserDao
-import com.example.appbanco.logic.SecurityUtils
 import com.example.appbanco.logic.ServicioAutenticacion
 import com.example.appbanco.logic.SessionManager
 import kotlinx.coroutines.launch
@@ -25,10 +24,12 @@ class LoginViewModel(
         private set
 
     fun onLoginClick(usuario: String, pass: String) {
+        val u = usuario.trim()
+        val p = pass.trim()
         viewModelScope.launch {
-            val token = authService.login(usuario, pass)
+            val token = authService.login(u, p)
             if (token != null) {
-                val user = userDao.getUserByUsername(usuario)
+                val user = userDao.getUserByUsername(u)
                 user?.let {
                     sessionManager.saveSession(it.id, it.username, token)
                     loginSuccess = true

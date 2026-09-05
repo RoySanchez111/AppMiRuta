@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.appbanco.data.database.UserDao
 import androidx.navigation.NavController
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -716,13 +717,22 @@ fun AnimacionReporteExitoso(
 }
 
 @Composable
-fun PantallaCuenta(sessionManager: SessionManager, navController: NavController, viewModel: MainViewModel) {
+fun PantallaCuenta(
+    sessionManager: SessionManager, 
+    navController: NavController, 
+    viewModel: MainViewModel,
+    userDao: UserDao
+) {
     val onSurface = MaterialTheme.colorScheme.onSurface
     val onBackground = MaterialTheme.colorScheme.onBackground
     val surfaceColor = MaterialTheme.colorScheme.surface
     var modoOffline by remember { mutableStateOf(true) }
     var mostrarDialogoTema by remember { mutableStateOf(false) }
+    var mostrarDialogoNombre by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+
+    val usuarioActual = viewModel.usuarioActual.value
+    val inicialUsuario = if (usuarioActual.isNotBlank()) usuarioActual.take(1).uppercase() else "U"
 
     Column(
         modifier = Modifier
@@ -738,17 +748,35 @@ fun PantallaCuenta(sessionManager: SessionManager, navController: NavController,
                 .fillMaxWidth()
                 .padding(horizontal = 4.dp)
                 .semantics(mergeDescendants = true) {
-                    contentDescription = "Usuario Leo Sanchez, leo.sanchez.lo@gmail.com"
+                    contentDescription = "Usuario $usuarioActual"
                 }, 
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(modifier = Modifier.size(52.dp).background(onSurface.copy(alpha = 0.1f), CircleShape), contentAlignment = Alignment.Center) {
-                Text("L", fontWeight = FontWeight.Bold, color = onSurface, fontSize = 24.sp)
+            Box(
+                modifier = Modifier
+                    .size(52.dp)
+                    .background(onSurface.copy(alpha = 0.1f), CircleShape), 
+                contentAlignment = Alignment.Center
+            ) {
+                Text(inicialUsuario, fontWeight = FontWeight.Bold, color = onSurface, fontSize = 24.sp)
             }
             Spacer(modifier = Modifier.width(16.dp))
-            Column {
-                Text("Leo Sanchez", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = onSurface)
-                Text("leo.sanchez.lo@gmail.com", fontSize = 13.sp, color = onSurface.copy(alpha = 0.6f))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(usuarioActual, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = onSurface)
+                Text("Usuario registrado", fontSize = 13.sp, color = onSurface.copy(alpha = 0.6f))
+            }
+            IconButton(
+                onClick = { mostrarDialogoNombre = true },
+                modifier = Modifier.semantics {
+                    role = Role.Button
+                    contentDescription = "Editar nombre de usuario"
+                }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Editar nombre",
+                    tint = MaterialTheme.colorScheme.primary
+                )
             }
         }
 
@@ -828,7 +856,7 @@ fun PantallaCuenta(sessionManager: SessionManager, navController: NavController,
         Spacer(modifier = Modifier.height(24.dp))
         Surface(modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp), shape = RoundedCornerShape(24.dp), color = onBackground.copy(alpha = 0.03f)) {
             Column(modifier = Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OpcionCuenta("Configuración")
+                OpcionCuenta("Configuración", onClick = { mostrarDialogoNombre = true })
                 OpcionCuenta(
                     texto = "Tema de la APP", 
                     subtexto = viewModel.modoTema.value,
@@ -874,6 +902,18 @@ fun PantallaCuenta(sessionManager: SessionManager, navController: NavController,
             onSeleccionarTema = { nuevoTema ->
                 viewModel.cambiarTema(nuevoTema)
                 mostrarDialogoTema = false
+            }
+        )
+    }
+
+    if (mostrarDialogoNombre) {
+        DialogoEditarNombre(
+            nombreActual = usuarioActual,
+            onDismiss = { mostrarDialogoNombre = false },
+            onConfirmar = { nuevoNombre ->
+                viewModel.actualizarNombreUsuario(userDao, nuevoNombre) { _ ->
+                    mostrarDialogoNombre = false
+                }
             }
         )
     }
@@ -929,6 +969,71 @@ fun DialogoTema(
         confirmButton = {
             TextButton(onClick = onDismiss) {
                 Text("Cerrar")
+            }
+        }
+    )
+}
+
+@Composable
+fun DialogoEditarNombre(
+    nombreActual: String,
+    onDismiss: () -> Unit,
+    onConfirmar: (String) -> Unit
+) {
+    var nuevoNombre by remember { mutableStateOf(nombreActual) }
+    var errorMsg by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Editar Nombre de Usuario",
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.semantics { heading() }
+            )
+        },
+        text = {
+            Column {
+                Text(
+                    text = "Escribe tu nuevo nombre para actualizar la base de datos y la app:",
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = nuevoNombre,
+                    onValueChange = {
+                        nuevoNombre = it
+                        errorMsg = ""
+                    },
+                    label = { Text("Nombre de usuario") },
+                    singleLine = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics { contentDescription = "Campo de nuevo nombre de usuario" }
+                )
+                if (errorMsg.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(text = errorMsg, color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    if (nuevoNombre.isNotBlank()) {
+                        onConfirmar(nuevoNombre.trim())
+                    } else {
+                        errorMsg = "El nombre no puede estar vacío"
+                    }
+                }
+            ) {
+                Text("Guardar")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar")
             }
         }
     )

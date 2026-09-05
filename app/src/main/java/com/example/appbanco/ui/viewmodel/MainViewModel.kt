@@ -8,7 +8,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.appbanco.logic.SessionManager
 import com.example.appbanco.ui.screens.Incidencia
+import com.example.appbanco.data.database.UserDao
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
 class MainViewModel(private val sessionManager: SessionManager) : ViewModel() {
@@ -18,8 +20,27 @@ class MainViewModel(private val sessionManager: SessionManager) : ViewModel() {
     // Tema dinámico de la app: "Degradados", "Claro", "Oscuro"
     val modoTema = mutableStateOf("Degradados")
 
+    // Nombre de usuario activo para saludos y perfil
+    val usuarioActual = mutableStateOf("Invitado")
+
     fun cambiarTema(nuevoTema: String) {
         modoTema.value = nuevoTema
+    }
+
+    fun actualizarNombreUsuario(userDao: UserDao, nuevoNombre: String, onFinished: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            if (nuevoNombre.isNotBlank()) {
+                val userId = sessionManager.currentUserId.firstOrNull()
+                if (userId != null) {
+                    userDao.updateUsername(userId, nuevoNombre)
+                }
+                sessionManager.updateUsername(nuevoNombre)
+                usuarioActual.value = nuevoNombre
+                onFinished(true)
+            } else {
+                onFinished(false)
+            }
+        }
     }
 
     // Lista global de incidencias que sobrevive al cambio de pestañas
@@ -50,6 +71,19 @@ class MainViewModel(private val sessionManager: SessionManager) : ViewModel() {
 
     init {
         checkSession()
+        observarUsuario()
+    }
+
+    private fun observarUsuario() {
+        viewModelScope.launch {
+            sessionManager.currentUsername.collectLatest { name ->
+                if (!name.isNullOrBlank()) {
+                    usuarioActual.value = name
+                } else {
+                    usuarioActual.value = "Invitado"
+                }
+            }
+        }
     }
 
     private fun checkSession() {

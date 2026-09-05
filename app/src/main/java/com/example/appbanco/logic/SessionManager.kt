@@ -29,12 +29,22 @@ class SessionManager(private val context: Context) {
         preferences[IS_LOGGED_IN] ?: false
     }
 
+    val currentUserId: Flow<Int?> = context.dataStore.data.map { preferences ->
+        preferences[USER_ID]
+    }
+
     val currentUsername: Flow<String?> = context.dataStore.data.map { preferences ->
         preferences[USERNAME]
     }
 
     val authToken: Flow<String?> = context.dataStore.data.map { preferences ->
         preferences[AUTH_TOKEN]
+    }
+
+    suspend fun updateUsername(newUsername: String) {
+        context.dataStore.edit { preferences ->
+            preferences[USERNAME] = newUsername
+        }
     }
 
     suspend fun logout() {

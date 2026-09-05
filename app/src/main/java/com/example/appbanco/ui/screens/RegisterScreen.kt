@@ -208,25 +208,39 @@ fun PantallaRegistro(navController: NavController, userDao: UserDao? = null) {
 
         Button(
             onClick = {
+                val correoLimpio = correo.trim()
+                val passwordLimpio = password.trim()
+                val confirmarPasswordLimpio = confirmarPassword.trim()
+                val telefonoLimpio = telefono.trim()
+                val edadLimpia = edad.trim()
+
                 mensajeError = validarRegistro(
-                    correo = correo,
-                    telefono = telefono,
-                    password = password,
-                    confirmarPassword = confirmarPassword,
-                    edad = edad
+                    correo = correoLimpio,
+                    telefono = telefonoLimpio,
+                    password = passwordLimpio,
+                    confirmarPassword = confirmarPasswordLimpio,
+                    edad = edadLimpia
                 )
 
                 if (mensajeError.isEmpty()) {
-                    datosCorrectos = true
                     scope.launch {
-                        userDao?.registerUser(
-                            UserEntity(
-                                username = correo,
-                                passwordHash = SecurityUtils.hashPassword(password)
+                        // Verificar si el usuario ya existe en la BD
+                        val usuarioExistente = userDao?.getUserByUsername(correoLimpio)
+                        if (usuarioExistente != null) {
+                            mensajeError = "El correo/usuario ya se encuentra registrado"
+                            datosCorrectos = false
+                        } else {
+                            datosCorrectos = true
+                            // Guardar credenciales en la Base de Datos Room
+                            userDao?.registerUser(
+                                UserEntity(
+                                    username = correoLimpio,
+                                    passwordHash = SecurityUtils.hashPassword(passwordLimpio)
+                                )
                             )
-                        )
-                        delay(1000)
-                        navController.popBackStack()
+                            delay(1000)
+                            navController.popBackStack()
+                        }
                     }
                 } else {
                     datosCorrectos = false

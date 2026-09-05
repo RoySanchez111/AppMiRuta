@@ -38,16 +38,17 @@ fun NavegacionMiRuta(
     val esPantallaApp = rutaActual != "splash" && rutaActual != "login" && rutaActual != "loading" &&
             rutaActual != "registro"
 
-    val mensajeBienvenida = obtenerMensajeBienvenida("Roy Sanchez")
+    val usuarioNombre = viewModel.usuarioActual.value
+    val mensajeBienvenida = obtenerMensajeBienvenida(usuarioNombre)
     val tituloHeader = when (rutaActual) {
-        "principal" -> mensajeBienvenida.split(",")[1].trim()
+        "principal" -> if (mensajeBienvenida.contains(",")) mensajeBienvenida.split(",")[1].trim() else usuarioNombre
         "horario" -> "Planea tu viaje"
         "alertas" -> "Alertas importantes"
         "cuenta" -> "Perfil"
         else -> ""
     }
     val subtituloHeader = if (rutaActual == "principal") {
-        mensajeBienvenida.split(",")[0] + ","
+        if (mensajeBienvenida.contains(",")) mensajeBienvenida.split(",")[0] + "," else "Hola,"
     } else null
 
     Scaffold(
@@ -98,7 +99,7 @@ fun NavegacionMiRuta(
             composable("principal") { PantallaPrincipal(navController) }
             composable("horario") { PantallaHorarios(navController) }
             composable("alertas") { PantallaAlertas(navController, viewModel) }
-            composable("cuenta") { PantallaCuenta(sessionManager, navController, viewModel) }
+            composable("cuenta") { PantallaCuenta(sessionManager, navController, viewModel, database.userDao()) }
         }
     }
 }
