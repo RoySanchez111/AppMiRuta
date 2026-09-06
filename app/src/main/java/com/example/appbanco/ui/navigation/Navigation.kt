@@ -46,6 +46,9 @@ fun NavegacionMiRuta(
         "horario" -> "Planea tu viaje"
         "alertas" -> "Alertas importantes"
         "cuenta" -> "Perfil"
+        "configuracion" -> "Ajustes"
+        "privacidad" -> "Privacidad"
+        "ayuda" -> "Ayuda y Soporte"
         else -> ""
     }
     val subtituloHeader = if (rutaActual == "principal") {
@@ -61,7 +64,7 @@ fun NavegacionMiRuta(
                     subtitulo = subtituloHeader,
                     fotoUri = viewModel.fotoPerfilUri.value,
                     inicialUsuario = if (usuarioNombre.isNotBlank()) usuarioNombre.take(1).uppercase() else "U",
-                    onBackClick = if (rutaActual == "cuenta") {
+                    onBackClick = if (rutaActual == "cuenta" || rutaActual == "configuracion" || rutaActual == "privacidad" || rutaActual == "ayuda") {
                         { navController.popBackStack() }
                     } else null,
                     onProfileClick = {
@@ -104,6 +107,9 @@ fun NavegacionMiRuta(
             composable("horario") { PantallaHorarios(navController, viewModel) }
             composable("alertas") { PantallaAlertas(navController, viewModel) }
             composable("cuenta") { PantallaCuenta(sessionManager, navController, viewModel, database.userDao()) }
+            composable("configuracion") { PantallaConfiguracion(sessionManager, navController, viewModel) }
+            composable("privacidad") { PantallaPrivacidad(navController) }
+            composable("ayuda") { PantallaAyudaYSoporte(navController) }
         }
     }
 }

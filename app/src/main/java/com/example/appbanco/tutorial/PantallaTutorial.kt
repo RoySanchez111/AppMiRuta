@@ -38,36 +38,33 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.appbanco.R
 import com.example.appbanco.logic.SessionManager
+import com.example.appbanco.ui.components.obtenerColoresFondo
 import kotlinx.coroutines.launch
 
 data class PaginaTutorial(
     val titulo: String,
     val descripcion: String,
-    val iconoPrincipal: ImageVector,
-    val iconoSecundario: ImageVector?,
+    val drawableResId: Int,
     val textoBoton: String
 )
 
 val paginasTutorial = listOf(
     PaginaTutorial(
         titulo = "Encuentra la mejor ruta",
-        descripcion = "Explora los horarios en vivo, líneas disponibles y paradas en tiempo real para moverte por la ciudad sin complicaciones.",
-        iconoPrincipal = Icons.Default.DirectionsBus,
-        iconoSecundario = Icons.Default.Place,
+        descripcion = "Descubre las rutas y líneas de transporte público más eficientes en Puebla. Consulta paradas cercanas, traza tu itinerario y llega siempre a tiempo a tu destino.",
+        drawableResId = R.drawable.ic_tutorial_bus,
         textoBoton = "Siguiente >"
     ),
     PaginaTutorial(
         titulo = "Horarios en tiempo real",
         descripcion = "Consulta la llegada exacta de autobuses y conoce retrasos o desvíos antes de salir de casa.",
-        iconoPrincipal = Icons.Default.Schedule,
-        iconoSecundario = Icons.Default.Map,
+        drawableResId = R.drawable.ic_tutorial_map,
         textoBoton = "Siguiente >"
     ),
     PaginaTutorial(
         titulo = "Notificaciones y Alertas",
         descripcion = "Recibe avisos inmediatos del servicio y reporta incidencias para ayudar a toda la comunidad de viajeros.",
-        iconoPrincipal = Icons.Default.NotificationsActive,
-        iconoSecundario = Icons.Default.CheckCircle,
+        drawableResId = R.drawable.ic_tutorial_warning,
         textoBoton = "Comenzar a usar MiRuta"
     )
 )
@@ -84,16 +81,13 @@ fun PantallaTutorial(
     val haptic = LocalHapticFeedback.current
     val pagina = paginasTutorial[paginaActual]
 
-    // Fondo degradado coral/rosa a naranja cálido idéntico al de la imagen
-    val fondoDegradado = remember {
-        Brush.verticalGradient(
-            colors = listOf(
-                Color(0xFFFF5252), // Coral brillante
-                Color(0xFFFF7A59), // Rosa anaranjado
-                Color(0xFFFF9E80)  // Naranja suave
-            )
-        )
-    }
+    val surfaceColor = MaterialTheme.colorScheme.surface
+    val onSurfaceColor = MaterialTheme.colorScheme.onSurface
+    val primaryColor = MaterialTheme.colorScheme.primary
+
+    // Fondo degradado dinámico según la hora del día (Madrugada, Mañana, Atardecer, Ocaso, Noche)
+    val coloresFondo = remember { obtenerColoresFondo() }
+    val fondoDegradado = remember(coloresFondo) { Brush.verticalGradient(coloresFondo) }
 
     Box(
         modifier = Modifier
@@ -112,32 +106,31 @@ fun PantallaTutorial(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
+                    .statusBarsPadding()
+                    .padding(top = 16.dp, start = 24.dp, end = 24.dp)
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
+                Text(
+                    text = "¡Hola! Te damos la\nbienvenida a",
+                    fontSize = 26.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 32.sp,
                     modifier = Modifier.semantics { heading() }
-                ) {
-                    Text(
-                        text = "¡Hola! Te damos la\nbienvenida a ",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        textAlign = TextAlign.Center,
-                        lineHeight = 30.sp
-                    )
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_miruta_texto),
-                        contentDescription = "MiRuta",
-                        modifier = Modifier
-                            .width(100.dp)
-                            .height(30.dp)
-                    )
-                }
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Image(
+                    painter = painterResource(id = R.drawable.ic_miruta_texto),
+                    contentDescription = "MiRuta",
+                    modifier = Modifier
+                        .width(140.dp)
+                        .height(40.dp)
+                )
             }
 
-            // ILUSTRACIÓN CENTRAL: Tarjeta gris redondeada con icono de Autobús y Ubicación
+            // ILUSTRACIÓN CENTRAL: Tarjeta gris redondeada con icono vectorial
             AnimatedContent(
                 targetState = pagina,
                 transitionSpec = { fadeIn() togetherWith fadeOut() },
@@ -145,50 +138,32 @@ fun PantallaTutorial(
             ) { pag ->
                 Surface(
                     modifier = Modifier
-                        .size(220.dp)
+                        .size(230.dp)
                         .padding(12.dp),
                     shape = RoundedCornerShape(48.dp),
                     color = Color(0xFFE2E2E2), // Gris claro idéntico a la maqueta
-                    shadowElevation = 6.dp
+                    shadowElevation = 4.dp
                 ) {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        // Icono de Autobús
-                        Icon(
-                            imageVector = pag.iconoPrincipal,
-                            contentDescription = null,
-                            tint = Color.Black,
-                            modifier = Modifier.size(110.dp)
+                        Image(
+                            painter = painterResource(id = pag.drawableResId),
+                            contentDescription = pag.titulo,
+                            modifier = Modifier.size(160.dp)
                         )
-
-                        // Icono secundario en la esquina superior derecha (Pin de ubicación / Mapa)
-                        if (pag.iconoSecundario != null) {
-                            Box(
-                                modifier = Modifier
-                                    .align(Alignment.TopEnd)
-                                    .padding(32.dp)
-                            ) {
-                                Icon(
-                                    imageVector = pag.iconoSecundario,
-                                    contentDescription = null,
-                                    tint = Color.Black,
-                                    modifier = Modifier.size(36.dp)
-                                )
-                            }
-                        }
                     }
                 }
             }
 
-            // TARJETA INFERIOR: Beige/Crema redondeada con texto y botón
+            // TARJETA INFERIOR: Redondeada con texto y botón adaptado al tema del día
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
                     .wrapContentHeight(),
                 shape = RoundedCornerShape(topStart = 36.dp, topEnd = 36.dp),
-                color = Color(0xFFEAE0D5), // Tono beige/crema suave idéntico
+                color = surfaceColor,
                 shadowElevation = 12.dp
             ) {
                 Column(
@@ -202,7 +177,7 @@ fun PantallaTutorial(
                         text = pagina.titulo,
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.Black,
+                        color = onSurfaceColor,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.semantics { heading() }
                     )
@@ -213,7 +188,7 @@ fun PantallaTutorial(
                     Text(
                         text = pagina.descripcion,
                         fontSize = 14.sp,
-                        color = Color(0xFF333333),
+                        color = onSurfaceColor.copy(alpha = 0.8f),
                         textAlign = TextAlign.Center,
                         lineHeight = 20.sp,
                         modifier = Modifier.padding(horizontal = 8.dp)
@@ -233,7 +208,7 @@ fun PantallaTutorial(
                                     .height(8.dp)
                                     .width(if (esActivo) 24.dp else 8.dp)
                                     .clip(CircleShape)
-                                    .background(if (esActivo) Color.Black else Color.Black.copy(alpha = 0.2f))
+                                    .background(if (esActivo) primaryColor else onSurfaceColor.copy(alpha = 0.2f))
                             )
                         }
                     }
@@ -266,8 +241,8 @@ fun PantallaTutorial(
                                 }
                             },
                         shape = RoundedCornerShape(24.dp),
-                        color = Color(0xFFDCD2C7), // Tono del botón ovalado
-                        border = BorderStroke(1.dp, Color(0xFFC4B8A9))
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        border = BorderStroke(1.dp, primaryColor.copy(alpha = 0.3f))
                     ) {
                         Box(
                             modifier = Modifier.fillMaxSize(),
@@ -277,7 +252,7 @@ fun PantallaTutorial(
                                 text = pagina.textoBoton,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.Black
+                                color = onSurfaceColor
                             )
                         }
                     }
