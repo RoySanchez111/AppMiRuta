@@ -1,5 +1,8 @@
 package com.example.appbanco.ui.screens
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.School
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -211,6 +214,28 @@ fun PantallaLogin(navController: NavController, viewModel: LoginViewModel) {
             )
         ) {
             Text("Continuar como invitado")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // BOTÓN MODO DESARROLLADOR: VER TUTORIAL
+        OutlinedButton(
+            onClick = {
+                navController.navigate("tutorial")
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                .semantics {
+                    role = Role.Button
+                    contentDescription = "Ver tutorial modo desarrollo"
+                },
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.5f)),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
+        ) {
+            Icon(Icons.Default.School, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("🧪 Ver Tutorial (Modo Dev)", fontSize = 14.sp, fontWeight = FontWeight.Bold)
         }
     }
 }

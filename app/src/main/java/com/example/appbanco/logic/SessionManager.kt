@@ -16,6 +16,7 @@ class SessionManager(private val context: Context) {
         private val AUTH_TOKEN = stringPreferencesKey("auth_token")
         private val PROFILE_IMAGE_URI = stringPreferencesKey("profile_image_uri")
         private val APP_THEME = stringPreferencesKey("app_theme")
+        private val HAS_COMPLETED_TUTORIAL = booleanPreferencesKey("has_completed_tutorial")
     }
 
     suspend fun saveSession(userId: Int, username: String, token: String) {
@@ -47,6 +48,10 @@ class SessionManager(private val context: Context) {
         preferences[APP_THEME] ?: "Degradados"
     }
 
+    val hasCompletedTutorial: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[HAS_COMPLETED_TUTORIAL] ?: false
+    }
+
     val authToken: Flow<String?> = context.dataStore.data.map { preferences ->
         preferences[AUTH_TOKEN]
     }
@@ -70,6 +75,12 @@ class SessionManager(private val context: Context) {
     suspend fun updateAppTheme(theme: String) {
         context.dataStore.edit { preferences ->
             preferences[APP_THEME] = theme
+        }
+    }
+
+    suspend fun setTutorialCompleted(completed: Boolean = true) {
+        context.dataStore.edit { preferences ->
+            preferences[HAS_COMPLETED_TUTORIAL] = completed
         }
     }
 

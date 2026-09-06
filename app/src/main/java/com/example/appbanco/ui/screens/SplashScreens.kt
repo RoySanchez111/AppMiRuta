@@ -1,5 +1,7 @@
 package com.example.appbanco.ui.screens
 
+import com.example.appbanco.logic.SessionManager
+import kotlinx.coroutines.flow.firstOrNull
 import android.os.Build.VERSION.SDK_INT
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -72,10 +74,16 @@ fun PantallaSplash(navController: NavController) {
 }
 
 @Composable
-fun PantallaLoading(navController: NavController, targetDestination: String) {
+fun PantallaLoading(
+    navController: NavController,
+    targetDestination: String,
+    sessionManager: SessionManager
+) {
     LaunchedEffect(Unit) {
-        delay(3000.milliseconds)
-        navController.navigate(targetDestination) {
+        delay(2500.milliseconds)
+        val tutorialCompletado = sessionManager.hasCompletedTutorial.firstOrNull() ?: false
+        val destinoFinal = if (!tutorialCompletado && targetDestination == "principal") "tutorial" else targetDestination
+        navController.navigate(destinoFinal) {
             popUpTo("loading") { inclusive = true }
         }
     }

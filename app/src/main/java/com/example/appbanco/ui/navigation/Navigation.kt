@@ -16,6 +16,7 @@ import com.example.appbanco.ui.components.EncabezadoGlobal
 import com.example.appbanco.logic.obtenerMensajeBienvenida
 import com.example.appbanco.ui.components.TimeBasedBackground
 import com.example.appbanco.ui.screens.*
+import com.example.appbanco.tutorial.PantallaTutorial
 
 import com.example.appbanco.ui.viewmodel.MainViewModel
 import com.example.appbanco.ui.viewmodel.LoginViewModel
@@ -36,7 +37,7 @@ fun NavegacionMiRuta(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val rutaActual = navBackStackEntry?.destination?.route
     val esPantallaApp = rutaActual != "splash" && rutaActual != "login" && rutaActual != "loading" &&
-            rutaActual != "registro"
+            rutaActual != "registro" && rutaActual != "tutorial"
 
     val usuarioNombre = viewModel.usuarioActual.value
     val mensajeBienvenida = obtenerMensajeBienvenida(usuarioNombre)
@@ -81,7 +82,8 @@ fun NavegacionMiRuta(
 
         NavHost(navController = navController, startDestination = "splash", modifier = modifier) {
             composable("splash") { TimeBasedBackground { PantallaSplash(navController) } }
-            composable("loading") { TimeBasedBackground { PantallaLoading(navController, startDest) } }
+            composable("loading") { TimeBasedBackground { PantallaLoading(navController, startDest, sessionManager) } }
+            composable("tutorial") { TimeBasedBackground { PantallaTutorial(navController, sessionManager) } }
             composable("login")
                                                                      {
                 val loginViewModel: LoginViewModel = viewModel(
