@@ -2,6 +2,7 @@ package com.example.appbanco.ui.screens
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -12,6 +13,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import com.example.appbanco.R
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -61,13 +64,21 @@ fun PantallaLogin(navController: NavController, viewModel: LoginViewModel) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(
-            text = "Mi Ruta", 
-            fontSize = 36.sp, 
-            fontWeight = FontWeight.Bold, 
-            color = Color.White,
-            style = MaterialTheme.typography.displayLarge,
-            modifier = Modifier.semantics { heading() }
+        Image(
+            painter = painterResource(id = R.drawable.logo_blanco),
+            contentDescription = null,
+            modifier = Modifier.size(90.dp)
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Image(
+            painter = painterResource(id = R.drawable.ic_miruta_texto),
+            contentDescription = "Mi Ruta Logo Texto",
+            modifier = Modifier
+                .width(180.dp)
+                .height(48.dp)
+                .semantics { heading() }
         )
         
         Spacer(modifier = Modifier.height(32.dp))

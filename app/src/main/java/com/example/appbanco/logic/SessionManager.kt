@@ -15,6 +15,7 @@ class SessionManager(private val context: Context) {
         private val USERNAME = stringPreferencesKey("username")
         private val AUTH_TOKEN = stringPreferencesKey("auth_token")
         private val PROFILE_IMAGE_URI = stringPreferencesKey("profile_image_uri")
+        private val APP_THEME = stringPreferencesKey("app_theme")
     }
 
     suspend fun saveSession(userId: Int, username: String, token: String) {
@@ -42,6 +43,10 @@ class SessionManager(private val context: Context) {
         preferences[PROFILE_IMAGE_URI]
     }
 
+    val appTheme: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[APP_THEME] ?: "Degradados"
+    }
+
     val authToken: Flow<String?> = context.dataStore.data.map { preferences ->
         preferences[AUTH_TOKEN]
     }
@@ -59,6 +64,12 @@ class SessionManager(private val context: Context) {
             } else {
                 preferences.remove(PROFILE_IMAGE_URI)
             }
+        }
+    }
+
+    suspend fun updateAppTheme(theme: String) {
+        context.dataStore.edit { preferences ->
+            preferences[APP_THEME] = theme
         }
     }
 

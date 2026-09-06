@@ -111,10 +111,11 @@ fun formatearRuta(nombre: String): String {
 }
 
 fun obtenerLogoSegunHora(): Int {
-    return when (Calendar.getInstance().get(Calendar.HOUR_OF_DAY)) {
-        in 6..11 -> R.drawable.logo_miruta_amanecer
-        in 12..18 -> R.drawable.logo_miruta_atardecer
-        else -> R.drawable.logo_miruta_anochecer
+    val hora = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+    return if (hora in 6..18) {
+        R.drawable.logo_negro
+    } else {
+        R.drawable.logo_blanco
     }
 }
 

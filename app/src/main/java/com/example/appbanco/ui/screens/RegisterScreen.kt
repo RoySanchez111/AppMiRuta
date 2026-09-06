@@ -1,5 +1,8 @@
 package com.example.appbanco.ui.screens
 
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import com.example.appbanco.R
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -49,9 +52,27 @@ fun PantallaRegistro(navController: NavController, userDao: UserDao? = null) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Image(
+                painter = painterResource(id = R.drawable.logo_blanco),
+                contentDescription = null,
+                modifier = Modifier.size(42.dp)
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+            Image(
+                painter = painterResource(id = R.drawable.ic_miruta_texto),
+                contentDescription = "Mi Ruta Logo",
+                modifier = Modifier
+                    .width(120.dp)
+                    .height(32.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         Text(
             text = "Crear cuenta",
-            fontSize = 32.sp,
+            fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             color = Color.White,
             modifier = Modifier.semantics { heading() }

@@ -73,4 +73,8 @@ dependencies {
 
     // BCrypt
     implementation(libs.jbcrypt)
+
+    // Coil para GIFs e imágenes
+    implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation("io.coil-kt:coil-gif:2.6.0")
 }

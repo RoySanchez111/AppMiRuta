@@ -44,7 +44,10 @@ class MainViewModel(private val sessionManager: SessionManager) : ViewModel() {
     val fotoPerfilUri = mutableStateOf<String?>(null)
 
     fun cambiarTema(nuevoTema: String) {
-        modoTema.value = nuevoTema
+        viewModelScope.launch {
+            sessionManager.updateAppTheme(nuevoTema)
+            modoTema.value = nuevoTema
+        }
     }
 
     fun actualizarFotoPerfil(uriString: String?) {
@@ -128,6 +131,11 @@ class MainViewModel(private val sessionManager: SessionManager) : ViewModel() {
         viewModelScope.launch {
             sessionManager.profileImageUri.collectLatest { uri ->
                 fotoPerfilUri.value = uri
+            }
+        }
+        viewModelScope.launch {
+            sessionManager.appTheme.collectLatest { theme ->
+                modoTema.value = theme
             }
         }
     }
