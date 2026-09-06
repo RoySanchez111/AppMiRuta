@@ -13,9 +13,26 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.School
+import androidx.compose.ui.graphics.vector.ImageVector
+import com.example.appbanco.logic.ServicioHorarios
+
+data class RutaFrecuenteItem(
+    val id: String,
+    val nombre: String,
+    val ubicacion: String,
+    val color: Color,
+    val icono: ImageVector
+)
+
 class MainViewModel(private val sessionManager: SessionManager) : ViewModel() {
     private val _startDestination = mutableStateOf("loading")
     val startDestination: State<String> = _startDestination
+
+    // Servicio de API de Horarios
+    val servicioHorarios = ServicioHorarios()
 
     // Tema dinámico de la app: "Degradados", "Claro", "Oscuro"
     val modoTema = mutableStateOf("Degradados")
@@ -41,6 +58,20 @@ class MainViewModel(private val sessionManager: SessionManager) : ViewModel() {
                 onFinished(false)
             }
         }
+    }
+
+    // Lista global de rutas frecuentes que sobrevive al cambio de pestañas
+    val listaRutasFrecuentes = mutableStateListOf(
+        RutaFrecuenteItem("1", "Casa", "Registrar ubicación", Color(0xFF4A86F7), Icons.Default.Home),
+        RutaFrecuenteItem("2", "Universidad", "Registrar ubicación", Color(0xFFF26E68), Icons.Default.School)
+    )
+
+    fun agregarRutaFrecuente(nueva: RutaFrecuenteItem) {
+        listaRutasFrecuentes.add(nueva)
+    }
+
+    fun eliminarRutaFrecuente(id: String) {
+        listaRutasFrecuentes.removeAll { it.id == id }
     }
 
     // Lista global de incidencias que sobrevive al cambio de pestañas

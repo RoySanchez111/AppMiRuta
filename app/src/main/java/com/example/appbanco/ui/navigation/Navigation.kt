@@ -97,7 +97,7 @@ fun NavegacionMiRuta(
                 }
             }
             composable("principal") { PantallaPrincipal(navController) }
-            composable("horario") { PantallaHorarios(navController) }
+            composable("horario") { PantallaHorarios(navController, viewModel) }
             composable("alertas") { PantallaAlertas(navController, viewModel) }
             composable("cuenta") { PantallaCuenta(sessionManager, navController, viewModel, database.userDao()) }
         }

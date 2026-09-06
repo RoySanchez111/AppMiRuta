@@ -60,10 +60,10 @@ fun obtenerColoresFondo(): List<Color> {
 @Composable
 fun TimeBasedBackground(modifier: Modifier = Modifier.fillMaxSize(), content: @Composable () -> Unit) {
     val coloresFondo = remember { obtenerColoresFondo() }
+    val backgroundBrush = remember(coloresFondo) { Brush.verticalGradient(coloresFondo) }
 
     Box(
-        modifier = modifier
-            .background(Brush.verticalGradient(coloresFondo))
+        modifier = modifier.background(backgroundBrush)
     ) {
         content()
     }
