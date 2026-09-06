@@ -36,10 +36,62 @@ fun obtenerEsquemaColoresOscuro(): ColorScheme {
 
 fun obtenerEsquemaColoresDinamico(): ColorScheme {
     val hora = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-    return if (hora in 6..18) {
-        obtenerEsquemaColoresClaro()
-    } else {
-        obtenerEsquemaColoresOscuro()
+    return when (hora) {
+        in 0..5 -> darkColorScheme(
+            surface = Color(0xFF0F2027),
+            onSurface = Color(0xFFE0F7FA),
+            background = Color(0xFF0F2027),
+            onBackground = Color(0xFFE0F7FA),
+            surfaceVariant = Color(0xFF203A43),
+            onSurfaceVariant = Color(0xFFE0F7FA),
+            primary = Color(0xFF00C6FF),
+            primaryContainer = Color(0xFF203A43),
+            secondary = Color(0xFF2C5364)
+        )
+        in 6..11 -> lightColorScheme(
+            surface = Color(0xFFF8F4FF),
+            onSurface = Color(0xFF21005D),
+            background = Color(0xFFF8F4FF),
+            onBackground = Color(0xFF21005D),
+            surfaceVariant = Color(0xFFECE0FD),
+            onSurfaceVariant = Color(0xFF21005D),
+            primary = Color(0xFF7B1FA2),
+            primaryContainer = Color(0xFFF3E5F5),
+            secondary = Color(0xFF4A00E0)
+        )
+        in 12..17 -> lightColorScheme(
+            surface = Color(0xFFF0F8FF),
+            onSurface = Color(0xFF00202E),
+            background = Color(0xFFF0F8FF),
+            onBackground = Color(0xFF00202E),
+            surfaceVariant = Color(0xFFE0F2FE),
+            onSurfaceVariant = Color(0xFF00202E),
+            primary = Color(0xFF0288D1),
+            primaryContainer = Color(0xFFE0F7FA),
+            secondary = Color(0xFF0083B0)
+        )
+        in 18..19 -> lightColorScheme(
+            surface = Color(0xFFFFF8F0),
+            onSurface = Color(0xFF3E1200),
+            background = Color(0xFFFFF8F0),
+            onBackground = Color(0xFF3E1200),
+            surfaceVariant = Color(0xFFFFEAD0),
+            onSurfaceVariant = Color(0xFF3E1200),
+            primary = Color(0xFFE65100),
+            primaryContainer = Color(0xFFFDEBD0),
+            secondary = Color(0xFFF5AF19)
+        )
+        else -> darkColorScheme(
+            surface = Color(0xFF191B1D),
+            onSurface = Color(0xFFF0F2F5),
+            background = Color(0xFF191B1D),
+            onBackground = Color(0xFFF0F2F5),
+            surfaceVariant = Color(0xFF2A2D32),
+            onSurfaceVariant = Color(0xFFF0F2F5),
+            primary = Color(0xFF327CF2),
+            primaryContainer = Color(0xFF2A2D32),
+            secondary = Color(0xFF414345)
+        )
     }
 }
 

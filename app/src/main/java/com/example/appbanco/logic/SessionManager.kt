@@ -14,6 +14,7 @@ class SessionManager(private val context: Context) {
         private val USER_ID = intPreferencesKey("user_id")
         private val USERNAME = stringPreferencesKey("username")
         private val AUTH_TOKEN = stringPreferencesKey("auth_token")
+        private val PROFILE_IMAGE_URI = stringPreferencesKey("profile_image_uri")
     }
 
     suspend fun saveSession(userId: Int, username: String, token: String) {
@@ -37,6 +38,10 @@ class SessionManager(private val context: Context) {
         preferences[USERNAME]
     }
 
+    val profileImageUri: Flow<String?> = context.dataStore.data.map { preferences ->
+        preferences[PROFILE_IMAGE_URI]
+    }
+
     val authToken: Flow<String?> = context.dataStore.data.map { preferences ->
         preferences[AUTH_TOKEN]
     }
@@ -44,6 +49,16 @@ class SessionManager(private val context: Context) {
     suspend fun updateUsername(newUsername: String) {
         context.dataStore.edit { preferences ->
             preferences[USERNAME] = newUsername
+        }
+    }
+
+    suspend fun updateProfileImage(uriString: String?) {
+        context.dataStore.edit { preferences ->
+            if (uriString != null) {
+                preferences[PROFILE_IMAGE_URI] = uriString
+            } else {
+                preferences.remove(PROFILE_IMAGE_URI)
+            }
         }
     }
 

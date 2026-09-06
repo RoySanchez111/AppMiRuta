@@ -58,6 +58,8 @@ fun NavegacionMiRuta(
                 EncabezadoGlobal(
                     titulo = tituloHeader,
                     subtitulo = subtituloHeader,
+                    fotoUri = viewModel.fotoPerfilUri.value,
+                    inicialUsuario = if (usuarioNombre.isNotBlank()) usuarioNombre.take(1).uppercase() else "U",
                     onBackClick = if (rutaActual == "cuenta") {
                         { navController.popBackStack() }
                     } else null,

@@ -1,5 +1,16 @@
 package com.example.appbanco.ui.components
 
+import android.net.Uri
+import android.graphics.BitmapFactory
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.foundation.Image
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -40,10 +51,14 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+
 @Composable
 fun BarraNavegacionInferior(navController: NavController, rutaActual: String?) {
     val themeColor = MaterialTheme.colorScheme.onSurface
     val containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
+    val haptic = LocalHapticFeedback.current
 
     NavigationBar(
         containerColor = containerColor,
@@ -61,14 +76,15 @@ fun BarraNavegacionInferior(navController: NavController, rutaActual: String?) {
                 label = { Text(etiqueta) },
                 selected = rutaActual == ruta,
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = Color(0xFFF4556D), 
-                    selectedTextColor = Color(0xFFF4556D), 
+                    selectedIconColor = MaterialTheme.colorScheme.primary, 
+                    selectedTextColor = MaterialTheme.colorScheme.primary, 
                     unselectedIconColor = themeColor.copy(alpha = 0.6f), 
                     unselectedTextColor = themeColor.copy(alpha = 0.6f), 
-                    indicatorColor = Color(0xFF00BCD4).copy(alpha = 0.1f)
+                    indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                 ),
                 onClick = { 
                     if (rutaActual != ruta) {
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                         navController.navigate(ruta) { 
                             popUpTo("principal") { 
                                 saveState = true
@@ -85,9 +101,96 @@ fun BarraNavegacionInferior(navController: NavController, rutaActual: String?) {
 }
 
 @Composable
+fun FotoPerfilAvatar(
+    fotoUri: String?,
+    inicialNombre: String,
+    tamanoDp: Int = 52,
+    onFotoClick: (() -> Unit)? = null
+) {
+    val context = LocalContext.current
+    var imageBitmap by remember(fotoUri) { mutableStateOf<ImageBitmap?>(null) }
+
+    LaunchedEffect(fotoUri) {
+        if (fotoUri != null && !fotoUri.startsWith("preset:")) {
+            try {
+                val uri = Uri.parse(fotoUri)
+                val inputStream = context.contentResolver.openInputStream(uri)
+                val bitmap = BitmapFactory.decodeStream(inputStream)
+                if (bitmap != null) {
+                    imageBitmap = bitmap.asImageBitmap()
+                }
+            } catch (e: Exception) {
+                imageBitmap = null
+            }
+        } else {
+            imageBitmap = null
+        }
+    }
+
+    val modifierFinal = Modifier
+        .size(tamanoDp.dp)
+        .clip(CircleShape)
+        .then(
+            if (onFotoClick != null) Modifier.clickable { onFotoClick() } else Modifier
+        )
+
+    Box(
+        modifier = modifierFinal,
+        contentAlignment = Alignment.Center
+    ) {
+        if (imageBitmap != null) {
+            Image(
+                bitmap = imageBitmap!!,
+                contentDescription = "Foto de perfil del usuario",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+        } else if (fotoUri != null && fotoUri.startsWith("preset:")) {
+            val presetName = fotoUri.removePrefix("preset:")
+            val (icon, bgColor) = when (presetName) {
+                "autobus" -> Pair(Icons.Default.DirectionsBus, Color(0xFF3498DB))
+                "express" -> Pair(Icons.Default.DirectionsTransit, Color(0xFF9B59B6))
+                "conductor" -> Pair(Icons.Default.Badge, Color(0xFF2ECC71))
+                "vip" -> Pair(Icons.Default.Stars, Color(0xFFF39C12))
+                else -> Pair(Icons.Default.Person, MaterialTheme.colorScheme.primary)
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(bgColor),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = "Avatar $presetName",
+                    tint = Color.White,
+                    modifier = Modifier.size((tamanoDp * 0.55).dp)
+                )
+            }
+        } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = inicialNombre,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = (tamanoDp * 0.45).sp
+                )
+            }
+        }
+    }
+}
+
+@Composable
 fun EncabezadoGlobal(
     titulo: String, 
     subtitulo: String? = null,
+    fotoUri: String? = null,
+    inicialUsuario: String = "U",
     onBackClick: (() -> Unit)? = null,
     onProfileClick: () -> Unit = {}
 ) {
@@ -144,13 +247,12 @@ fun EncabezadoGlobal(
                     }
                 }
                 
-                // Avatar
+                // Avatar con Foto de Perfil Dinámica
                 Box(
                     modifier = Modifier
                         .size(50.dp)
                         .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.25f))
-                        .border(1.dp, Color.White.copy(alpha = 0.3f), CircleShape)
+                        .border(1.dp, Color.White.copy(alpha = 0.4f), CircleShape)
                         .clickable { onProfileClick() }
                         .semantics {
                             role = Role.Button
@@ -158,11 +260,10 @@ fun EncabezadoGlobal(
                         },
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(28.dp)
+                    FotoPerfilAvatar(
+                        fotoUri = fotoUri,
+                        inicialNombre = inicialUsuario,
+                        tamanoDp = 50
                     )
                 }
             }

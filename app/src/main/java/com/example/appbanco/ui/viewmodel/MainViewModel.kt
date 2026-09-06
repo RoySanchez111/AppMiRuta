@@ -40,8 +40,18 @@ class MainViewModel(private val sessionManager: SessionManager) : ViewModel() {
     // Nombre de usuario activo para saludos y perfil
     val usuarioActual = mutableStateOf("Invitado")
 
+    // URI de la foto de perfil activa del usuario
+    val fotoPerfilUri = mutableStateOf<String?>(null)
+
     fun cambiarTema(nuevoTema: String) {
         modoTema.value = nuevoTema
+    }
+
+    fun actualizarFotoPerfil(uriString: String?) {
+        viewModelScope.launch {
+            sessionManager.updateProfileImage(uriString)
+            fotoPerfilUri.value = uriString
+        }
     }
 
     fun actualizarNombreUsuario(userDao: UserDao, nuevoNombre: String, onFinished: (Boolean) -> Unit) {
@@ -113,6 +123,11 @@ class MainViewModel(private val sessionManager: SessionManager) : ViewModel() {
                 } else {
                     usuarioActual.value = "Invitado"
                 }
+            }
+        }
+        viewModelScope.launch {
+            sessionManager.profileImageUri.collectLatest { uri ->
+                fotoPerfilUri.value = uri
             }
         }
     }

@@ -48,6 +48,8 @@ import org.maplibre.android.camera.CameraUpdateFactory
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.MapView
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import org.maplibre.android.maps.Style
 import android.widget.Toast
 import androidx.compose.ui.viewinterop.AndroidView
@@ -59,11 +61,23 @@ import org.maplibre.android.location.LocationComponentActivationOptions
 import android.Manifest
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.core.tween
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import kotlinx.coroutines.delay
 import com.google.android.gms.location.LocationServices
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import java.util.Locale
+import android.net.Uri
+import android.graphics.BitmapFactory
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.layout.ContentScale
 
 // MODELO DE DATOS PARA PARADAS EN EL MAPA
 data class ParadaMapa(
@@ -92,6 +106,7 @@ fun PantallaPrincipal(navController: NavController) {
     val onSurface = MaterialTheme.colorScheme.onSurface
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    val haptic = LocalHapticFeedback.current
 
     // Coordenadas iniciales (Tecmilenio Campus Puebla)
     val tecmilenioPuebla = LatLng(18.999446, -98.261833)
@@ -190,7 +205,7 @@ fun PantallaPrincipal(navController: NavController) {
             value = busquedaTexto,
             onValueChange = { busquedaTexto = it },
             placeholder = { Text("Buscar línea, parada o destino...", color = onBackground.copy(alpha = 0.5f), fontSize = 14.sp) },
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = onBackground.copy(alpha = 0.5f)) },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
             trailingIcon = if (busquedaTexto.isNotEmpty()) {
                 {
                     IconButton(onClick = { busquedaTexto = "" }) {
@@ -201,13 +216,13 @@ fun PantallaPrincipal(navController: NavController) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp)
-                .background(onBackground.copy(alpha = 0.05f), RoundedCornerShape(18.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(18.dp))
                 .semantics {
                     contentDescription = "Campo de búsqueda de líneas y paradas"
                 },
             shape = RoundedCornerShape(18.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                unfocusedBorderColor = onBackground.copy(alpha = 0.1f),
+                unfocusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f),
                 focusedBorderColor = MaterialTheme.colorScheme.primary,
                 cursorColor = onBackground,
                 unfocusedContainerColor = Color.Transparent,
@@ -240,6 +255,7 @@ fun PantallaPrincipal(navController: NavController) {
                             contentDescription = "Filtro de mapa: $filtro"
                         }
                         .clickable {
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                             filtroActivo = filtro
                             // Si selecciona un filtro específico, mover la cámara a la primera parada coincidente
                             val primeraCoincidencia = paradasMapLibre.firstOrNull { 
@@ -457,6 +473,7 @@ fun PantallaPrincipal(navController: NavController) {
             // BOTÓN CENTRAR EN MI UBICACIÓN GPS REAL
             IconButton(
                 onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
                         ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                         obtenerUbicacionGpsReal { realLatLng ->
@@ -879,10 +896,10 @@ fun TarjetaLineaHorario(linea: LineaHorario, proximaSalida: String, onClick: () 
             }
             .clickable { onClick() },
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
         ),
-        shape = RoundedCornerShape(12.dp),
-        border = BorderStroke(1.dp, onSurfaceColor.copy(alpha = 0.05f))
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
     ) {
         Row(
             modifier = Modifier
@@ -947,11 +964,13 @@ data class Incidencia(
     val colorRuta: Color
 )
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaAlertas(navController: NavController, viewModel: MainViewModel) {
     val onSurface = MaterialTheme.colorScheme.onSurface
     val surfaceColor = MaterialTheme.colorScheme.surface
     val primaryColor = Color(0xFF282869)
+    val context = LocalContext.current
 
     val listaIncidencias = viewModel.listaIncidencias
     var mostrarDialogo by remember { mutableStateOf(false) }
@@ -965,9 +984,48 @@ fun PantallaAlertas(navController: NavController, viewModel: MainViewModel) {
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Hint instructivo de deslizamiento
+            if (listaIncidencias.isNotEmpty()) {
+                Text(
+                    text = "👈 Desliza una alerta a la izquierda para eliminarla",
+                    fontSize = 12.sp,
+                    color = onSurface.copy(alpha = 0.5f),
+                    modifier = Modifier
+                        .padding(bottom = 12.dp)
+                        .semantics { contentDescription = "Pista: Desliza cualquier tarjeta a la izquierda para eliminar la alerta" }
+                )
+            } else {
+                Spacer(modifier = Modifier.height(40.dp))
+                Surface(
+                    color = surfaceColor,
+                    shape = RoundedCornerShape(16.dp),
+                    border = BorderStroke(1.dp, onSurface.copy(alpha = 0.1f)),
+                    modifier = Modifier.fillMaxWidth().padding(20.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color(0xFF2ECC71), modifier = Modifier.size(48.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text("¡No hay incidencias reportadas!", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = onSurface)
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text("El servicio de transporte opera con normalidad.", fontSize = 13.sp, color = onSurface.copy(alpha = 0.6f))
+                    }
+                }
+            }
+
             listaIncidencias.forEach { incidencia ->
-                TarjetaAlerta(incidencia)
-                Spacer(modifier = Modifier.height(16.dp))
+                key(incidencia.titulo) {
+                    ItemAlertaDeslizable(
+                        incidencia = incidencia,
+                        onEliminar = {
+                            listaIncidencias.remove(incidencia)
+                            Toast.makeText(context, "Alerta en ruta ${incidencia.ruta} eliminada", Toast.LENGTH_SHORT).show()
+                        }
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
             }
             Spacer(modifier = Modifier.height(100.dp))
         }
@@ -1033,122 +1091,236 @@ fun PantallaAlertas(navController: NavController, viewModel: MainViewModel) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TarjetaAlerta(incidencia: Incidencia) {
+fun ItemAlertaDeslizable(
+    incidencia: Incidencia,
+    onEliminar: () -> Unit
+) {
+    var estaEliminado by remember { mutableStateOf(false) }
+    val haptic = LocalHapticFeedback.current
 
-    // Controla si la información está desplegada
-    var expandida by remember { mutableStateOf(false) }
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { value ->
+            if (value == SwipeToDismissBoxValue.EndToStart) {
+                estaEliminado = true
+                true
+            } else {
+                false
+            }
+        }
+    )
+
+    LaunchedEffect(estaEliminado) {
+        if (estaEliminado) {
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+            delay(250)
+            onEliminar()
+        }
+    }
+
+    AnimatedVisibility(
+        visible = !estaEliminado,
+        exit = shrinkVertically(animationSpec = tween(durationMillis = 250)) + fadeOut()
+    ) {
+        SwipeToDismissBox(
+            state = dismissState,
+            enableDismissFromStartToEnd = false,
+            enableDismissFromEndToStart = true,
+            backgroundContent = {
+                val colorFondo = when (dismissState.dismissDirection) {
+                    SwipeToDismissBoxValue.EndToStart -> Color(0xFFC0392B)
+                    else -> Color.Transparent
+                }
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(colorFondo)
+                        .padding(horizontal = 20.dp),
+                    contentAlignment = Alignment.CenterEnd
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.semantics {
+                            contentDescription = "Eliminar alerta de ruta ${incidencia.ruta}"
+                        }
+                    ) {
+                        Text(
+                            text = "Eliminar",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+            },
+            content = {
+                TarjetaAlerta(
+                    incidencia = incidencia,
+                    onEliminarClick = {
+                        estaEliminado = true
+                    }
+                )
+            }
+        )
+    }
+}
+
+@Composable
+fun TarjetaAlerta(
+    incidencia: Incidencia,
+    onEliminarClick: () -> Unit = {}
+) {
+    var expandida by remember { mutableStateOf(true) } // Por defecto desplegada para mejor UX
+    val onSurfaceColor = MaterialTheme.colorScheme.onSurface
+
+    // Icono correspondiente según el tipo de incidencia
+    val (iconoIncidencia, colorIconoFondo) = when {
+        incidencia.tipo.contains("Retraso", ignoreCase = true) -> Pair(Icons.Default.Warning, Color(0xFFFADBD8))
+        incidencia.tipo.contains("Desvío", ignoreCase = true) -> Pair(Icons.AutoMirrored.Filled.Shortcut, Color(0xFFFDEBD0))
+        else -> Pair(Icons.Default.Campaign, Color(0xFFEBF5FB))
+    }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .semantics(mergeDescendants = true) {
                 role = Role.Button
-                contentDescription = "Alerta ${incidencia.tipo} en ruta ${incidencia.ruta}: ${incidencia.titulo}. ${incidencia.descripcion}. ${incidencia.tiempo}. ${if (expandida) "Toca para contraer" else "Toca para expandir"}"
+                contentDescription = "Alerta ${incidencia.tipo} en ruta ${incidencia.ruta}: ${incidencia.titulo}. ${incidencia.descripcion}. Registrado ${incidencia.tiempo}"
             }
-            .clickable {
-                expandida = !expandida
-            },
+            .clickable { expandida = !expandida },
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
         ),
         shape = RoundedCornerShape(20.dp),
-        border = BorderStroke(
-            1.dp,
-            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
-        )
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.18f))
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-
-            // Parte que siempre permanece visible
+        Column(modifier = Modifier.padding(16.dp)) {
+            // CABECERA
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Surface(
-                    color = incidencia.colorEtiqueta,
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text(
-                        text = incidencia.tipo,
-                        color = Color.White,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(
-                            horizontal = 10.dp,
-                            vertical = 4.dp
-                        )
-                    )
-                }
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    // Ruta Badge
                     Surface(
                         color = incidencia.colorRuta,
                         shape = CircleShape,
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(34.dp)
                     ) {
-                        Box(
-                            contentAlignment = Alignment.Center
-                        ) {
+                        Box(contentAlignment = Alignment.Center) {
                             Text(
                                 text = incidencia.ruta,
                                 color = Color.White,
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 12.sp
+                                fontSize = 13.sp
                             )
                         }
                     }
 
+                    Spacer(modifier = Modifier.width(10.dp))
+
+                    // Tipo de Incidencia Tag
+                    Surface(
+                        color = incidencia.colorEtiqueta,
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Text(
+                            text = incidencia.tipo,
+                            color = Color.White,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                        )
+                    }
+                }
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = incidencia.tiempo,
+                        fontSize = 11.sp,
+                        color = onSurfaceColor.copy(alpha = 0.6f),
+                        fontWeight = FontWeight.Medium
+                    )
+
                     Spacer(modifier = Modifier.width(8.dp))
 
+                    // Botón de eliminar directo en la tarjeta
+                    IconButton(
+                        onClick = onEliminarClick,
+                        modifier = Modifier
+                            .size(28.dp)
+                            .semantics {
+                                role = Role.Button
+                                contentDescription = "Eliminar esta alerta"
+                            }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Eliminar alerta",
+                            tint = Color(0xFFC0392B).copy(alpha = 0.8f),
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+
+                    // Chevron desplegable
                     Icon(
-                        imageVector = if (expandida) {
-                            Icons.Default.KeyboardArrowUp
-                        } else {
-                            Icons.Default.KeyboardArrowDown
-                        },
-                        contentDescription = if (expandida) {
-                            "Contraer información"
-                        } else {
-                            "Mostrar información"
-                        },
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        imageVector = if (expandida) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                        contentDescription = if (expandida) "Contraer" else "Expandir",
+                        tint = onSurfaceColor.copy(alpha = 0.5f),
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             }
 
-            // Esta información solamente aparece al tocar la tarjeta
-            if (expandida) {
-                Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-                Text(
-                    text = incidencia.titulo,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+            // CONTENIDO PRINCIPAL
+            Row(verticalAlignment = Alignment.Top) {
+                Box(
+                    modifier = Modifier
+                        .size(46.dp)
+                        .background(colorIconoFondo, RoundedCornerShape(12.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = iconoIncidencia,
+                        contentDescription = null,
+                        tint = incidencia.colorEtiqueta,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
 
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.width(12.dp))
 
-                Text(
-                    text = incidencia.descripcion,
-                    fontSize = 13.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                    lineHeight = 18.sp
-                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = incidencia.titulo,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp,
+                        color = onSurfaceColor
+                    )
 
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Text(
-                    text = incidencia.tiempo,
-                    fontSize = 11.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                )
+                    if (expandida) {
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = incidencia.descripcion,
+                            fontSize = 13.sp,
+                            color = onSurfaceColor.copy(alpha = 0.8f),
+                            lineHeight = 18.sp
+                        )
+                    }
+                }
             }
         }
     }
@@ -1164,18 +1336,55 @@ fun DialogoReporte(
     var errorRuta by remember { mutableStateOf(false) }
     var errorDescripcion by remember { mutableStateOf(false) }
 
+    val rutasSugeridas = listOf("L1", "L4", "L5", "L7", "MA")
+
     AlertDialog(
         onDismissRequest = onDismiss,
-
         title = {
             Text(
                 "Reportar nueva incidencia",
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp,
+                modifier = Modifier.semantics { heading() }
             )
         },
-
         text = {
-            Column {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+            ) {
+                Text("Selecciona o escribe la línea afectada:", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    rutasSugeridas.forEach { chipRuta ->
+                        val esSeleccionada = ruta == chipRuta
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = if (esSeleccionada) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                            modifier = Modifier.clickable {
+                                ruta = chipRuta
+                                errorRuta = false
+                            }
+                        ) {
+                            Text(
+                                text = chipRuta,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (esSeleccionada) Color.White else MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
 
                 // CAMPO RUTA
                 OutlinedTextField(
@@ -1184,25 +1393,22 @@ fun DialogoReporte(
                         ruta = it
                         errorRuta = false
                     },
-                    label = {
-                        Text("Línea/Ruta (Ej. L4)")
-                    },
+                    label = { Text("Línea/Ruta (Ej. L4)") },
                     singleLine = true,
                     isError = errorRuta,
                     modifier = Modifier.fillMaxWidth()
                 )
 
                 if (errorRuta) {
+                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Debes ingresar una línea o ruta.",
+                        text = "Debes seleccionar o ingresar una línea.",
                         color = MaterialTheme.colorScheme.error,
                         fontSize = 12.sp
                     )
                 }
 
-                Spacer(
-                    modifier = Modifier.height(8.dp)
-                )
+                Spacer(modifier = Modifier.height(12.dp))
 
                 // CAMPO DESCRIPCIÓN
                 OutlinedTextField(
@@ -1211,47 +1417,39 @@ fun DialogoReporte(
                         descripcion = it
                         errorDescripcion = false
                     },
-                    label = {
-                        Text("Descripción del problema")
-                    },
+                    label = { Text("Descripción del problema") },
                     isError = errorDescripcion,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(120.dp)
+                        .height(110.dp)
                 )
 
                 if (errorDescripcion) {
+                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Debes ingresar una descripción.",
+                        text = "Debes ingresar una descripción del problema.",
                         color = MaterialTheme.colorScheme.error,
                         fontSize = 12.sp
                     )
                 }
             }
         },
-
         confirmButton = {
             Button(
                 onClick = {
-
-                    // Comprobamos cada campo
                     errorRuta = ruta.isBlank()
                     errorDescripcion = descripcion.isBlank()
 
-                    // Si ninguno tiene error, enviamos
                     if (!errorRuta && !errorDescripcion) {
-                        onConfirm(ruta, descripcion)
+                        onConfirm(ruta.trim(), descripcion.trim())
                     }
                 }
             ) {
-                Text("Reportar")
+                Text("Reportar Incidencia")
             }
         },
-
         dismissButton = {
-            TextButton(
-                onClick = onDismiss
-            ) {
+            TextButton(onClick = onDismiss) {
                 Text("Cancelar")
             }
         }
@@ -1262,8 +1460,10 @@ fun DialogoReporte(
 fun AnimacionReporteExitoso(
     onFinished: () -> Unit
 ) {
-    LaunchedEffect(Unit) {
+    val haptic = LocalHapticFeedback.current
 
+    LaunchedEffect(Unit) {
+        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
         // Tiempo que permanece la confirmación en pantalla
         delay(1000)
 
@@ -1368,10 +1568,12 @@ fun PantallaCuenta(
     var rutaSeleccionadaOpciones by remember { mutableStateOf<RutaFrecuenteItem?>(null) }
     var efectosPantallaActivados by remember { mutableStateOf(true) }
     var talkbackActivado by remember { mutableStateOf(true) }
+    var mostrarDialogoFoto by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     val usuarioActual = viewModel.usuarioActual.value
     val inicialUsuario = if (usuarioActual.isNotBlank()) usuarioActual.take(1).uppercase() else "U"
+    val fotoUri = viewModel.fotoPerfilUri.value
 
     Column(
         modifier = Modifier
@@ -1387,22 +1589,41 @@ fun PantallaCuenta(
                 .fillMaxWidth()
                 .padding(horizontal = 4.dp)
                 .semantics(mergeDescendants = true) {
-                    contentDescription = "Usuario $usuarioActual"
+                    contentDescription = "Usuario $usuarioActual. Toca la foto para cambiarla."
                 }, 
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
-                    .size(52.dp)
-                    .background(onSurface.copy(alpha = 0.1f), CircleShape), 
-                contentAlignment = Alignment.Center
+                    .size(60.dp)
+                    .clickable { mostrarDialogoFoto = true },
+                contentAlignment = Alignment.BottomEnd
             ) {
-                Text(inicialUsuario, fontWeight = FontWeight.Bold, color = onSurface, fontSize = 24.sp)
+                FotoPerfilAvatar(
+                    fotoUri = fotoUri,
+                    inicialNombre = inicialUsuario,
+                    tamanoDp = 60,
+                    onFotoClick = { mostrarDialogoFoto = true }
+                )
+                Box(
+                    modifier = Modifier
+                        .size(20.dp)
+                        .background(MaterialTheme.colorScheme.primary, CircleShape)
+                        .border(1.dp, Color.White, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.PhotoCamera,
+                        contentDescription = "Cambiar foto de perfil",
+                        tint = Color.White,
+                        modifier = Modifier.size(12.dp)
+                    )
+                }
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(usuarioActual, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = onSurface)
-                Text("Usuario registrado", fontSize = 13.sp, color = onSurface.copy(alpha = 0.6f))
+                Text("Usuario registrado • Toca para editar foto", fontSize = 12.sp, color = onSurface.copy(alpha = 0.6f))
             }
             IconButton(
                 onClick = { mostrarDialogoNombre = true },
@@ -1609,6 +1830,17 @@ fun PantallaCuenta(
                 viewModel.actualizarNombreUsuario(userDao, nuevoNombre) { _ ->
                     mostrarDialogoNombre = false
                 }
+            }
+        )
+    }
+
+    if (mostrarDialogoFoto) {
+        DialogoCambiarFotoPerfil(
+            fotoActualUri = viewModel.fotoPerfilUri.value,
+            onDismiss = { mostrarDialogoFoto = false },
+            onSeleccionarUri = { nuevaUri ->
+                viewModel.actualizarFotoPerfil(nuevaUri)
+                mostrarDialogoFoto = false
             }
         )
     }
@@ -2245,6 +2477,137 @@ fun DialogoOpcionesRutaFrecuente(
         dismissButton = {
             TextButton(onClick = onDismiss) {
                 Text("Cerrar")
+            }
+        }
+    )
+}
+
+@Composable
+fun DialogoCambiarFotoPerfil(
+    fotoActualUri: String?,
+    onDismiss: () -> Unit,
+    onSeleccionarUri: (String?) -> Unit
+) {
+    val haptic = LocalHapticFeedback.current
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+            onSeleccionarUri(uri.toString())
+            onDismiss()
+        }
+    }
+
+    val presetsAvatares = listOf(
+        Pair("autobus", "Autobús"),
+        Pair("express", "Express"),
+        Pair("conductor", "Conductor"),
+        Pair("vip", "Pasajero VIP")
+    )
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Foto de Perfil",
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp,
+                modifier = Modifier.semantics { heading() }
+            )
+        },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+            ) {
+                Text("Elige una foto de tu galería o selecciona un avatar:", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // OPCIÓN 1: ELEGIR DE GALERÍA
+                Button(
+                    onClick = {
+                        galleryLauncher.launch("image/*")
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.Default.PhotoLibrary, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Elegir foto de la Galería")
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // OPCIÓN 2: AVATARES PREDETERMINADOS
+                Text("Avatares predeterminados:", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    presetsAvatares.forEach { (presetKey, nombrePreset) ->
+                        val (icon, bgColor) = when (presetKey) {
+                            "autobus" -> Pair(Icons.Default.DirectionsBus, Color(0xFF3498DB))
+                            "express" -> Pair(Icons.Default.DirectionsTransit, Color(0xFF9B59B6))
+                            "conductor" -> Pair(Icons.Default.Badge, Color(0xFF2ECC71))
+                            "vip" -> Pair(Icons.Default.Stars, Color(0xFFF39C12))
+                            else -> Pair(Icons.Default.Person, MaterialTheme.colorScheme.primary)
+                        }
+
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier
+                                .semantics {
+                                    role = Role.Button
+                                    contentDescription = "Avatar $nombrePreset"
+                                }
+                                .clickable {
+                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                    onSeleccionarUri("preset:$presetKey")
+                                    onDismiss()
+                                }
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(46.dp)
+                                    .clip(CircleShape)
+                                    .background(bgColor),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp))
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(nombrePreset, fontSize = 10.sp)
+                        }
+                    }
+                }
+
+                // OPCIÓN 3: ELIMINAR FOTO
+                if (fotoActualUri != null) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    TextButton(
+                        onClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            onSeleccionarUri(null)
+                            onDismiss()
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFFC0392B))
+                    ) {
+                        Icon(Icons.Default.Delete, contentDescription = null)
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Eliminar foto actual")
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar")
             }
         }
     )
