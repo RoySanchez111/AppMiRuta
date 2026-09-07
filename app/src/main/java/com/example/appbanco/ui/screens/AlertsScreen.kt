@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.appbanco.ui.viewmodel.MainViewModel
+import androidx.constraintlayout.compose.*
 import kotlinx.coroutines.delay
 
 data class Incidencia(
@@ -289,117 +290,149 @@ fun TarjetaAlerta(
         shape = RoundedCornerShape(20.dp),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.18f))
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+        ConstraintLayout(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            val (routeSurface, typeSurface, timeText, deleteButton, expandIcon, iconBox, titleText, descText) = createRefs()
+
+            Surface(
+                color = incidencia.colorRuta,
+                shape = CircleShape,
+                modifier = Modifier
+                    .size(34.dp)
+                    .constrainAs(routeSurface) {
+                        top.linkTo(parent.top)
+                        start.linkTo(parent.start)
+                    }
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Surface(
-                        color = incidencia.colorRuta,
-                        shape = CircleShape,
-                        modifier = Modifier.size(34.dp)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Text(
-                                text = incidencia.ruta,
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 13.sp
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.width(10.dp))
-
-                    Surface(
-                        color = incidencia.colorEtiqueta,
-                        shape = RoundedCornerShape(10.dp)
-                    ) {
-                        Text(
-                            text = incidencia.tipo,
-                            color = Color.White,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                        )
-                    }
-                }
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(contentAlignment = Alignment.Center) {
                     Text(
-                        text = incidencia.tiempo,
-                        fontSize = 11.sp,
-                        color = onSurfaceColor.copy(alpha = 0.6f),
-                        fontWeight = FontWeight.Medium
-                    )
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    IconButton(
-                        onClick = onEliminarClick,
-                        modifier = Modifier
-                            .size(28.dp)
-                            .semantics {
-                                role = Role.Button
-                                contentDescription = "Eliminar esta alerta"
-                            }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = "Eliminar alerta",
-                            tint = Color(0xFFC0392B).copy(alpha = 0.8f),
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-
-                    Icon(
-                        imageVector = if (expandida) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                        contentDescription = if (expandida) "Contraer" else "Expandir",
-                        tint = onSurfaceColor.copy(alpha = 0.5f),
-                        modifier = Modifier.size(20.dp)
+                        text = incidencia.ruta,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 13.sp
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row(verticalAlignment = Alignment.Top) {
-                Box(
-                    modifier = Modifier
-                        .size(46.dp)
-                        .background(colorIconoFondo, RoundedCornerShape(12.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = iconoIncidencia,
-                        contentDescription = null,
-                        tint = incidencia.colorEtiqueta,
-                        modifier = Modifier.size(24.dp)
-                    )
+            Surface(
+                color = incidencia.colorEtiqueta,
+                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier.constrainAs(typeSurface) {
+                    top.linkTo(routeSurface.top)
+                    bottom.linkTo(routeSurface.bottom)
+                    start.linkTo(routeSurface.end, margin = 10.dp)
                 }
+            ) {
+                Text(
+                    text = incidencia.tipo,
+                    color = Color.White,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                )
+            }
 
-                Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = incidencia.tiempo,
+                fontSize = 11.sp,
+                color = onSurfaceColor.copy(alpha = 0.6f),
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.constrainAs(timeText) {
+                    top.linkTo(routeSurface.top)
+                    bottom.linkTo(routeSurface.bottom)
+                    end.linkTo(deleteButton.start, margin = 8.dp)
+                }
+            )
 
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = incidencia.titulo,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 15.sp,
-                        color = onSurfaceColor
-                    )
+            IconButton(
+                onClick = onEliminarClick,
+                modifier = Modifier
+                    .size(28.dp)
+                    .constrainAs(deleteButton) {
+                        top.linkTo(routeSurface.top)
+                        bottom.linkTo(routeSurface.bottom)
+                        end.linkTo(expandIcon.start, margin = 8.dp)
+                    }
+                    .semantics {
+                        role = Role.Button
+                        contentDescription = "Eliminar esta alerta"
+                    }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Eliminar alerta",
+                    tint = Color(0xFFC0392B).copy(alpha = 0.8f),
+                    modifier = Modifier.size(18.dp)
+                )
+            }
 
-                    if (expandida) {
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            text = incidencia.descripcion,
-                            fontSize = 13.sp,
-                            color = onSurfaceColor.copy(alpha = 0.8f),
-                            lineHeight = 18.sp
-                        )
+            Icon(
+                imageVector = if (expandida) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                contentDescription = if (expandida) "Contraer" else "Expandir",
+                tint = onSurfaceColor.copy(alpha = 0.5f),
+                modifier = Modifier
+                    .size(20.dp)
+                    .constrainAs(expandIcon) {
+                        top.linkTo(routeSurface.top)
+                        bottom.linkTo(routeSurface.bottom)
+                        end.linkTo(parent.end)
+                    }
+            )
+
+            Box(
+                modifier = Modifier
+                    .size(46.dp)
+                    .background(colorIconoFondo, RoundedCornerShape(12.dp))
+                    .constrainAs(iconBox) {
+                        top.linkTo(routeSurface.bottom, margin = 12.dp)
+                        start.linkTo(parent.start)
+                        if (!expandida) {
+                            bottom.linkTo(parent.bottom)
+                        }
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = iconoIncidencia,
+                    contentDescription = null,
+                    tint = incidencia.colorEtiqueta,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
+            Text(
+                text = incidencia.titulo,
+                fontWeight = FontWeight.Bold,
+                fontSize = 15.sp,
+                color = onSurfaceColor,
+                modifier = Modifier.constrainAs(titleText) {
+                    top.linkTo(iconBox.top)
+                    start.linkTo(iconBox.end, margin = 12.dp)
+                    end.linkTo(parent.end)
+                    width = Dimension.fillToConstraints
+                    if (!expandida) {
+                        bottom.linkTo(parent.bottom)
                     }
                 }
+            )
+
+            if (expandida) {
+                Text(
+                    text = incidencia.descripcion,
+                    fontSize = 13.sp,
+                    color = onSurfaceColor.copy(alpha = 0.8f),
+                    lineHeight = 18.sp,
+                    modifier = Modifier.constrainAs(descText) {
+                        top.linkTo(titleText.bottom, margin = 6.dp)
+                        start.linkTo(iconBox.end, margin = 12.dp)
+                        end.linkTo(parent.end)
+                        width = Dimension.fillToConstraints
+                        bottom.linkTo(parent.bottom)
+                    }
+                )
             }
         }
     }

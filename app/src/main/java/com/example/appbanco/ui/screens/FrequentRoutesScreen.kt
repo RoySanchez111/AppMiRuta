@@ -20,7 +20,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -42,6 +44,7 @@ fun DialogoAgregarRutaFrecuente(
     onConfirmar: (RutaFrecuenteItem) -> Unit
 ) {
     val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
     var nombre by remember { mutableStateOf("") }
     var ubicacion by remember { mutableStateOf("") }
     var colorSeleccionado by remember { mutableStateOf(Color(0xFF4A86F7)) }
@@ -205,6 +208,7 @@ fun DialogoAgregarRutaFrecuente(
                             shape = RoundedCornerShape(12.dp),
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f),
                             modifier = Modifier.clickable {
+                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                 ubicacion = lugarChip
                                 errorMsg = ""
                             }
@@ -233,7 +237,10 @@ fun DialogoAgregarRutaFrecuente(
                                     role = Role.Button
                                     contentDescription = "Icono $desc"
                                 }
-                                .clickable { iconoSeleccionado = iconoPair },
+                                .clickable {
+                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                    iconoSeleccionado = iconoPair
+                                },
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
@@ -265,7 +272,10 @@ fun DialogoAgregarRutaFrecuente(
                                     color = if (esSeleccionado) Color.White else Color.Transparent,
                                     shape = CircleShape
                                 )
-                                .clickable { colorSeleccionado = color }
+                                .clickable {
+                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                    colorSeleccionado = color
+                                }
                         )
                     }
                 }
