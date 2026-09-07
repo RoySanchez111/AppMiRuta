@@ -307,99 +307,17 @@ fun PantallaPrincipal(navController: NavController) {
                     contentDescription = "Mapa interactivo con líneas de transporte y ubicaciones"
                 }
         ) {
-            AndroidView(
-                factory = { ctx ->
-                    MapLibre.getInstance(ctx)
-                    MapView(ctx).also { mv ->
-                        mapViewRef = mv
-                        mv.getMapAsync { map ->
-                            mapaInstancia = map
-                            
-                            map.setStyle(Style.Builder().fromUri("https://tiles.openfreemap.org/styles/liberty")) { style ->
-                                map.addPolyline(
-                                    PolylineOptions()
-                                        .add(
-                                            LatLng(18.999446, -98.261833),
-                                            LatLng(19.005000, -98.255000),
-                                            LatLng(19.020000, -98.240000)
-                                        )
-                                        .color(android.graphics.Color.parseColor("#FF8E56"))
-                                        .width(5f)
-                                )
-
-                                map.addPolyline(
-                                    PolylineOptions()
-                                        .add(
-                                            LatLng(18.992000, -98.268000),
-                                            LatLng(18.999446, -98.261833),
-                                            LatLng(19.012000, -98.248000)
-                                        )
-                                        .color(android.graphics.Color.parseColor("#327CF2"))
-                                        .width(5f)
-                                )
-
-                                paradasMapLibre.forEach { parada ->
-                                    map.addMarker(
-                                        MarkerOptions()
-                                            .position(parada.ubicacion)
-                                            .title(parada.nombre)
-                                            .snippet(if (parada.esIncidencia) "⚠️ ${parada.proximaLlegada}" else "Líneas: ${parada.lineas.joinToString()} • ${parada.proximaLlegada}")
-                                    )
-                                }
-
-                                map.setOnMarkerClickListener { marker ->
-                                    val paradaEncontrada = paradasMapLibre.firstOrNull { 
-                                        it.nombre == marker.title || (it.ubicacion.latitude == marker.position.latitude && it.ubicacion.longitude == marker.position.longitude)
-                                    }
-                                    if (paradaEncontrada != null) {
-                                        paradaSeleccionada = paradaEncontrada
-                                        map.animateCamera(CameraUpdateFactory.newLatLngZoom(paradaEncontrada.ubicacion, 16.0))
-                                    }
-                                    true
-                                }
-
-                                if (ContextCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
-                                    ContextCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                                    try {
-                                        map.locationComponent.apply {
-                                            activateLocationComponent(
-                                                LocationComponentActivationOptions.builder(ctx, style).build()
-                                            )
-                                            isLocationComponentEnabled = true
-                                        }
-                                    } catch (e: Exception) { }
-                                }
-                            }
-
-                            map.cameraPosition = CameraPosition.Builder()
-                                .target(tecmilenioPuebla)
-                                .zoom(14.8)
-                                .build()
-                        }
-                    }
+            MapaOptimizadoContainer(
+                paradas = paradasMapLibre,
+                tecmilenioPuebla = tecmilenioPuebla,
+                onMapReady = { map ->
+                    mapaInstancia = map
+                },
+                onMarkerClick = { parada ->
+                    paradaSeleccionada = parada
                 },
                 modifier = Modifier.fillMaxSize()
             )
-
-            DisposableEffect(lifecycleOwner, mapViewRef) {
-                val mv = mapViewRef
-                val observer = LifecycleEventObserver { _, event ->
-                    if (mv != null) {
-                        when (event) {
-                            Lifecycle.Event.ON_START -> mv.onStart()
-                            Lifecycle.Event.ON_RESUME -> mv.onResume()
-                            Lifecycle.Event.ON_PAUSE -> mv.onPause()
-                            Lifecycle.Event.ON_STOP -> mv.onStop()
-                            Lifecycle.Event.ON_DESTROY -> mv.onDestroy()
-                            else -> {}
-                        }
-                    }
-                }
-                lifecycleOwner.lifecycle.addObserver(observer)
-                onDispose {
-                    lifecycleOwner.lifecycle.removeObserver(observer)
-                }
-            }
 
             IconButton(
                 onClick = {
@@ -543,5 +461,111 @@ fun PantallaPrincipal(navController: NavController) {
         }
 
         Spacer(modifier = Modifier.height(20.dp))
+    }
+}
+
+@Composable
+fun MapaOptimizadoContainer(
+    paradas: List<ParadaMapa>,
+    tecmilenioPuebla: LatLng,
+    onMapReady: (MapLibreMap) -> Unit,
+    onMarkerClick: (ParadaMapa) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var mapViewRef by remember { mutableStateOf<MapView?>(null) }
+
+    AndroidView(
+        factory = { ctx ->
+            MapLibre.getInstance(ctx)
+            MapView(ctx).also { mv ->
+                mapViewRef = mv
+                mv.getMapAsync { map ->
+                    onMapReady(map)
+                    
+                    map.setStyle(Style.Builder().fromUri("https://tiles.openfreemap.org/styles/liberty")) { style ->
+                        map.addPolyline(
+                            PolylineOptions()
+                                .add(
+                                    LatLng(18.999446, -98.261833),
+                                    LatLng(19.005000, -98.255000),
+                                    LatLng(19.020000, -98.240000)
+                                )
+                                .color(android.graphics.Color.parseColor("#FF8E56"))
+                                .width(5f)
+                        )
+
+                        map.addPolyline(
+                            PolylineOptions()
+                                .add(
+                                    LatLng(18.992000, -98.268000),
+                                    LatLng(18.999446, -98.261833),
+                                    LatLng(19.012000, -98.248000)
+                                )
+                                .color(android.graphics.Color.parseColor("#327CF2"))
+                                .width(5f)
+                        )
+
+                        paradas.forEach { parada ->
+                            map.addMarker(
+                                MarkerOptions()
+                                    .position(parada.ubicacion)
+                                    .title(parada.nombre)
+                                    .snippet(if (parada.esIncidencia) "⚠️ ${parada.proximaLlegada}" else "Líneas: ${parada.lineas.joinToString()} • ${parada.proximaLlegada}")
+                            )
+                        }
+
+                        map.setOnMarkerClickListener { marker ->
+                            val paradaEncontrada = paradas.firstOrNull { 
+                                it.nombre == marker.title || (it.ubicacion.latitude == marker.position.latitude && it.ubicacion.longitude == marker.position.longitude)
+                            }
+                            if (paradaEncontrada != null) {
+                                onMarkerClick(paradaEncontrada)
+                                map.animateCamera(CameraUpdateFactory.newLatLngZoom(paradaEncontrada.ubicacion, 16.0))
+                            }
+                            true
+                        }
+
+                        if (ContextCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+                            ContextCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                            try {
+                                map.locationComponent.apply {
+                                    activateLocationComponent(
+                                        LocationComponentActivationOptions.builder(ctx, style).build()
+                                    )
+                                    isLocationComponentEnabled = true
+                                }
+                            } catch (e: Exception) { }
+                        }
+                    }
+
+                    map.cameraPosition = CameraPosition.Builder()
+                        .target(tecmilenioPuebla)
+                        .zoom(14.8)
+                        .build()
+                }
+            }
+        },
+        modifier = modifier
+    )
+
+    DisposableEffect(lifecycleOwner, mapViewRef) {
+        val mv = mapViewRef
+        val observer = LifecycleEventObserver { _, event ->
+            if (mv != null) {
+                when (event) {
+                    Lifecycle.Event.ON_START -> mv.onStart()
+                    Lifecycle.Event.ON_RESUME -> mv.onResume()
+                    Lifecycle.Event.ON_PAUSE -> mv.onPause()
+                    Lifecycle.Event.ON_STOP -> mv.onStop()
+                    Lifecycle.Event.ON_DESTROY -> mv.onDestroy()
+                    else -> {}
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
     }
 }

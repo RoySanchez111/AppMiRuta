@@ -10,6 +10,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -66,56 +68,62 @@ fun PantallaAlertas(navController: NavController, viewModel: MainViewModel) {
     var mostrarExito by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (listaIncidencias.isNotEmpty()) {
-                Text(
-                    text = "👈 Desliza una alerta a la izquierda para eliminarla",
-                    fontSize = 12.sp,
-                    color = onSurface.copy(alpha = 0.5f),
-                    modifier = Modifier
-                        .padding(bottom = 12.dp)
-                        .semantics { contentDescription = "Pista: Desliza cualquier tarjeta a la izquierda para eliminar la alerta" }
-                )
+                item {
+                    Text(
+                        text = "👈 Desliza una alerta a la izquierda para eliminarla",
+                        fontSize = 12.sp,
+                        color = onSurface.copy(alpha = 0.5f),
+                        modifier = Modifier
+                            .padding(bottom = 12.dp)
+                            .semantics { contentDescription = "Pista: Desliza cualquier tarjeta a la izquierda para eliminar la alerta" }
+                    )
+                }
             } else {
-                Spacer(modifier = Modifier.height(40.dp))
-                Surface(
-                    color = surfaceColor,
-                    shape = RoundedCornerShape(16.dp),
-                    border = BorderStroke(1.dp, primaryColor.copy(alpha = 0.2f)),
-                    modifier = Modifier.fillMaxWidth().padding(20.dp)
-                ) {
-                    Column(
-                        modifier = Modifier.padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                item {
+                    Spacer(modifier = Modifier.height(40.dp))
+                    Surface(
+                        color = surfaceColor,
+                        shape = RoundedCornerShape(16.dp),
+                        border = BorderStroke(1.dp, primaryColor.copy(alpha = 0.2f)),
+                        modifier = Modifier.fillMaxWidth().padding(20.dp)
                     ) {
-                        Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color(0xFF2ECC71), modifier = Modifier.size(48.dp))
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text("¡No hay incidencias reportadas!", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = onSurface)
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text("El servicio de transporte opera con normalidad.", fontSize = 13.sp, color = onSurface.copy(alpha = 0.6f))
+                        Column(
+                            modifier = Modifier.padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color(0xFF2ECC71), modifier = Modifier.size(48.dp))
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text("¡No hay incidencias reportadas!", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = onSurface)
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text("El servicio de transporte opera con normalidad.", fontSize = 13.sp, color = onSurface.copy(alpha = 0.6f))
+                        }
                     }
                 }
             }
 
-            listaIncidencias.forEach { incidencia ->
-                key(incidencia.titulo) {
-                    ItemAlertaDeslizable(
-                        incidencia = incidencia,
-                        onEliminar = {
-                            listaIncidencias.remove(incidencia)
-                            Toast.makeText(context, "Alerta en ruta ${incidencia.ruta} eliminada", Toast.LENGTH_SHORT).show()
-                        }
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                }
+            items(
+                items = listaIncidencias,
+                key = { it.titulo }
+            ) { incidencia ->
+                ItemAlertaDeslizable(
+                    incidencia = incidencia,
+                    onEliminar = {
+                        listaIncidencias.remove(incidencia)
+                        Toast.makeText(context, "Alerta en ruta ${incidencia.ruta} eliminada", Toast.LENGTH_SHORT).show()
+                    }
+                )
+                Spacer(modifier = Modifier.height(12.dp))
             }
-            Spacer(modifier = Modifier.height(100.dp))
+
+            item {
+                Spacer(modifier = Modifier.height(100.dp))
+            }
         }
 
         Surface(
