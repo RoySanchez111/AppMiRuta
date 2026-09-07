@@ -9,6 +9,7 @@ import com.example.appbanco.data.Incidencia
 import com.example.appbanco.data.Lugar
 import com.example.appbanco.data.obtenerLugaresMock
 import java.util.Calendar
+import java.util.Locale
 
 fun obtenerEsquemaColoresClaro(): ColorScheme {
     return lightColorScheme(
@@ -95,15 +96,27 @@ fun obtenerEsquemaColoresDinamico(): ColorScheme {
     }
 }
 
+fun obtenerNombreVisual(usuario: String?): String {
+    if (usuario.isNullOrBlank()) return "Invitado"
+    val nombreLimpio = if (usuario.contains("@")) {
+        usuario.substringBefore("@")
+    } else {
+        usuario
+    }
+    return nombreLimpio.trim().replaceFirstChar { 
+        if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
+    }
+}
+
 fun obtenerMensajeBienvenida(usuario: String?): String {
-    val nombre = usuario ?: "Invitado"
+    val nombreVisual = obtenerNombreVisual(usuario)
     val hora = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
     val saludo = when (hora) {
         in 6..11 -> "Buenos días"
         in 12..18 -> "Buenas tardes"
         else -> "Buenas noches"
     }
-    return "$saludo, $nombre"
+    return "$saludo, $nombreVisual"
 }
 
 fun formatearRuta(nombre: String): String {

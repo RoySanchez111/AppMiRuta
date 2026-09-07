@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.appbanco.data.database.UserDao
 import com.example.appbanco.logic.SessionManager
+import com.example.appbanco.logic.obtenerNombreVisual
 import com.example.appbanco.ui.components.FotoPerfilAvatar
 import com.example.appbanco.ui.components.OpcionCuenta
 import com.example.appbanco.ui.viewmodel.MainViewModel
@@ -66,7 +67,8 @@ fun PantallaCuenta(
     val scope = rememberCoroutineScope()
 
     val usuarioActual = viewModel.usuarioActual.value
-    val inicialUsuario = if (usuarioActual.isNotBlank()) usuarioActual.take(1).uppercase() else "U"
+    val nombreVisual = obtenerNombreVisual(usuarioActual)
+    val inicialUsuario = if (nombreVisual.isNotBlank()) nombreVisual.take(1).uppercase() else "U"
     val fotoUri = viewModel.fotoPerfilUri.value
 
     Column(
@@ -116,8 +118,8 @@ fun PantallaCuenta(
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(usuarioActual, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = onSurface)
-                Text("Usuario registrado • Toca para editar foto", fontSize = 12.sp, color = onSurface.copy(alpha = 0.6f))
+                Text(nombreVisual, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = onSurface)
+                Text(if (usuarioActual.contains("@")) usuarioActual else "Usuario registrado", fontSize = 12.sp, color = onSurface.copy(alpha = 0.6f))
             }
             IconButton(
                 onClick = { mostrarDialogoNombre = true },
