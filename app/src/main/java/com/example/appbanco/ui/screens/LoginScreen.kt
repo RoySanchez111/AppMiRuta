@@ -32,10 +32,19 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.appbanco.ui.viewmodel.LoginViewModel
 
+import com.example.appbanco.logic.SessionManager
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
+
 @Composable
-fun PantallaLogin(navController: NavController, viewModel: LoginViewModel) {
+fun PantallaLogin(
+    navController: NavController,
+    viewModel: LoginViewModel,
+    sessionManager: SessionManager
+) {
     var usuario by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
     
     val loginSuccess = viewModel.loginSuccess
     val errorMessage = viewModel.errorMessage
@@ -52,7 +61,9 @@ fun PantallaLogin(navController: NavController, viewModel: LoginViewModel) {
 
     LaunchedEffect(loginSuccess) {
         if (loginSuccess) {
-            navController.navigate("principal") {
+            val tutorialCompletado = sessionManager.hasCompletedTutorial.firstOrNull() ?: false
+            val destinoFinal = if (!tutorialCompletado) "tutorial" else "principal"
+            navController.navigate(destinoFinal) {
                 popUpTo("login") { inclusive = true }
             }
         }
@@ -200,7 +211,16 @@ fun PantallaLogin(navController: NavController, viewModel: LoginViewModel) {
         Spacer(modifier = Modifier.height(12.dp))
         
         Button(
-            onClick = { },
+            onClick = {
+                scope.launch {
+                    sessionManager.saveSession(0, "Invitado", "token_invitado")
+                    val tutorialCompletado = sessionManager.hasCompletedTutorial.firstOrNull() ?: false
+                    val destinoFinal = if (!tutorialCompletado) "tutorial" else "principal"
+                    navController.navigate(destinoFinal) {
+                        popUpTo("login") { inclusive = true }
+                    }
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp)

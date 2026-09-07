@@ -87,8 +87,7 @@ fun NavegacionMiRuta(
             composable("splash") { TimeBasedBackground { PantallaSplash(navController) } }
             composable("loading") { TimeBasedBackground { PantallaLoading(navController, startDest, sessionManager) } }
             composable("tutorial") { TimeBasedBackground { PantallaTutorial(navController, sessionManager) } }
-            composable("login")
-                                                                     {
+            composable("login") {
                 val loginViewModel: LoginViewModel = viewModel(
                     factory = object : ViewModelProvider.Factory {
                         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -96,11 +95,11 @@ fun NavegacionMiRuta(
                         }
                     }
                 )
-                TimeBasedBackground { PantallaLogin(navController, loginViewModel) }
+                TimeBasedBackground { PantallaLogin(navController, loginViewModel, sessionManager) }
             }
             composable("registro") {
                 TimeBasedBackground {
-                    PantallaRegistro(navController, database.userDao())
+                    PantallaRegistro(navController, database.userDao(), sessionManager)
                 }
             }
             composable("principal") { PantallaPrincipal(navController) }

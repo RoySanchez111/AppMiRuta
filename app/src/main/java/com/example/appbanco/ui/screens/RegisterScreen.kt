@@ -28,11 +28,17 @@ import androidx.navigation.NavController
 import com.example.appbanco.data.database.UserDao
 import com.example.appbanco.data.database.UserEntity
 import com.example.appbanco.logic.SecurityUtils
+import com.example.appbanco.logic.SessionManager
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun PantallaRegistro(navController: NavController, userDao: UserDao? = null) {
+fun PantallaRegistro(
+    navController: NavController,
+    userDao: UserDao? = null,
+    sessionManager: SessionManager? = null
+) {
 
     var correo by remember { mutableStateOf("") }
     var telefono by remember { mutableStateOf("") }
@@ -259,8 +265,19 @@ fun PantallaRegistro(navController: NavController, userDao: UserDao? = null) {
                                     passwordHash = SecurityUtils.hashPassword(passwordLimpio)
                                 )
                             )
-                            delay(1000)
-                            navController.popBackStack()
+                            if (sessionManager != null) {
+                                sessionManager.saveSession(1, correoLimpio, "token_registro")
+                                val tutorialCompletado = sessionManager.hasCompletedTutorial.firstOrNull() ?: false
+                                val destinoFinal = if (!tutorialCompletado) "tutorial" else "principal"
+                                delay(500)
+                                navController.navigate(destinoFinal) {
+                                    popUpTo("registro") { inclusive = true }
+                                    popUpTo("login") { inclusive = true }
+                                }
+                            } else {
+                                delay(1000)
+                                navController.popBackStack()
+                            }
                         }
                     }
                 } else {
