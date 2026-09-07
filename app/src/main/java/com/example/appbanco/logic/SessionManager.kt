@@ -86,7 +86,11 @@ class SessionManager(private val context: Context) {
 
     suspend fun logout() {
         context.dataStore.edit { preferences ->
-            preferences.clear()
+            preferences[IS_LOGGED_IN] = false
+            preferences.remove(USER_ID)
+            preferences.remove(USERNAME)
+            preferences.remove(AUTH_TOKEN)
+            // Se conservan PROFILE_IMAGE_URI, APP_THEME y HAS_COMPLETED_TUTORIAL
         }
     }
 }
