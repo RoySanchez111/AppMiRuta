@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.appbanco.R
+import com.example.appbanco.data.database.SyncManager
 import com.example.appbanco.data.database.UserDao
 import com.example.appbanco.data.database.UserEntity
 import com.example.appbanco.logic.SecurityUtils
@@ -58,6 +59,7 @@ fun PantallaRegistro(
     var datosCorrectos by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val haptic = LocalHapticFeedback.current
+    val syncManager = remember { SyncManager() }
 
     Column(
         modifier = Modifier
@@ -295,12 +297,14 @@ fun PantallaRegistro(
                             datosCorrectos = false
                         } else {
                             datosCorrectos = true
-                            userDao?.registerUser(
-                                UserEntity(
-                                    username = usuarioLimpio,
-                                    passwordHash = SecurityUtils.hashPassword(passwordLimpio)
-                                )
+                            val newUser = UserEntity(
+                                username = usuarioLimpio,
+                                passwordHash = SecurityUtils.hashPassword(passwordLimpio)
                             )
+                            userDao?.registerUser(newUser)
+                            scope.launch {
+                                syncManager.syncUserToCloud(newUser)
+                            }
                             if (sessionManager != null) {
                                 sessionManager.saveSession(1, usuarioLimpio, "token_registro")
                                 val tutorialCompletado = sessionManager.hasCompletedTutorial.firstOrNull() ?: false

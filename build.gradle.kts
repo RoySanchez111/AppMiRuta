@@ -3,4 +3,5 @@ plugins {
     id("org.jetbrains.kotlin.android") version libs.versions.kotlin.get() apply false
     alias(libs.plugins.kotlin.compose) apply false
     alias(libs.plugins.kotlin.kapt) apply false
+    alias(libs.plugins.google.services) apply false
 }

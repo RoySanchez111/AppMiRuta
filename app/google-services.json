@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "233432719012",
+    "project_id": "appmiruta-16530",
+    "storage_bucket": "appmiruta-16530.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:233432719012:android:7a5643e4795a6b30c51031",
+        "android_client_info": {
+          "package_name": "com.example.appbanco"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBDstlojmjLfxCGWYIAS4eFL9kOJKCeyY4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
