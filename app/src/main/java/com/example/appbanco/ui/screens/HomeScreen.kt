@@ -474,80 +474,98 @@ fun MapaOptimizadoContainer(
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
     var mapViewRef by remember { mutableStateOf<MapView?>(null) }
+    var mapaCargado by remember { mutableStateOf(false) }
 
-    AndroidView(
-        factory = { ctx ->
-            MapLibre.getInstance(ctx)
-            MapView(ctx).also { mv ->
-                mapViewRef = mv
-                mv.getMapAsync { map ->
-                    onMapReady(map)
-                    
-                    map.setStyle(Style.Builder().fromUri("https://tiles.openfreemap.org/styles/liberty")) { style ->
-                        map.addPolyline(
-                            PolylineOptions()
-                                .add(
-                                    LatLng(18.999446, -98.261833),
-                                    LatLng(19.005000, -98.255000),
-                                    LatLng(19.020000, -98.240000)
-                                )
-                                .color(android.graphics.Color.parseColor("#FF8E56"))
-                                .width(5f)
-                        )
-
-                        map.addPolyline(
-                            PolylineOptions()
-                                .add(
-                                    LatLng(18.992000, -98.268000),
-                                    LatLng(18.999446, -98.261833),
-                                    LatLng(19.012000, -98.248000)
-                                )
-                                .color(android.graphics.Color.parseColor("#327CF2"))
-                                .width(5f)
-                        )
-
-                        paradas.forEach { parada ->
-                            map.addMarker(
-                                MarkerOptions()
-                                    .position(parada.ubicacion)
-                                    .title(parada.nombre)
-                                    .snippet(if (parada.esIncidencia) "⚠️ ${parada.proximaLlegada}" else "Líneas: ${parada.lineas.joinToString()} • ${parada.proximaLlegada}")
-                            )
-                        }
-
-                        map.setOnMarkerClickListener { marker ->
-                            val paradaEncontrada = paradas.firstOrNull { 
-                                it.nombre == marker.title || (it.ubicacion.latitude == marker.position.latitude && it.ubicacion.longitude == marker.position.longitude)
-                            }
-                            if (paradaEncontrada != null) {
-                                onMarkerClick(paradaEncontrada)
-                                map.animateCamera(CameraUpdateFactory.newLatLngZoom(paradaEncontrada.ubicacion, 16.0))
-                            }
-                            true
-                        }
-
-                        if (ContextCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
-                            ContextCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                            try {
-                                map.locationComponent.apply {
-                                    activateLocationComponent(
-                                        LocationComponentActivationOptions.builder(ctx, style).build()
+    Box(modifier = modifier) {
+        AndroidView(
+            factory = { ctx ->
+                MapLibre.getInstance(ctx)
+                MapView(ctx).also { mv ->
+                    mapViewRef = mv
+                    mv.getMapAsync { map ->
+                        onMapReady(map)
+                        
+                        map.setStyle(Style.Builder().fromUri("https://tiles.openfreemap.org/styles/liberty")) { style ->
+                            map.addPolyline(
+                                PolylineOptions()
+                                    .add(
+                                        LatLng(18.999446, -98.261833),
+                                        LatLng(19.005000, -98.255000),
+                                        LatLng(19.020000, -98.240000)
                                     )
-                                    isLocationComponentEnabled = true
-                                }
-                            } catch (e: Exception) { }
-                        }
-                    }
+                                    .color(android.graphics.Color.parseColor("#FF8E56"))
+                                    .width(5f)
+                            )
 
-                    map.cameraPosition = CameraPosition.Builder()
-                        .target(tecmilenioPuebla)
-                        .zoom(14.8)
-                        .build()
+                            map.addPolyline(
+                                PolylineOptions()
+                                    .add(
+                                        LatLng(18.992000, -98.268000),
+                                        LatLng(18.999446, -98.261833),
+                                        LatLng(19.012000, -98.248000)
+                                    )
+                                    .color(android.graphics.Color.parseColor("#327CF2"))
+                                    .width(5f)
+                            )
+
+                            paradas.forEach { parada ->
+                                map.addMarker(
+                                    MarkerOptions()
+                                        .position(parada.ubicacion)
+                                        .title(parada.nombre)
+                                        .snippet(if (parada.esIncidencia) "⚠️ ${parada.proximaLlegada}" else "Líneas: ${parada.lineas.joinToString()} • ${parada.proximaLlegada}")
+                                )
+                            }
+
+                            map.setOnMarkerClickListener { marker ->
+                                val paradaEncontrada = paradas.firstOrNull { 
+                                    it.nombre == marker.title || (it.ubicacion.latitude == marker.position.latitude && it.ubicacion.longitude == marker.position.longitude)
+                                }
+                                if (paradaEncontrada != null) {
+                                    onMarkerClick(paradaEncontrada)
+                                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(paradaEncontrada.ubicacion, 16.0))
+                                }
+                                true
+                            }
+
+                            if (ContextCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+                                ContextCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                                try {
+                                    map.locationComponent.apply {
+                                        activateLocationComponent(
+                                            LocationComponentActivationOptions.builder(ctx, style).build()
+                                        )
+                                        isLocationComponentEnabled = true
+                                    }
+                                } catch (e: Exception) { }
+                            }
+                            mapaCargado = true
+                        }
+
+                        map.cameraPosition = CameraPosition.Builder()
+                            .target(tecmilenioPuebla)
+                            .zoom(14.8)
+                            .build()
+                    }
                 }
+            },
+            modifier = Modifier.fillMaxSize()
+        )
+
+        if (!mapaCargado) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(36.dp),
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
-        },
-        modifier = modifier
-    )
+        }
+    }
 
     DisposableEffect(lifecycleOwner, mapViewRef) {
         val mv = mapViewRef
