@@ -20,7 +20,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -312,6 +315,30 @@ fun PantallaAyudaYSoporte(navController: NavController) {
                     )
                 }
             }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // BOTÓN VER TUTORIAL DE NUEVO
+        OutlinedButton(
+            onClick = {
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                navController.navigate("tutorial")
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+                .semantics {
+                    role = Role.Button
+                    contentDescription = "Ver el tutorial de nuevo"
+                },
+            shape = RoundedCornerShape(20.dp),
+            border = BorderStroke(1.dp, primaryColor.copy(alpha = 0.5f)),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = primaryColor)
+        ) {
+            Icon(Icons.Default.School, contentDescription = null, modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.width(10.dp))
+            Text("Ver el tutorial de nuevo", fontSize = 14.sp, fontWeight = FontWeight.Bold)
         }
 
         Spacer(modifier = Modifier.height(40.dp))

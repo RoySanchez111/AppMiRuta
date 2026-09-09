@@ -33,6 +33,16 @@ import androidx.navigation.NavController
 import com.example.appbanco.ui.viewmodel.LoginViewModel
 
 import com.example.appbanco.logic.SessionManager
+import com.example.appbanco.data.database.AppDatabase
+import com.example.appbanco.data.database.SyncManager
+import com.example.appbanco.data.database.UserEntity
+import com.example.appbanco.logic.SecurityUtils
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.draw.shadow
+import androidx.compose.foundation.shape.RoundedCornerShape
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
@@ -45,6 +55,9 @@ fun PantallaLogin(
     var usuario by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
+    var mostrarDialogoGoogle by remember { mutableStateOf(false) }
     
     val loginSuccess = viewModel.loginSuccess
     val errorMessage = viewModel.errorMessage
@@ -190,20 +203,42 @@ fun PantallaLogin(
         Spacer(modifier = Modifier.height(12.dp))
         
         Button(
-            onClick = { },
+            onClick = {
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                mostrarDialogoGoogle = true
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp)
+                .shadow(4.dp, RoundedCornerShape(25.dp))
                 .semantics {
                     role = Role.Button
-                    contentDescription = "Boton iniciar sesión con Google"
+                    contentDescription = "Iniciar sesión con Google"
                 },
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color.White.copy(alpha = 0.15f), 
-                contentColor = Color.White
-            )
+                containerColor = Color.White,
+                contentColor = Color(0xFF3C4043)
+            ),
+            shape = RoundedCornerShape(25.dp)
         ) {
-            Text("Iniciar sesión con Google")
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "G",
+                    color = Color(0xFF4285F4),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = "Iniciar sesión con Google",
+                    color = Color(0xFF3C4043),
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 15.sp
+                )
+            }
         }
         
         Spacer(modifier = Modifier.height(12.dp))
@@ -235,27 +270,136 @@ fun PantallaLogin(
         ) {
             Text("Continuar como invitado")
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // BOTÓN MODO DESARROLLADOR: VER TUTORIAL
-        OutlinedButton(
-            onClick = {
-                navController.navigate("tutorial")
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-                .semantics {
-                    role = Role.Button
-                    contentDescription = "Ver tutorial modo desarrollo"
-                },
-            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.5f)),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
-        ) {
-            Icon(Icons.Default.School, contentDescription = null, modifier = Modifier.size(18.dp))
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("🧪 Ver Tutorial (Modo Dev)", fontSize = 14.sp, fontWeight = FontWeight.Bold)
-        }
     }
+
+    if (mostrarDialogoGoogle) {
+        DialogoGoogleSignIn(
+            onDismiss = { mostrarDialogoGoogle = false },
+            onSuccess = { email ->
+                mostrarDialogoGoogle = false
+                scope.launch {
+                    val usernameFromEmail = email.substringBefore("@")
+                    val newUser = UserEntity(
+                        username = usernameFromEmail,
+                        passwordHash = SecurityUtils.hashPassword("google_oauth_$email")
+                    )
+                    try {
+                        val userDao = AppDatabase.getDatabase(context).userDao()
+                        userDao.registerUser(newUser)
+                    } catch (e: Exception) { }
+                    try {
+                        val syncManager = SyncManager()
+                        syncManager.syncUserToCloud(newUser)
+                    } catch (e: Exception) { }
+
+                    sessionManager.saveSession(99, usernameFromEmail, "token_google_$email")
+                    val tutorialCompletado = sessionManager.hasCompletedTutorial.firstOrNull() ?: false
+                    val destinoFinal = if (!tutorialCompletado) "tutorial" else "principal"
+                    delay(800)
+                    navController.navigate(destinoFinal) {
+                        popUpTo("login") { inclusive = true }
+                    }
+                }
+            }
+        )
+    }
+}
+
+@Composable
+fun DialogoGoogleSignIn(
+    onDismiss: () -> Unit,
+    onSuccess: (email: String) -> Unit
+) {
+    var correo by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var cargando by remember { mutableStateOf(false) }
+    var errorMsg by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("G", color = Color(0xFF4285F4), fontWeight = FontWeight.Bold, fontSize = 24.sp)
+                    Text("o", color = Color(0xFFEA4335), fontWeight = FontWeight.Bold, fontSize = 24.sp)
+                    Text("o", color = Color(0xFFFBBC05), fontWeight = FontWeight.Bold, fontSize = 24.sp)
+                    Text("g", color = Color(0xFF4285F4), fontWeight = FontWeight.Bold, fontSize = 24.sp)
+                    Text("l", color = Color(0xFF34A853), fontWeight = FontWeight.Bold, fontSize = 24.sp)
+                    Text("e", color = Color(0xFFEA4335), fontWeight = FontWeight.Bold, fontSize = 24.sp)
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Iniciar sesión", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color(0xFF202124))
+                Spacer(modifier = Modifier.height(2.dp))
+                Text("Usa tu cuenta de Google", fontSize = 14.sp, color = Color(0xFF5F6368))
+            }
+        },
+        text = {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                OutlinedTextField(
+                    value = correo,
+                    onValueChange = { 
+                        correo = it
+                        errorMsg = ""
+                    },
+                    label = { Text("Correo electrónico o teléfono") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { 
+                        password = it
+                        errorMsg = ""
+                    },
+                    label = { Text("Contraseña de Google") },
+                    visualTransformation = PasswordVisualTransformation(),
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                if (errorMsg.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(text = errorMsg, color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+                }
+
+                if (cargando) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    val emailTrim = correo.trim()
+                    if (emailTrim.isBlank() || !emailTrim.contains("@")) {
+                        errorMsg = "Introduce un correo electrónico válido"
+                    } else if (password.length < 4) {
+                        errorMsg = "Introduce tu contraseña"
+                    } else {
+                        cargando = true
+                        scope.launch {
+                            delay(1000)
+                            onSuccess(emailTrim)
+                        }
+                    }
+                },
+                enabled = !cargando
+            ) {
+                Text("Siguiente")
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDismiss,
+                enabled = !cargando
+            ) {
+                Text("Cancelar", color = Color(0xFF1A73E8))
+            }
+        },
+        shape = RoundedCornerShape(28.dp),
+        containerColor = Color.White
+    )
 }
