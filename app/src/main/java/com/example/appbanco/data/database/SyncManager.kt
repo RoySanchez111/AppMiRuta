@@ -56,4 +56,50 @@ class SyncManager {
             }
         }
     }
+
+    // Sincronizar rutas frecuentes / puntos de interés con Firestore (Escritura Free Tier)
+    suspend fun syncRutaFrecuenteToCloud(userId: String, rutaNombre: String, ubicacion: String) {
+        withContext(Dispatchers.IO) {
+            try {
+                val data = mapOf(
+                    "nombre" to rutaNombre,
+                    "ubicacion" to ubicacion,
+                    "updatedAt" to System.currentTimeMillis()
+                )
+                firestore.collection("users").document(userId)
+                    .collection("rutas_frecuentes").document(rutaNombre)
+                    .set(data)
+                    .addOnSuccessListener {
+                        Log.d("SyncManager", "Ruta frecuente sincronizada en la nube")
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("SyncManager", "Error al sincronizar ruta frecuente", e)
+                    }
+            } catch (e: Exception) {
+                Log.e("SyncManager", "Excepción en syncRutaFrecuenteToCloud", e)
+            }
+        }
+    }
+
+    // Obtener rutas frecuentes de la nube (Lectura única Free Tier, sin listeners continuos)
+    suspend fun fetchRutasFrecuentesFromCloud(userId: String, onResult: (List<Map<String, Any>>) -> Unit) {
+        withContext(Dispatchers.IO) {
+            try {
+                firestore.collection("users").document(userId)
+                    .collection("rutas_frecuentes")
+                    .get()
+                    .addOnSuccessListener { querySnapshot ->
+                        val lista = querySnapshot.documents.mapNotNull { it.data }
+                        onResult(lista)
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("SyncManager", "Error al obtener rutas frecuentes", e)
+                        onResult(emptyList())
+                    }
+            } catch (e: Exception) {
+                Log.e("SyncManager", "Excepción en fetchRutasFrecuentesFromCloud", e)
+                onResult(emptyList())
+            }
+        }
+    }
 }

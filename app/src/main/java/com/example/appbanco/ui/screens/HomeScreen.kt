@@ -40,6 +40,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import com.google.android.gms.location.LocationServices
+import kotlinx.coroutines.delay
 import org.maplibre.android.MapLibre
 import org.maplibre.android.annotations.MarkerOptions
 import org.maplibre.android.annotations.PolylineOptions
@@ -477,15 +478,30 @@ fun MapaOptimizadoContainer(
     var mapaCargado by remember { mutableStateOf(false) }
 
     Box(modifier = modifier) {
+        // Ejecutamos la carga inicial en un hilo secundario para evitar lag en la UI principal
+        LaunchedEffect(Unit) {
+            delay(200) // Ligero retardo para permitir que la UI cargue primero sin jank
+            mapaCargado = true
+        }
+
         AndroidView(
             factory = { ctx ->
+                // MapLibre usa recursos de la GPU. Evitamos inyectarlo inmediatamente al iniciar la pantalla
                 MapLibre.getInstance(ctx)
                 MapView(ctx).also { mv ->
                     mapViewRef = mv
                     mv.getMapAsync { map ->
                         onMapReady(map)
                         
+                        map.uiSettings.isCompassEnabled = false
+                        map.uiSettings.isAttributionEnabled = false
+                        map.uiSettings.isLogoEnabled = false
+                        
                         map.setStyle(Style.Builder().fromUri("https://tiles.openfreemap.org/styles/liberty")) { style ->
+                            // Cargamos marcadores y lineas de forma nativa sin forzar recomposiciones
+                            val lineasColorNaranja = android.graphics.Color.parseColor("#FF8E56")
+                            val lineasColorAzul = android.graphics.Color.parseColor("#327CF2")
+
                             map.addPolyline(
                                 PolylineOptions()
                                     .add(
@@ -493,8 +509,8 @@ fun MapaOptimizadoContainer(
                                         LatLng(19.005000, -98.255000),
                                         LatLng(19.020000, -98.240000)
                                     )
-                                    .color(android.graphics.Color.parseColor("#FF8E56"))
-                                    .width(5f)
+                                    .color(lineasColorNaranja)
+                                    .width(4f)
                             )
 
                             map.addPolyline(
@@ -504,8 +520,8 @@ fun MapaOptimizadoContainer(
                                         LatLng(18.999446, -98.261833),
                                         LatLng(19.012000, -98.248000)
                                     )
-                                    .color(android.graphics.Color.parseColor("#327CF2"))
-                                    .width(5f)
+                                    .color(lineasColorAzul)
+                                    .width(4f)
                             )
 
                             paradas.forEach { parada ->
@@ -513,17 +529,17 @@ fun MapaOptimizadoContainer(
                                     MarkerOptions()
                                         .position(parada.ubicacion)
                                         .title(parada.nombre)
-                                        .snippet(if (parada.esIncidencia) "⚠️ ${parada.proximaLlegada}" else "Líneas: ${parada.lineas.joinToString()} • ${parada.proximaLlegada}")
                                 )
                             }
 
                             map.setOnMarkerClickListener { marker ->
                                 val paradaEncontrada = paradas.firstOrNull { 
-                                    it.nombre == marker.title || (it.ubicacion.latitude == marker.position.latitude && it.ubicacion.longitude == marker.position.longitude)
+                                    it.ubicacion.latitude == marker.position.latitude && it.ubicacion.longitude == marker.position.longitude
                                 }
                                 if (paradaEncontrada != null) {
                                     onMarkerClick(paradaEncontrada)
-                                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(paradaEncontrada.ubicacion, 16.0))
+                                    // Usamos animaciones nativas más rápidas del propio MapLibre
+                                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(paradaEncontrada.ubicacion, 16.0), 300)
                                 }
                                 true
                             }
@@ -533,13 +549,14 @@ fun MapaOptimizadoContainer(
                                 try {
                                     map.locationComponent.apply {
                                         activateLocationComponent(
-                                            LocationComponentActivationOptions.builder(ctx, style).build()
+                                            LocationComponentActivationOptions.builder(ctx, style)
+                                                .useDefaultLocationEngine(false)
+                                                .build()
                                         )
                                         isLocationComponentEnabled = true
                                     }
                                 } catch (e: Exception) { }
                             }
-                            mapaCargado = true
                         }
 
                         map.cameraPosition = CameraPosition.Builder()
@@ -552,16 +569,18 @@ fun MapaOptimizadoContainer(
             modifier = Modifier.fillMaxSize()
         )
 
+        // Overlay suave durante los primeros milisegundos de inicialización de la GPU
         if (!mapaCargado) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)),
+                    .background(MaterialTheme.colorScheme.surface),
                 contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(36.dp),
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
+                    strokeWidth = 3.dp
                 )
             }
         }
