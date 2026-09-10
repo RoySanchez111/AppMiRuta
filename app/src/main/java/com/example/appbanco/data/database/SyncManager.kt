@@ -108,20 +108,24 @@ class SyncManager {
         withContext(Dispatchers.IO) {
             try {
                 firestore.collection("conductores")
-                    .whereEqualTo("activo", true)
                     .get()
                     .addOnSuccessListener { snapshot ->
                         val lista = snapshot.documents.mapNotNull { doc ->
                             try {
-                                ConductorUbicacion(
-                                    id = doc.getString("id") ?: doc.id,
-                                    nombre = doc.getString("nombre") ?: "Conductor",
-                                    ruta = doc.getString("ruta") ?: "L1",
-                                    lat = doc.getDouble("lat") ?: 18.9994,
-                                    lng = doc.getDouble("lng") ?: -98.2618,
-                                    activo = doc.getBoolean("activo") ?: true,
-                                    updatedAt = doc.getLong("updatedAt") ?: 0L
-                                )
+                                val activo = doc.getBoolean("activo") ?: true
+                                val lat = doc.getDouble("lat") ?: 0.0
+                                val lng = doc.getDouble("lng") ?: 0.0
+                                if (activo && lat != 0.0 && lng != 0.0) {
+                                    ConductorUbicacion(
+                                        id = doc.getString("id") ?: doc.id,
+                                        nombre = doc.getString("nombre") ?: "Conductor",
+                                        ruta = doc.getString("ruta") ?: "L1",
+                                        lat = lat,
+                                        lng = lng,
+                                        activo = true,
+                                        updatedAt = doc.getLong("updatedAt") ?: 0L
+                                    )
+                                } else null
                             } catch (e: Exception) {
                                 null
                             }

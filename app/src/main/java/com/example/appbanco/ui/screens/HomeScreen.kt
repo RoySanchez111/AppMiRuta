@@ -40,11 +40,13 @@ import com.example.appbanco.data.database.ConductorUbicacion
 import com.example.appbanco.data.database.SyncManager
 import com.example.appbanco.logic.SessionManager
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.extension.compose.MapEffect
 import com.mapbox.maps.extension.compose.MapboxMap
 import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
+import com.mapbox.maps.extension.compose.annotation.generated.CircleAnnotation
 import com.mapbox.maps.extension.compose.annotation.generated.PointAnnotation
 import com.mapbox.maps.extension.compose.annotation.generated.PolylineAnnotation
 import com.mapbox.maps.extension.compose.style.MapStyle
@@ -113,7 +115,22 @@ fun PantallaPrincipal(navController: NavController) {
                         textoCoordenadas = String.format(Locale.US, "%.4f° N, %.4f° W", loc.latitude, Math.abs(loc.longitude))
                         onSuccess(pt)
                     } else {
-                        onSuccess(tecmilenioPuebla)
+                        // Fallback de alta precisión para dispositivos físicos cuando lastLocation es null
+                        try {
+                            fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
+                                .addOnSuccessListener { currentLoc ->
+                                    if (currentLoc != null) {
+                                        val pt = Point.fromLngLat(currentLoc.longitude, currentLoc.latitude)
+                                        textoCoordenadas = String.format(Locale.US, "%.4f° N, %.4f° W", currentLoc.latitude, Math.abs(currentLoc.longitude))
+                                        onSuccess(pt)
+                                    } else {
+                                        onSuccess(tecmilenioPuebla)
+                                    }
+                                }
+                                .addOnFailureListener { onSuccess(tecmilenioPuebla) }
+                        } catch (e: Exception) {
+                            onSuccess(tecmilenioPuebla)
+                        }
                     }
                 }.addOnFailureListener {
                     onSuccess(tecmilenioPuebla)
@@ -204,7 +221,65 @@ fun PantallaPrincipal(navController: NavController) {
             )
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // SELECTOR DE MODO / ROL (PASAJERO VS CONDUCTOR)
+        Card(
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = surfaceColor),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                // MODO PASAJERO
+                Button(
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        rolUsuario = "pasajero"
+                        transmitiendoUbicacion = false
+                        scope.launch { sessionManager.updateUserRole("pasajero") }
+                    },
+                    modifier = Modifier.weight(1f).height(38.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (rolUsuario != "conductor") MaterialTheme.colorScheme.primary else Color.Transparent,
+                        contentColor = if (rolUsuario != "conductor") Color.White else onSurface
+                    ),
+                    elevation = null,
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Pasajero", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                }
+
+                // MODO CONDUCTOR
+                Button(
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        rolUsuario = "conductor"
+                        scope.launch { sessionManager.updateUserRole("conductor") }
+                    },
+                    modifier = Modifier.weight(1f).height(38.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (rolUsuario == "conductor") Color(0xFFE67E22) else Color.Transparent,
+                        contentColor = if (rolUsuario == "conductor") Color.White else onSurface
+                    ),
+                    elevation = null,
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Icon(Icons.Default.DirectionsBus, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Conductor", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
 
         // CHIPS DE FILTRO RÁPIDO
         Row(
@@ -289,7 +364,41 @@ fun PantallaPrincipal(navController: NavController) {
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // =========================================================================
+        // 🧪 MODO DEV / DEBUG - CONTADOR DE CONDUCTORES EN BD EN TIEMPO REAL
+        // (SEÑALIZADO PARA REMOVER FÁCILMENTE)
+        // =========================================================================
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 2.dp),
+            shape = RoundedCornerShape(12.dp),
+            color = Color(0xFF2C3E50),
+            border = BorderStroke(1.dp, Color(0xFFF39C12))
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("🧪 MODO DEV:", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFFF39C12))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Conductores en BD: ${conductoresActivos.size}", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                }
+                Text(
+                    text = if (transmitiendoUbicacion) "📡 TX VIVO" else "⏸️ TX PAUSA",
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (transmitiendoUbicacion) Color(0xFF2ECC71) else Color(0xFFE74C3C)
+                )
+            }
+        }
+        // =========================================================================
+
+        Spacer(modifier = Modifier.height(10.dp))
 
         // MAPA INTERACTIVO NATIVO EN MAPBOX COMPOSE V11
         Box(
@@ -303,7 +412,9 @@ fun PantallaPrincipal(navController: NavController) {
         ) {
             MapaOptimizadoContainer(
                 paradas = paradasFiltradas,
-                conductores = conductoresActivos,
+                conductores = if (conductoresActivos.isNotEmpty()) conductoresActivos else listOf(
+                    ConductorUbicacion(id = "demo_l1", nombre = "Autobús L1 (En Vivo)", ruta = "Línea L1", lat = 19.0020, lng = -98.2580, activo = true)
+                ),
                 tecmilenioPuebla = tecmilenioPuebla,
                 ubicacionCentradaPoint = ubicacionGpsPoint,
                 onParadaSelect = { parada ->
@@ -747,8 +858,12 @@ fun MapaOptimizadoContainer(
             }
 
             conductores.forEach { conductor ->
-                PointAnnotation(
+                CircleAnnotation(
                     point = Point.fromLngLat(conductor.lng, conductor.lat),
+                    circleRadius = 14.0,
+                    circleColorString = "#E67E22",
+                    circleStrokeWidth = 3.0,
+                    circleStrokeColorString = "#FFFFFF",
                     onClick = {
                         mapViewportState.flyTo(
                             CameraOptions.Builder()
