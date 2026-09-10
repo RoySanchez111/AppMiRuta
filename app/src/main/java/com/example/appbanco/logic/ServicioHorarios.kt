@@ -1,4 +1,5 @@
 package com.example.appbanco.logic
+//Amor prohibido murmuran por las calles
 
 import androidx.compose.ui.graphics.Color
 import java.text.SimpleDateFormat

@@ -19,6 +19,8 @@ mapbox = "11.4.0"
 
 #Roy Was Here
 #Pero la queria tanto!
+#Q daba igual sabes
+
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
