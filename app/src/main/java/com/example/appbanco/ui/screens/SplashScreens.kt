@@ -1,7 +1,5 @@
 package com.example.appbanco.ui.screens
 
-import com.example.appbanco.logic.SessionManager
-import kotlinx.coroutines.flow.firstOrNull
 import android.os.Build.VERSION.SDK_INT
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -13,22 +11,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.appbanco.R
-import com.example.appbanco.ui.components.MinimalistAnimation
-import kotlinx.coroutines.delay
-import kotlin.time.Duration.Companion.milliseconds
 import coil.ImageLoader
 import coil.compose.rememberAsyncImagePainter
 import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
-
-import androidx.compose.ui.semantics.liveRegion
-import androidx.compose.ui.semantics.LiveRegionMode
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.contentDescription
+import com.example.appbanco.R
+import com.example.appbanco.logic.SessionManager
+import com.example.appbanco.ui.components.MinimalistAnimation
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.firstOrNull
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun PantallaSplash(navController: NavController) {

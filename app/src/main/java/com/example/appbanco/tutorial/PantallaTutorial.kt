@@ -52,19 +52,19 @@ val paginasTutorial = listOf(
     PaginaTutorial(
         titulo = "Encuentra la mejor ruta",
         descripcion = "Descubre las rutas y líneas de transporte público más eficientes en Puebla. Consulta paradas cercanas, traza tu itinerario y llega siempre a tiempo a tu destino.",
-        drawableResId = R.drawable.ic_tutorial_bus,
+        drawableResId = R.drawable.ic_tutorial_bus_vector,
         textoBoton = "Siguiente >"
     ),
     PaginaTutorial(
         titulo = "Horarios en tiempo real",
         descripcion = "Consulta la llegada exacta de autobuses y conoce retrasos o desvíos antes de salir de casa.",
-        drawableResId = R.drawable.ic_tutorial_map,
+        drawableResId = R.drawable.ic_tutorial_map_vector,
         textoBoton = "Siguiente >"
     ),
     PaginaTutorial(
         titulo = "Notificaciones y Alertas",
         descripcion = "Recibe avisos inmediatos del servicio y reporta incidencias para ayudar a toda la comunidad de viajeros.",
-        drawableResId = R.drawable.ic_tutorial_warning,
+        drawableResId = R.drawable.ic_tutorial_warning_vector,
         textoBoton = "Comenzar a usar MiRuta"
     )
 )
