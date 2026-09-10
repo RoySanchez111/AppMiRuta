@@ -126,10 +126,13 @@ fun PantallaPrincipal(navController: NavController) {
         }
     }
 
-    // Cargar conductores activos de la nube al iniciar
+    // Cargar y actualizar conductores activos de la nube periódicamente (Free Tier Optimizado)
     LaunchedEffect(Unit) {
-        syncManager.fetchConductoresActivos { lista ->
-            conductoresActivos = lista
+        while (isActive) {
+            syncManager.fetchConductoresActivos { lista ->
+                conductoresActivos = lista
+            }
+            delay(6000)
         }
     }
 
