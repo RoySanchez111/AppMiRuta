@@ -1,8 +1,10 @@
 package com.example.appbanco
 
+import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.core.view.WindowCompat
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -31,6 +33,10 @@ class MainActivity : ComponentActivity() {
     private lateinit var database: AppDatabase
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        window.statusBarColor = Color.TRANSPARENT
+        window.navigationBarColor = Color.TRANSPARENT
+
         sessionManager = SessionManager(this)
         database = AppDatabase.getDatabase(this)
         val splashTheme = when (Calendar.getInstance().get(Calendar.HOUR_OF_DAY)) {

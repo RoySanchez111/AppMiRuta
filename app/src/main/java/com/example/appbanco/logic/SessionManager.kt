@@ -17,14 +17,26 @@ class SessionManager(private val context: Context) {
         private val PROFILE_IMAGE_URI = stringPreferencesKey("profile_image_uri")
         private val APP_THEME = stringPreferencesKey("app_theme")
         private val HAS_COMPLETED_TUTORIAL = booleanPreferencesKey("has_completed_tutorial")
+        private val USER_ROLE = stringPreferencesKey("user_role")
     }
 
-    suspend fun saveSession(userId: Int, username: String, token: String) {
+    suspend fun saveSession(userId: Int, username: String, token: String, role: String = "pasajero") {
         context.dataStore.edit { preferences ->
             preferences[IS_LOGGED_IN] = true
             preferences[USER_ID] = userId
             preferences[USERNAME] = username
             preferences[AUTH_TOKEN] = token
+            preferences[USER_ROLE] = role
+        }
+    }
+
+    val userRole: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[USER_ROLE] ?: "pasajero"
+    }
+
+    suspend fun updateUserRole(role: String) {
+        context.dataStore.edit { preferences ->
+            preferences[USER_ROLE] = role
         }
     }
 

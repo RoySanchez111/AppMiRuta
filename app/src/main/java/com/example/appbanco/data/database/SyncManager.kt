@@ -5,6 +5,16 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+data class ConductorUbicacion(
+    val id: String = "",
+    val nombre: String = "",
+    val ruta: String = "",
+    val lat: Double = 0.0,
+    val lng: Double = 0.0,
+    val activo: Boolean = true,
+    val updatedAt: Long = 0L
+)
+
 class SyncManager {
     private val firestore: FirebaseFirestore by lazy { FirebaseFirestore.getInstance() }
 
@@ -15,6 +25,7 @@ class SyncManager {
                 val userMap = mapOf(
                     "id" to user.id,
                     "username" to user.username,
+                    "role" to user.role,
                     "updatedAt" to System.currentTimeMillis()
                 )
                 firestore.collection("users")
@@ -57,6 +68,77 @@ class SyncManager {
         }
     }
 
+    // Transmitir ubicación GPS en tiempo real del conductor hacia Firestore (Free Tier)
+    suspend fun broadcastConductorLocation(
+        conductorId: String,
+        nombre: String,
+        ruta: String,
+        lat: Double,
+        lng: Double,
+        activo: Boolean = true
+    ) {
+        withContext(Dispatchers.IO) {
+            try {
+                val data = mapOf(
+                    "id" to conductorId,
+                    "nombre" to nombre,
+                    "ruta" to ruta,
+                    "lat" to lat,
+                    "lng" to lng,
+                    "activo" to activo,
+                    "updatedAt" to System.currentTimeMillis()
+                )
+                firestore.collection("conductores")
+                    .document(conductorId)
+                    .set(data)
+                    .addOnSuccessListener {
+                        Log.d("SyncManager", "Ubicación del conductor $nombre transmitida en tiempo real")
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("SyncManager", "Error al transmitir ubicación del conductor", e)
+                    }
+            } catch (e: Exception) {
+                Log.e("SyncManager", "Excepción en broadcastConductorLocation", e)
+            }
+        }
+    }
+
+    // Consultar conductores activos en tiempo real para dibujarlos en el mapa de los usuarios
+    suspend fun fetchConductoresActivos(onResult: (List<ConductorUbicacion>) -> Unit) {
+        withContext(Dispatchers.IO) {
+            try {
+                firestore.collection("conductores")
+                    .whereEqualTo("activo", true)
+                    .get()
+                    .addOnSuccessListener { snapshot ->
+                        val lista = snapshot.documents.mapNotNull { doc ->
+                            try {
+                                ConductorUbicacion(
+                                    id = doc.getString("id") ?: doc.id,
+                                    nombre = doc.getString("nombre") ?: "Conductor",
+                                    ruta = doc.getString("ruta") ?: "L1",
+                                    lat = doc.getDouble("lat") ?: 18.9994,
+                                    lng = doc.getDouble("lng") ?: -98.2618,
+                                    activo = doc.getBoolean("activo") ?: true,
+                                    updatedAt = doc.getLong("updatedAt") ?: 0L
+                                )
+                            } catch (e: Exception) {
+                                null
+                            }
+                        }
+                        onResult(lista)
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("SyncManager", "Error al consultar conductores activos", e)
+                        onResult(emptyList())
+                    }
+            } catch (e: Exception) {
+                Log.e("SyncManager", "Excepción en fetchConductoresActivos", e)
+                onResult(emptyList())
+            }
+        }
+    }
+
     // Sincronizar rutas frecuentes / puntos de interés con Firestore (Escritura Free Tier)
     suspend fun syncRutaFrecuenteToCloud(userId: String, rutaNombre: String, ubicacion: String) {
         withContext(Dispatchers.IO) {
@@ -81,7 +163,7 @@ class SyncManager {
         }
     }
 
-    // Obtener rutas frecuentes de la nube (Lectura única Free Tier, sin listeners continuos)
+    // Obtener rutas frecuentes de la nube (Lectura única Free Tier)
     suspend fun fetchRutasFrecuentesFromCloud(userId: String, onResult: (List<Map<String, Any>>) -> Unit) {
         withContext(Dispatchers.IO) {
             try {
