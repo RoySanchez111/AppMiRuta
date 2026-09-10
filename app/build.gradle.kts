@@ -1,3 +1,12 @@
+import java.util.Properties
+
+val localProperties = Properties()
+val localPropertiesFile = rootDir.resolve("local.properties")
+if (localPropertiesFile.exists()) {
+    localProperties.load(localPropertiesFile.inputStream())
+}
+val mapboxPublicToken = localProperties.getProperty("MAPBOX_PUBLIC_TOKEN") ?: "pk.placeholder"
+
 plugins {
     id("org.jetbrains.kotlin.android")
     alias(libs.plugins.android.application)
@@ -19,6 +28,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         androidResources.localeFilters += listOf("es", "en")
+        resValue("string", "mapbox_access_token", mapboxPublicToken)
     }
 
     buildTypes {
@@ -40,6 +50,12 @@ android {
     }
     buildFeatures {
         compose = true
+        resValues = true
+    }
+    packaging {
+        jniLibs {
+            useLegacyPackaging = false
+        }
     }
 }
 
@@ -64,7 +80,8 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.7.7")
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.constraintlayout:constraintlayout-compose:1.1.2")
-    implementation(libs.maplibre)
+    implementation("com.mapbox.maps:android:11.4.0")
+    implementation("com.mapbox.extension:maps-compose:11.4.0")
     implementation(libs.playServicesLocation)
 
     // Room
