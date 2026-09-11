@@ -16,27 +16,17 @@ class SessionManager(private val context: Context) {
         private val AUTH_TOKEN = stringPreferencesKey("auth_token")
         private val PROFILE_IMAGE_URI = stringPreferencesKey("profile_image_uri")
         private val APP_THEME = stringPreferencesKey("app_theme")
-        private val HAS_COMPLETED_TUTORIAL = booleanPreferencesKey("has_completed_tutorial")
+        private val ACCESSIBILITY_LARGE_FONT = booleanPreferencesKey("accessibility_large_font")
         private val USER_ROLE = stringPreferencesKey("user_role")
+        private val HAS_COMPLETED_TUTORIAL = booleanPreferencesKey("has_completed_tutorial")
     }
 
-    suspend fun saveSession(userId: Int, username: String, token: String, role: String = "pasajero") {
+    suspend fun saveSession(userId: Int, username: String, token: String) {
         context.dataStore.edit { preferences ->
             preferences[IS_LOGGED_IN] = true
             preferences[USER_ID] = userId
             preferences[USERNAME] = username
             preferences[AUTH_TOKEN] = token
-            preferences[USER_ROLE] = role
-        }
-    }
-
-    val userRole: Flow<String> = context.dataStore.data.map { preferences ->
-        preferences[USER_ROLE] ?: "pasajero"
-    }
-
-    suspend fun updateUserRole(role: String) {
-        context.dataStore.edit { preferences ->
-            preferences[USER_ROLE] = role
         }
     }
 
@@ -60,8 +50,16 @@ class SessionManager(private val context: Context) {
         preferences[APP_THEME] ?: "Degradados"
     }
 
+    val accessibilityLargeFont: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[ACCESSIBILITY_LARGE_FONT] ?: false
+    }
+
     val hasCompletedTutorial: Flow<Boolean> = context.dataStore.data.map { preferences ->
         preferences[HAS_COMPLETED_TUTORIAL] ?: false
+    }
+
+    val userRole: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[USER_ROLE] ?: "pasajero"
     }
 
     val authToken: Flow<String?> = context.dataStore.data.map { preferences ->
@@ -90,6 +88,18 @@ class SessionManager(private val context: Context) {
         }
     }
 
+    suspend fun updateAccessibilityLargeFont(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[ACCESSIBILITY_LARGE_FONT] = enabled
+        }
+    }
+
+    suspend fun updateUserRole(role: String) {
+        context.dataStore.edit { preferences ->
+            preferences[USER_ROLE] = role
+        }
+    }
+
     suspend fun setTutorialCompleted(completed: Boolean = true) {
         context.dataStore.edit { preferences ->
             preferences[HAS_COMPLETED_TUTORIAL] = completed
@@ -102,6 +112,7 @@ class SessionManager(private val context: Context) {
             preferences.remove(USER_ID)
             preferences.remove(USERNAME)
             preferences.remove(AUTH_TOKEN)
+            preferences.remove(USER_ROLE)
             // Se conservan PROFILE_IMAGE_URI, APP_THEME y HAS_COMPLETED_TUTORIAL
         }
     }

@@ -37,6 +37,9 @@ class MainViewModel(private val sessionManager: SessionManager) : ViewModel() {
     // Tema dinámico de la app: "Degradados", "Claro", "Oscuro"
     val modoTema = mutableStateOf("Degradados")
 
+    // Accesibilidad: Fuente grande
+    val fuenteGrande = mutableStateOf(false)
+
     // Nombre de usuario activo para saludos y perfil
     val usuarioActual = mutableStateOf("Invitado")
 
@@ -47,6 +50,13 @@ class MainViewModel(private val sessionManager: SessionManager) : ViewModel() {
         viewModelScope.launch {
             sessionManager.updateAppTheme(nuevoTema)
             modoTema.value = nuevoTema
+        }
+    }
+
+    fun cambiarFuenteGrande(activado: Boolean) {
+        viewModelScope.launch {
+            sessionManager.updateAccessibilityLargeFont(activado)
+            fuenteGrande.value = activado
         }
     }
 
@@ -136,6 +146,11 @@ class MainViewModel(private val sessionManager: SessionManager) : ViewModel() {
         viewModelScope.launch {
             sessionManager.appTheme.collectLatest { theme ->
                 modoTema.value = theme
+            }
+        }
+        viewModelScope.launch {
+            sessionManager.accessibilityLargeFont.collectLatest { enabled ->
+                fuenteGrande.value = enabled
             }
         }
     }

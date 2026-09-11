@@ -210,6 +210,8 @@ fun PantallaCuenta(
         }
 
         Spacer(modifier = Modifier.height(24.dp))
+
+        Spacer(modifier = Modifier.height(24.dp))
         Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)) {
             Text(
                 "Modo Offline", 
@@ -232,6 +234,37 @@ fun PantallaCuenta(
                 Row(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text("Habilitar descarga de mapas", fontSize = 13.sp, color = onSurface.copy(alpha = 0.7f), modifier = Modifier.weight(1f))
                     Switch(checked = modoOffline, onCheckedChange = { modoOffline = it }, colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = Color(0xFFFEB30F)))
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)) {
+            Text(
+                "Accesibilidad", 
+                fontSize = 16.sp, 
+                fontWeight = FontWeight.Bold, 
+                color = onSurface,
+                modifier = Modifier.semantics { heading() }
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .semantics(mergeDescendants = true) {
+                        role = Role.Switch
+                        contentDescription = "Fuente Grande, Habilitar lectura fácil: ${if (viewModel.fuenteGrande.value) "Activado" else "Desactivado"}"
+                    }, 
+                shape = RoundedCornerShape(18.dp), 
+                color = onSurface.copy(alpha = 0.05f)
+            ) {
+                Row(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text("Fuente Grande (Fácil lectura)", fontSize = 13.sp, color = onSurface.copy(alpha = 0.7f), modifier = Modifier.weight(1f))
+                    Switch(
+                        checked = viewModel.fuenteGrande.value, 
+                        onCheckedChange = { viewModel.cambiarFuenteGrande(it) }, 
+                        colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = Color(0xFFFEB30F))
+                    )
                 }
             }
         }
