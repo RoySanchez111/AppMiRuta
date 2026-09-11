@@ -7,63 +7,65 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
 
-fun obtenerTipografiaPersonalizada(): Typography {
+fun obtenerTipografiaPersonalizada(fuenteGrande: Boolean = false): Typography {
+    // Si la opción de accesibilidad (fuenteGrande) está activada, aumenta significativamente el tamaño
+    val factor = if (fuenteGrande) 1.35f else 1.15f
+
     return Typography(
         // Titulos
         displayLarge = TextStyle(
             fontFamily = FontFamily.Default,
             fontWeight = FontWeight.Bold,
-            fontSize = 32.sp
+            fontSize = (32 * factor).sp
         ),
 
         // Encabezados
         headlineMedium = TextStyle(
             fontFamily = FontFamily.Default,
             fontWeight = FontWeight.SemiBold,
-            fontSize = 24.sp
+            fontSize = (24 * factor).sp
         ),
 
         // 3. Tarjetas
         titleLarge = TextStyle(
             fontFamily = FontFamily.Default,
             fontWeight = FontWeight.Bold,
-            fontSize = 20.sp
+            fontSize = (20 * factor).sp
         ),
 
         // 4. Tarejtas medianas
-        //XD no se escribir
         titleMedium = TextStyle(
             fontFamily = FontFamily.Default,
             fontWeight = FontWeight.Medium,
-            fontSize = 16.sp
+            fontSize = (16 * factor).sp
         ),
 
         // 5. texto
         bodyLarge = TextStyle(
             fontFamily = FontFamily.Default,
             fontWeight = FontWeight.Normal,
-            fontSize = 16.sp
+            fontSize = (16 * factor).sp
         ),
 
         // 6. Subitulos
         bodyMedium = TextStyle(
             fontFamily = FontFamily.Default,
             fontWeight = FontWeight.Normal,
-            fontSize = 14.sp
+            fontSize = (14 * factor).sp
         ),
 
         // 7.Botones
         labelLarge = TextStyle(
             fontFamily = FontFamily.Default,
             fontWeight = FontWeight.Bold,
-            fontSize = 14.sp
+            fontSize = (14 * factor).sp
         ),
 
         // 8. Labels
         labelSmall = TextStyle(
             fontFamily = FontFamily.Default,
             fontWeight = FontWeight.Medium,
-            fontSize = 11.sp
+            fontSize = (11 * factor).sp
         )
     )
 }

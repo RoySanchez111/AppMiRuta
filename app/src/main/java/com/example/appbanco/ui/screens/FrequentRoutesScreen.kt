@@ -51,7 +51,7 @@ fun DialogoAgregarRutaFrecuente(
     var iconoSeleccionado by remember { mutableStateOf(Icons.Default.Home) }
     var errorMsg by remember { mutableStateOf("") }
 
-    val fusedLocationClientDialog = remember { LocationServices.getFusedLocationProviderClient(context) }
+    val fusedLocationClientDialog = remember(context) { LocationServices.getFusedLocationProviderClient(context.applicationContext) }
 
     val sugerenciasUbicacion = listOf(
         "Tecmilenio Campus Puebla",

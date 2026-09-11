@@ -1,9 +1,13 @@
 package com.example.appbanco
 
 import android.os.Bundle
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
@@ -43,6 +47,7 @@ class MainActivity : ComponentActivity() {
         setTheme(splashTheme)
 
         installSplashScreen()
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         
         prePoblarBaseDeDatos()
@@ -61,15 +66,27 @@ class MainActivity : ComponentActivity() {
                 "Oscuro" -> obtenerEsquemaColoresOscuro()
                 else -> obtenerEsquemaColoresDinamico()
             }
-            MaterialTheme(
-                colorScheme = colorScheme,
-                typography = obtenerTipografiaPersonalizada()
+
+            val esFuenteGrande = mainViewModel.fuenteGrande.value
+            val fontScaleFactor = if (esFuenteGrande) 1.35f else 1.15f
+            val currentDensity = LocalDensity.current
+
+            CompositionLocalProvider(
+                LocalDensity provides Density(
+                    density = currentDensity.density,
+                    fontScale = currentDensity.fontScale * fontScaleFactor
+                )
             ) {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = colorScheme.background
+                MaterialTheme(
+                    colorScheme = colorScheme,
+                    typography = obtenerTipografiaPersonalizada(esFuenteGrande)
                 ) {
-                    NavegacionMiRuta(mainViewModel, database, sessionManager)
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = colorScheme.background
+                    ) {
+                        NavegacionMiRuta(mainViewModel, database, sessionManager)
+                    }
                 }
             }
         }

@@ -2,6 +2,7 @@ package com.example.appbanco.ui.screens
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -103,7 +104,7 @@ fun PantallaPrincipal(navController: NavController) {
     var ubicacionGpsPoint by remember { mutableStateOf<Point?>(null) }
     var textoCoordenadas by remember { mutableStateOf("18.9994° N, 98.2618° W") }
 
-    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+    val fusedLocationClient = remember(context) { LocationServices.getFusedLocationProviderClient(context.applicationContext) }
 
     fun obtenerUbicacionGpsReal(onSuccess: (Point) -> Unit) {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
@@ -140,6 +141,48 @@ fun PantallaPrincipal(navController: NavController) {
             }
         } else {
             onSuccess(tecmilenioPuebla)
+        }
+    }
+
+    var tienePermisoUbicacion by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+            ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        )
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val fine = permissions[Manifest.permission.ACCESS_FINE_LOCATION] ?: false
+        val coarse = permissions[Manifest.permission.ACCESS_COARSE_LOCATION] ?: false
+        if (fine || coarse) {
+            tienePermisoUbicacion = true
+            Toast.makeText(context, "📍 Permiso de ubicación concedido", Toast.LENGTH_SHORT).show()
+            obtenerUbicacionGpsReal { pt ->
+                ubicacionGpsPoint = pt
+            }
+        } else {
+            tienePermisoUbicacion = false
+            Toast.makeText(context, "⚠️ Permiso de ubicación denegado. Usando ubicación predeterminada", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    // Solicitar permisos automáticamente si no están concedidos al cargar la pantalla
+    LaunchedEffect(Unit) {
+        if (!tienePermisoUbicacion) {
+            val perms = mutableListOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            )
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                perms.add(Manifest.permission.POST_NOTIFICATIONS)
+            }
+            permissionLauncher.launch(perms.toTypedArray())
+        } else {
+            obtenerUbicacionGpsReal { pt ->
+                ubicacionGpsPoint = pt
+            }
         }
     }
 
@@ -197,6 +240,72 @@ fun PantallaPrincipal(navController: NavController) {
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // TARJETA INTERACTIVA DE SOLICITUD DE PERMISOS DE UBICACIÓN Y NOTIFICACIONES
+        if (!tienePermisoUbicacion) {
+            Card(
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        val perms = mutableListOf(
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                        )
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            perms.add(Manifest.permission.POST_NOTIFICATIONS)
+                        }
+                        permissionLauncher.launch(perms.toTypedArray())
+                    }
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.GpsFixed,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Solicitar Permisos de Ubicación",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp,
+                            color = onSurface
+                        )
+                        Text(
+                            text = "Habilita el GPS para ver autobuses en vivo y centrar tu posición",
+                            fontSize = 11.sp,
+                            color = onSurface.copy(alpha = 0.7f)
+                        )
+                    }
+                    Button(
+                        onClick = {
+                            val perms = mutableListOf(
+                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                Manifest.permission.ACCESS_COARSE_LOCATION
+                            )
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                perms.add(Manifest.permission.POST_NOTIFICATIONS)
+                            }
+                            permissionLauncher.launch(perms.toTypedArray())
+                        },
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Activar", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+
         // BUSCADOR PRINCIPAL
         OutlinedTextField(
             value = busquedaTexto,
@@ -585,9 +694,20 @@ fun PantallaPrincipal(navController: NavController) {
             IconButton(
                 onClick = {
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    obtenerUbicacionGpsReal { realPoint ->
-                        ubicacionGpsPoint = realPoint
-                        Toast.makeText(context, "📍 Centrado en tus coordenadas GPS reales", Toast.LENGTH_SHORT).show()
+                    if (!tienePermisoUbicacion) {
+                        val perms = mutableListOf(
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                        )
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            perms.add(Manifest.permission.POST_NOTIFICATIONS)
+                        }
+                        permissionLauncher.launch(perms.toTypedArray())
+                    } else {
+                        obtenerUbicacionGpsReal { realPoint ->
+                            ubicacionGpsPoint = realPoint
+                            Toast.makeText(context, "📍 Centrado en tus coordenadas GPS reales", Toast.LENGTH_SHORT).show()
+                        }
                     }
                 },
                 modifier = Modifier
