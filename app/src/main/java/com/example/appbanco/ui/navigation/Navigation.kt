@@ -47,7 +47,7 @@ fun NavegacionMiRuta(
         "alertas" -> "Alertas importantes"
         "cuenta" -> "Perfil"
         "configuracion" -> "Ajustes"
-        "privacidad" -> "Privacidad"
+        "privacidad" -> "Privacidad y seguridad"
         "ayuda" -> "Ayuda y Soporte"
         else -> ""
     }

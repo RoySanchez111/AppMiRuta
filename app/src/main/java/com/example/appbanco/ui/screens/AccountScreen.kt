@@ -42,7 +42,7 @@ import com.example.appbanco.ui.components.OpcionCuenta
 import com.example.appbanco.ui.viewmodel.MainViewModel
 import com.example.appbanco.ui.viewmodel.RutaFrecuenteItem
 import kotlinx.coroutines.launch
-
+import androidx.compose.ui.window.Dialog
 @Composable
 fun PantallaCuenta(
     sessionManager: SessionManager, 
@@ -64,7 +64,9 @@ fun PantallaCuenta(
     var efectosPantallaActivados by remember { mutableStateOf(true) }
     var talkbackActivado by remember { mutableStateOf(true) }
     var mostrarDialogoFoto by remember { mutableStateOf(false) }
+    var mostrarDialogoCerrarSesion by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+
 
     val usuarioActual = viewModel.usuarioActual.value
     val nombreVisual = obtenerNombreVisual(usuarioActual)
@@ -256,12 +258,7 @@ fun PantallaCuenta(
 
         Button(
             onClick = {
-                scope.launch {
-                    sessionManager.logout()
-                    navController.navigate("login") {
-                        popUpTo("principal") { inclusive = true }
-                    }
-                }
+                mostrarDialogoCerrarSesion = true
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -278,6 +275,88 @@ fun PantallaCuenta(
         }
 
         Spacer(modifier = Modifier.height(40.dp))
+    }
+    if (mostrarDialogoCerrarSesion) {
+        Dialog(
+            onDismissRequest = {
+                mostrarDialogoCerrarSesion = false
+            }
+        ) {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.surface,
+                shadowElevation = 8.dp
+            ) {
+                Column(
+                    modifier = Modifier.padding(
+                        start = 16.dp,
+                        end = 16.dp,
+                        top = 14.dp,
+                        bottom = 8.dp
+                    )
+                ) {
+                    Text(
+                        text = "¿Deseas cerrar sesión?",
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        TextButton(
+                            onClick = {
+                                mostrarDialogoCerrarSesion = false
+                            },
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = MaterialTheme.colorScheme.onSurface
+                            ),
+                            contentPadding = PaddingValues(horizontal = 0.dp)
+                        ) {
+                            Text(
+                                text = "Cancelar",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Normal
+                            )
+                        }
+
+                        TextButton(
+                            onClick = {
+                                mostrarDialogoCerrarSesion = false
+
+                                scope.launch {
+                                    sessionManager.logout()
+
+                                    navController.navigate("login") {
+                                        popUpTo("principal") {
+                                            inclusive = true
+                                        }
+                                        launchSingleTop = true
+                                    }
+                                }
+                            },
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = Color(0xFFE34D59)
+                            ),
+                            contentPadding = PaddingValues(horizontal = 0.dp)
+                        ) {
+                            Text(
+                                text = "Salir",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Normal
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 
     if (mostrarDialogoAgregarRuta) {
