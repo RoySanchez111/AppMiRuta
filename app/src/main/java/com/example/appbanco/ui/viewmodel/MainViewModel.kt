@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.School
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.example.appbanco.ui.theme.EscalaAccesibilidad
 import com.example.appbanco.logic.ServicioHorarios
 
 data class RutaFrecuenteItem(
@@ -37,8 +38,8 @@ class MainViewModel(private val sessionManager: SessionManager) : ViewModel() {
     // Tema dinámico de la app: "Degradados", "Claro", "Oscuro"
     val modoTema = mutableStateOf("Degradados")
 
-    // Accesibilidad: Fuente grande
-    val fuenteGrande = mutableStateOf(false)
+    // Accesibilidad: Escala de fuente centralizada
+    val escalaFuente = mutableStateOf(EscalaAccesibilidad.MEDIANO)
 
     // Nombre de usuario activo para saludos y perfil
     val usuarioActual = mutableStateOf("Invitado")
@@ -53,10 +54,10 @@ class MainViewModel(private val sessionManager: SessionManager) : ViewModel() {
         }
     }
 
-    fun cambiarFuenteGrande(activado: Boolean) {
+    fun cambiarEscalaFuente(nuevaEscala: EscalaAccesibilidad) {
         viewModelScope.launch {
-            sessionManager.updateAccessibilityLargeFont(activado)
-            fuenteGrande.value = activado
+            sessionManager.updateAccessibilityFontScale(nuevaEscala.nombre)
+            escalaFuente.value = nuevaEscala
         }
     }
 
@@ -149,8 +150,8 @@ class MainViewModel(private val sessionManager: SessionManager) : ViewModel() {
             }
         }
         viewModelScope.launch {
-            sessionManager.accessibilityLargeFont.collectLatest { enabled ->
-                fuenteGrande.value = enabled
+            sessionManager.escalaFuente.collectLatest { escalaStr ->
+                escalaFuente.value = EscalaAccesibilidad.desdeNombre(escalaStr)
             }
         }
     }

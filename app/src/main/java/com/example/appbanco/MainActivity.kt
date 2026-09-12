@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.example.appbanco.ui.navigation.NavegacionMiRuta
 import com.example.appbanco.ui.theme.obtenerTipografiaPersonalizada
+import com.example.appbanco.ui.theme.EscalaAccesibilidad
 import java.util.Calendar
 
 import com.example.appbanco.logic.obtenerEsquemaColoresDinamico
@@ -67,8 +68,8 @@ class MainActivity : ComponentActivity() {
                 else -> obtenerEsquemaColoresDinamico()
             }
 
-            val esFuenteGrande = mainViewModel.fuenteGrande.value
-            val fontScaleFactor = if (esFuenteGrande) 1.35f else 1.15f
+            val escalaFuente = mainViewModel.escalaFuente.value
+            val fontScaleFactor = escalaFuente.factor
             val currentDensity = LocalDensity.current
 
             CompositionLocalProvider(
@@ -79,7 +80,7 @@ class MainActivity : ComponentActivity() {
             ) {
                 MaterialTheme(
                     colorScheme = colorScheme,
-                    typography = obtenerTipografiaPersonalizada(esFuenteGrande)
+                    typography = obtenerTipografiaPersonalizada(escalaFuente)
                 ) {
                     Surface(
                         modifier = Modifier.fillMaxSize(),

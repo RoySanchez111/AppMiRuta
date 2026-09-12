@@ -16,7 +16,7 @@ class SessionManager(private val context: Context) {
         private val AUTH_TOKEN = stringPreferencesKey("auth_token")
         private val PROFILE_IMAGE_URI = stringPreferencesKey("profile_image_uri")
         private val APP_THEME = stringPreferencesKey("app_theme")
-        private val ACCESSIBILITY_LARGE_FONT = booleanPreferencesKey("accessibility_large_font")
+        private val ACCESSIBILITY_FONT_SCALE = stringPreferencesKey("accessibility_font_scale")
         private val USER_ROLE = stringPreferencesKey("user_role")
         private val HAS_COMPLETED_TUTORIAL = booleanPreferencesKey("has_completed_tutorial")
     }
@@ -50,8 +50,8 @@ class SessionManager(private val context: Context) {
         preferences[APP_THEME] ?: "Degradados"
     }
 
-    val accessibilityLargeFont: Flow<Boolean> = context.dataStore.data.map { preferences ->
-        preferences[ACCESSIBILITY_LARGE_FONT] ?: false
+    val escalaFuente: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[ACCESSIBILITY_FONT_SCALE] ?: "Mediano"
     }
 
     val hasCompletedTutorial: Flow<Boolean> = context.dataStore.data.map { preferences ->
@@ -88,9 +88,9 @@ class SessionManager(private val context: Context) {
         }
     }
 
-    suspend fun updateAccessibilityLargeFont(enabled: Boolean) {
+    suspend fun updateAccessibilityFontScale(escala: String) {
         context.dataStore.edit { preferences ->
-            preferences[ACCESSIBILITY_LARGE_FONT] = enabled
+            preferences[ACCESSIBILITY_FONT_SCALE] = escala
         }
     }
 

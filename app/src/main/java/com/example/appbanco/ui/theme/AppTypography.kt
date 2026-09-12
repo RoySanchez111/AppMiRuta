@@ -7,9 +7,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
 
-fun obtenerTipografiaPersonalizada(fuenteGrande: Boolean = false): Typography {
-    // Si la opción de accesibilidad (fuenteGrande) está activada, aumenta significativamente el tamaño
-    val factor = if (fuenteGrande) 1.35f else 1.15f
+fun obtenerTipografiaPersonalizada(escalaFuente: EscalaAccesibilidad = EscalaAccesibilidad.MEDIANO): Typography {
+    // Si la opción de accesibilidad está activada, aumenta significativamente el tamaño de letra utilizando el factor centralizado
+    val factor = escalaFuente.factor
 
     return Typography(
         // Titulos

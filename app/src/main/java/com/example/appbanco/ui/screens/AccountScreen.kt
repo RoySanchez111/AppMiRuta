@@ -39,6 +39,7 @@ import com.example.appbanco.logic.SessionManager
 import com.example.appbanco.logic.obtenerNombreVisual
 import com.example.appbanco.ui.components.FotoPerfilAvatar
 import com.example.appbanco.ui.components.OpcionCuenta
+import com.example.appbanco.ui.theme.EscalaAccesibilidad
 import com.example.appbanco.ui.viewmodel.MainViewModel
 import com.example.appbanco.ui.viewmodel.RutaFrecuenteItem
 import kotlinx.coroutines.launch
@@ -241,30 +242,49 @@ fun PantallaCuenta(
         Spacer(modifier = Modifier.height(24.dp))
         Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)) {
             Text(
-                "Accesibilidad", 
+                "Accesibilidad (Tamaño de Letra)", 
                 fontSize = 16.sp, 
                 fontWeight = FontWeight.Bold, 
                 color = onSurface,
                 modifier = Modifier.semantics { heading() }
             )
             Spacer(modifier = Modifier.height(12.dp))
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .semantics(mergeDescendants = true) {
-                        role = Role.Switch
-                        contentDescription = "Fuente Grande, Habilitar lectura fácil: ${if (viewModel.fuenteGrande.value) "Activado" else "Desactivado"}"
-                    }, 
-                shape = RoundedCornerShape(18.dp), 
-                color = onSurface.copy(alpha = 0.05f)
+            
+            Card(
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = onSurface.copy(alpha = 0.05f)),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Row(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("Fuente Grande (Fácil lectura)", fontSize = 13.sp, color = onSurface.copy(alpha = 0.7f), modifier = Modifier.weight(1f))
-                    Switch(
-                        checked = viewModel.fuenteGrande.value, 
-                        onCheckedChange = { viewModel.cambiarFuenteGrande(it) }, 
-                        colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = Color(0xFFFEB30F))
-                    )
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    val escalaActual = viewModel.escalaFuente.value
+                    listOf(EscalaAccesibilidad.PEQUEÑO, EscalaAccesibilidad.MEDIANO, EscalaAccesibilidad.GRANDE).forEach { nivel ->
+                        val seleccionado = escalaActual == nivel
+                        Button(
+                            onClick = { viewModel.cambiarEscalaFuente(nivel) },
+                            modifier = Modifier.weight(1f).height(40.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (seleccionado) Color(0xFFFEB30F) else Color.Transparent,
+                                contentColor = if (seleccionado) Color.White else onSurface.copy(alpha = 0.8f)
+                            ),
+                            elevation = null,
+                            shape = RoundedCornerShape(14.dp),
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
+                            val prefijoIcono = when(nivel) {
+                                EscalaAccesibilidad.PEQUEÑO -> "Aa "
+                                EscalaAccesibilidad.MEDIANO -> "Aa "
+                                EscalaAccesibilidad.GRANDE -> "AA "
+                            }
+                            Text(
+                                text = prefijoIcono + nivel.nombre, 
+                                fontSize = 12.sp, 
+                                fontWeight = if (seleccionado) FontWeight.Bold else FontWeight.Medium
+                            )
+                        }
+                    }
                 }
             }
         }
