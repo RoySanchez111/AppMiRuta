@@ -52,7 +52,7 @@ val paginasTutorial = listOf(
     PaginaTutorial(
         titulo = "Encuentra la mejor ruta",
         descripcion = "Descubre las rutas y líneas de transporte público más eficientes en Puebla. Consulta paradas cercanas, traza tu itinerario y llega siempre a tiempo a tu destino.",
-        drawableResId = R.drawable.ic_tutorial_bus_vector,
+        drawableResId = R.drawable.baseline_directions_bus_24,
         textoBoton = "Siguiente >"
     ),
     PaginaTutorial(

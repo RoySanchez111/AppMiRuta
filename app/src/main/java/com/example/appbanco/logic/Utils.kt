@@ -126,9 +126,9 @@ fun formatearRuta(nombre: String): String {
 fun obtenerLogoSegunHora(): Int {
     val hora = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
     return if (hora in 6..18) {
-        R.drawable.logo_negro
+        R.drawable.logo_negro_vector
     } else {
-        R.drawable.logo_blanco
+        R.drawable.logo_blanco_vector
     }
 }
 

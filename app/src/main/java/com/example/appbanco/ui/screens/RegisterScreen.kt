@@ -71,7 +71,7 @@ fun PantallaRegistro(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Image(
-                painter = painterResource(id = R.drawable.logo_blanco),
+                painter = painterResource(id = R.drawable.logo_blanco_vector),
                 contentDescription = null,
                 modifier = Modifier.size(46.dp)
             )

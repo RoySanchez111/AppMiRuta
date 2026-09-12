@@ -92,7 +92,7 @@ fun PantallaLogin(
         verticalArrangement = Arrangement.Center
     ) {
         Image(
-            painter = painterResource(id = R.drawable.logo_blanco),
+            painter = painterResource(id = R.drawable.logo_blanco_vector),
             contentDescription = null,
             modifier = Modifier.size(90.dp)
         )
