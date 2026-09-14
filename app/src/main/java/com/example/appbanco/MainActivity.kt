@@ -14,7 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.example.appbanco.ui.navigation.NavegacionMiRuta
 import com.example.appbanco.ui.theme.obtenerTipografiaPersonalizada
-import com.example.appbanco.ui.theme.EscalaAccesibilidad
 import java.util.Calendar
 
 import com.example.appbanco.logic.obtenerEsquemaColoresDinamico
@@ -57,7 +56,11 @@ class MainActivity : ComponentActivity() {
             val mainViewModel: MainViewModel = viewModel(
                 factory = object : ViewModelProvider.Factory {
                     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                        return MainViewModel(sessionManager) as T
+                        if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
+                            @Suppress("UNCHECKED_CAST")
+                            return MainViewModel(sessionManager) as T
+                        }
+                        throw IllegalArgumentException("Clase ViewModel no conocida: ${modelClass.name}")
                     }
                 }
             )

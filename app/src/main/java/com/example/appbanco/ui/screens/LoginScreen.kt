@@ -1,6 +1,10 @@
 package com.example.appbanco.ui.screens
 
-import androidx.compose.foundation.BorderStroke
+import android.util.Log
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.School
 import androidx.compose.animation.core.animateFloatAsState
@@ -85,6 +89,7 @@ fun PantallaLogin(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .widthIn(max = 520.dp)
             .padding(24.dp)
             .verticalScroll(rememberScrollState())
             .alpha(alpha),
@@ -127,6 +132,11 @@ fun PantallaLogin(
             label = {
                 Text("Usuario", color = Color.Black, modifier = Modifier.background(Color.White))
             },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Next
+            ),
+            singleLine = true,
             modifier = Modifier
                 .fillMaxWidth()
                 .semantics { contentDescription = "Campo para ingresar usuario" },
@@ -148,6 +158,16 @@ fun PantallaLogin(
                 Text("Contraseña", color = Color.Black, modifier = Modifier.background(Color.White))
             },
             visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password,
+                imeAction = ImeAction.Done
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    viewModel.onLoginClick(usuario, password)
+                }
+            ),
+            singleLine = true,
             modifier = Modifier
                 .fillMaxWidth()
                 .semantics { contentDescription = "Campo para ingresar contraseña" },
@@ -286,11 +306,15 @@ fun PantallaLogin(
                     try {
                         val userDao = AppDatabase.getDatabase(context).userDao()
                         userDao.registerUser(newUser)
-                    } catch (e: Exception) { }
+                    } catch (e: Exception) {
+                        Log.e("LoginScreen", "Error al registrar usuario en la BD local", e)
+                    }
                     try {
                         val syncManager = SyncManager()
                         syncManager.syncUserToCloud(newUser)
-                    } catch (e: Exception) { }
+                    } catch (e: Exception) {
+                        Log.e("LoginScreen", "Error al sincronizar usuario con la nube", e)
+                    }
 
                     sessionManager.saveSession(99, usernameFromEmail, "token_google_$email")
                     val tutorialCompletado = sessionManager.hasCompletedTutorial.firstOrNull() ?: false

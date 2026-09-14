@@ -2,17 +2,21 @@ package com.example.appbanco.ui.navigation
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.appbanco.ui.components.BarraNavegacionInferior
+import com.example.appbanco.ui.components.RielNavegacionLateral
 import com.example.appbanco.ui.components.EncabezadoGlobal
 import com.example.appbanco.logic.obtenerMensajeBienvenida
 import com.example.appbanco.ui.components.TimeBasedBackground
@@ -56,37 +60,49 @@ fun NavegacionMiRuta(
         if (mensajeBienvenida.contains(",")) mensajeBienvenida.split(",")[0] + "," else "Hola,"
     } else null
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        containerColor = Color.Transparent,
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        topBar = {
-            if (esPantallaApp) {
-                EncabezadoGlobal(
-                    titulo = tituloHeader,
-                    subtitulo = subtituloHeader,
-                    fotoUri = viewModel.fotoPerfilUri.value,
-                    inicialUsuario = if (usuarioNombre.isNotBlank()) usuarioNombre.take(1).uppercase() else "U",
-                    onBackClick = if (rutaActual == "cuenta" || rutaActual == "configuracion" || rutaActual == "privacidad" || rutaActual == "ayuda") {
-                        { navController.popBackStack() }
-                    } else null,
-                    onProfileClick = {
-                        if (rutaActual != "cuenta") {
-                            navController.navigate("cuenta") {
-                                popUpTo("principal") { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
+    val configuration = LocalConfiguration.current
+    val esPantallaAncha = configuration.screenWidthDp >= 600
+
+    Row(modifier = Modifier.fillMaxSize()) {
+        if (esPantallaApp && esPantallaAncha) {
+            RielNavegacionLateral(navController, rutaActual)
+        }
+
+        Scaffold(
+            modifier = Modifier.weight(1f).fillMaxHeight(),
+            containerColor = Color.Transparent,
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
+            topBar = {
+                if (esPantallaApp) {
+                    EncabezadoGlobal(
+                        titulo = tituloHeader,
+                        subtitulo = subtituloHeader,
+                        fotoUri = viewModel.fotoPerfilUri.value,
+                        inicialUsuario = if (usuarioNombre.isNotBlank()) usuarioNombre.take(1).uppercase() else "U",
+                        onBackClick = if (rutaActual == "cuenta" || rutaActual == "configuracion" || rutaActual == "privacidad" || rutaActual == "ayuda") {
+                            { navController.popBackStack() }
+                        } else null,
+                        onProfileClick = {
+                            if (rutaActual != "cuenta") {
+                                navController.navigate("cuenta") {
+                                    popUpTo("principal") { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
                             }
                         }
-                    }
-                )
+                    )
+                }
+            },
+            bottomBar = {
+                if (esPantallaApp && !esPantallaAncha) {
+                    BarraNavegacionInferior(navController, rutaActual)
+                }
             }
-        },
-        bottomBar = { if (esPantallaApp) BarraNavegacionInferior(navController, rutaActual) }
-    ) { paddingValues ->
-        val modifier = if (esPantallaApp) Modifier.padding(paddingValues) else Modifier.fillMaxSize()
+        ) { paddingValues ->
+            val modifier = if (esPantallaApp) Modifier.padding(paddingValues) else Modifier.fillMaxSize()
 
-        NavHost(navController = navController, startDestination = "splash", modifier = modifier) {
+            NavHost(navController = navController, startDestination = "splash", modifier = modifier) {
             composable("splash") { TimeBasedBackground { PantallaSplash(navController) } }
             composable("loading") { TimeBasedBackground { PantallaLoading(navController, startDest, sessionManager) } }
             composable("tutorial") { TimeBasedBackground { PantallaTutorial(navController, sessionManager) } }
@@ -94,7 +110,11 @@ fun NavegacionMiRuta(
                 val loginViewModel: LoginViewModel = viewModel(
                     factory = object : ViewModelProvider.Factory {
                         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                            return LoginViewModel(database.userDao(), sessionManager) as T
+                            if (modelClass.isAssignableFrom(LoginViewModel::class.java)) {
+                                @Suppress("UNCHECKED_CAST")
+                                return LoginViewModel(database.userDao(), sessionManager) as T
+                            }
+                            throw IllegalArgumentException("Clase ViewModel no conocida: ${modelClass.name}")
                         }
                     }
                 )
@@ -114,5 +134,6 @@ fun NavegacionMiRuta(
             composable("ayuda") { PantallaAyudaYSoporte(navController) }
         }
     }
+}
 }
 

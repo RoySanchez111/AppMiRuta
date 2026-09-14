@@ -60,14 +60,20 @@ fun PantallaConfiguracion(
     val onSurfaceColor = MaterialTheme.colorScheme.onSurface
     val primaryColor = MaterialTheme.colorScheme.primary
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .background(surfaceColor)
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .background(surfaceColor),
+        contentAlignment = Alignment.TopCenter
     ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .widthIn(max = 850.dp)
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
@@ -311,4 +317,5 @@ fun PantallaConfiguracion(
 
         Spacer(modifier = Modifier.height(40.dp))
     }
+}
 }

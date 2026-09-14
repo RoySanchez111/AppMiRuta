@@ -1,6 +1,7 @@
 package com.example.appbanco.data.database
 
 import android.util.Log
+import com.google.android.gms.tasks.Tasks
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -28,15 +29,12 @@ class SyncManager {
                     "role" to user.role,
                     "updatedAt" to System.currentTimeMillis()
                 )
-                firestore.collection("users")
-                    .document(user.username)
-                    .set(userMap)
-                    .addOnSuccessListener {
-                        Log.d("SyncManager", "Usuario sincronizado con la nube exitosamente")
-                    }
-                    .addOnFailureListener { e ->
-                        Log.e("SyncManager", "Error al sincronizar usuario con la nube", e)
-                    }
+                Tasks.await(
+                    firestore.collection("users")
+                        .document(user.username)
+                        .set(userMap)
+                )
+                Log.d("SyncManager", "Usuario sincronizado con la nube exitosamente")
             } catch (e: Exception) {
                 Log.e("SyncManager", "Excepción en syncUserToCloud", e)
             }
@@ -47,23 +45,20 @@ class SyncManager {
     suspend fun fetchUserFromCloud(username: String, onResult: (Map<String, Any>?) -> Unit) {
         withContext(Dispatchers.IO) {
             try {
-                firestore.collection("users")
-                    .document(username)
-                    .get()
-                    .addOnSuccessListener { document ->
-                        if (document != null && document.exists()) {
-                            onResult(document.data)
-                        } else {
-                            onResult(null)
-                        }
-                    }
-                    .addOnFailureListener { e ->
-                        Log.e("SyncManager", "Error al obtener usuario de la nube", e)
-                        onResult(null)
-                    }
+                val document = Tasks.await(
+                    firestore.collection("users")
+                        .document(username)
+                        .get()
+                )
+                val data = if (document != null && document.exists()) document.data else null
+                withContext(Dispatchers.Main) {
+                    onResult(data)
+                }
             } catch (e: Exception) {
                 Log.e("SyncManager", "Excepción en fetchUserFromCloud", e)
-                onResult(null)
+                withContext(Dispatchers.Main) {
+                    onResult(null)
+                }
             }
         }
     }
@@ -88,15 +83,12 @@ class SyncManager {
                     "activo" to activo,
                     "updatedAt" to System.currentTimeMillis()
                 )
-                firestore.collection("conductores")
-                    .document(conductorId)
-                    .set(data)
-                    .addOnSuccessListener {
-                        Log.d("SyncManager", "Ubicación del conductor $nombre transmitida en tiempo real")
-                    }
-                    .addOnFailureListener { e ->
-                        Log.e("SyncManager", "Error al transmitir ubicación del conductor", e)
-                    }
+                Tasks.await(
+                    firestore.collection("conductores")
+                        .document(conductorId)
+                        .set(data)
+                )
+                Log.d("SyncManager", "Ubicación del conductor $nombre transmitida en tiempo real")
             } catch (e: Exception) {
                 Log.e("SyncManager", "Excepción en broadcastConductorLocation", e)
             }
@@ -107,38 +99,35 @@ class SyncManager {
     suspend fun fetchConductoresActivos(onResult: (List<ConductorUbicacion>) -> Unit) {
         withContext(Dispatchers.IO) {
             try {
-                firestore.collection("conductores")
-                    .get()
-                    .addOnSuccessListener { snapshot ->
-                        val lista = snapshot.documents.mapNotNull { doc ->
-                            try {
-                                val activo = doc.getBoolean("activo") ?: true
-                                val lat = doc.getDouble("lat") ?: 0.0
-                                val lng = doc.getDouble("lng") ?: 0.0
-                                if (activo && lat != 0.0 && lng != 0.0) {
-                                    ConductorUbicacion(
-                                        id = doc.getString("id") ?: doc.id,
-                                        nombre = doc.getString("nombre") ?: "Conductor",
-                                        ruta = doc.getString("ruta") ?: "L1",
-                                        lat = lat,
-                                        lng = lng,
-                                        activo = true,
-                                        updatedAt = doc.getLong("updatedAt") ?: 0L
-                                    )
-                                } else null
-                            } catch (e: Exception) {
-                                null
-                            }
-                        }
-                        onResult(lista)
+                val snapshot = Tasks.await(firestore.collection("conductores").get())
+                val lista = snapshot.documents.mapNotNull { doc ->
+                    try {
+                        val activo = doc.getBoolean("activo") ?: true
+                        val lat = doc.getDouble("lat") ?: 0.0
+                        val lng = doc.getDouble("lng") ?: 0.0
+                        if (activo && lat != 0.0 && lng != 0.0) {
+                            ConductorUbicacion(
+                                id = doc.getString("id") ?: doc.id,
+                                nombre = doc.getString("nombre") ?: "Conductor",
+                                ruta = doc.getString("ruta") ?: "L1",
+                                lat = lat,
+                                lng = lng,
+                                activo = true,
+                                updatedAt = doc.getLong("updatedAt") ?: 0L
+                            )
+                        } else null
+                    } catch (e: Exception) {
+                        null
                     }
-                    .addOnFailureListener { e ->
-                        Log.e("SyncManager", "Error al consultar conductores activos", e)
-                        onResult(emptyList())
-                    }
+                }
+                withContext(Dispatchers.Main) {
+                    onResult(lista)
+                }
             } catch (e: Exception) {
                 Log.e("SyncManager", "Excepción en fetchConductoresActivos", e)
-                onResult(emptyList())
+                withContext(Dispatchers.Main) {
+                    onResult(emptyList())
+                }
             }
         }
     }
@@ -152,15 +141,12 @@ class SyncManager {
                     "ubicacion" to ubicacion,
                     "updatedAt" to System.currentTimeMillis()
                 )
-                firestore.collection("users").document(userId)
-                    .collection("rutas_frecuentes").document(rutaNombre)
-                    .set(data)
-                    .addOnSuccessListener {
-                        Log.d("SyncManager", "Ruta frecuente sincronizada en la nube")
-                    }
-                    .addOnFailureListener { e ->
-                        Log.e("SyncManager", "Error al sincronizar ruta frecuente", e)
-                    }
+                Tasks.await(
+                    firestore.collection("users").document(userId)
+                        .collection("rutas_frecuentes").document(rutaNombre)
+                        .set(data)
+                )
+                Log.d("SyncManager", "Ruta frecuente sincronizada en la nube")
             } catch (e: Exception) {
                 Log.e("SyncManager", "Excepción en syncRutaFrecuenteToCloud", e)
             }
@@ -171,20 +157,20 @@ class SyncManager {
     suspend fun fetchRutasFrecuentesFromCloud(userId: String, onResult: (List<Map<String, Any>>) -> Unit) {
         withContext(Dispatchers.IO) {
             try {
-                firestore.collection("users").document(userId)
-                    .collection("rutas_frecuentes")
-                    .get()
-                    .addOnSuccessListener { querySnapshot ->
-                        val lista = querySnapshot.documents.mapNotNull { it.data }
-                        onResult(lista)
-                    }
-                    .addOnFailureListener { e ->
-                        Log.e("SyncManager", "Error al obtener rutas frecuentes", e)
-                        onResult(emptyList())
-                    }
+                val querySnapshot = Tasks.await(
+                    firestore.collection("users").document(userId)
+                        .collection("rutas_frecuentes")
+                        .get()
+                )
+                val lista = querySnapshot.documents.mapNotNull { it.data }
+                withContext(Dispatchers.Main) {
+                    onResult(lista)
+                }
             } catch (e: Exception) {
                 Log.e("SyncManager", "Excepción en fetchRutasFrecuentesFromCloud", e)
-                onResult(emptyList())
+                withContext(Dispatchers.Main) {
+                    onResult(emptyList())
+                }
             }
         }
     }

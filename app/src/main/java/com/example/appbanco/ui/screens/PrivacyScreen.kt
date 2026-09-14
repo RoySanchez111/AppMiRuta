@@ -42,16 +42,21 @@ fun PantallaPrivacidad(navController: NavController) {
     }
 
     TimeBasedBackground {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(
-                    horizontal = 20.dp,
-                    vertical = 16.dp
-                ),
-            horizontalAlignment = Alignment.CenterHorizontally
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.TopCenter
         ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .widthIn(max = 850.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(
+                        horizontal = 20.dp,
+                        vertical = 16.dp
+                    ),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
             // DATOS Y UBICACIÓN
             Text(
                 text = "Datos y ubicación",
@@ -257,6 +262,7 @@ fun PantallaPrivacidad(navController: NavController) {
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
+}
 }
 
 @Composable

@@ -50,13 +50,18 @@ fun PantallaHorarios(navController: NavController, viewModel: MainViewModel) {
     val lineasFiltradas by remember(busquedaTexto) { derivedStateOf { servicioHorarios.buscarLineas(busquedaTexto) } }
     val proximasSalidasPlazaMayor by remember(fechaOffsetDias) { derivedStateOf { servicioHorarios.calcularProximasSalidas(frecuenciaMinutos = 8, cantidad = 3, fechaOffsetDias = fechaOffsetDias) } }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.TopCenter
     ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .widthIn(max = 850.dp)
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
         OutlinedTextField(
             value = busquedaTexto,
             onValueChange = { busquedaTexto = it },
@@ -71,8 +76,6 @@ fun PantallaHorarios(navController: NavController, viewModel: MainViewModel) {
             } else null,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(52.dp)
-                .background(onBackground.copy(alpha = 0.05f), RoundedCornerShape(18.dp))
                 .semantics {
                     contentDescription = "Campo de búsqueda de rutas e itinerarios"
                 },
@@ -257,6 +260,7 @@ fun PantallaHorarios(navController: NavController, viewModel: MainViewModel) {
 
         Spacer(modifier = Modifier.height(40.dp))
     }
+}
 
     if (lineaSeleccionada != null) {
         val linea = lineaSeleccionada!!

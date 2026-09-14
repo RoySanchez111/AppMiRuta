@@ -2,12 +2,13 @@ package com.example.appbanco.ui.screens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -64,6 +65,7 @@ fun PantallaRegistro(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .widthIn(max = 580.dp)
             .padding(20.dp)
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -118,6 +120,7 @@ fun PantallaRegistro(
                     },
                     label = { Text("Nombre de usuario") },
                     leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = Color.Black) },
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                     singleLine = true,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -136,7 +139,7 @@ fun PantallaRegistro(
                     },
                     label = { Text("Correo electrónico") },
                     leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = Color.Black) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
                     singleLine = true,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -157,7 +160,7 @@ fun PantallaRegistro(
                     },
                     label = { Text("Teléfono") },
                     leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null, tint = Color.Black) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone, imeAction = ImeAction.Next),
                     singleLine = true,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -177,7 +180,7 @@ fun PantallaRegistro(
                     label = { Text("Contraseña") },
                     leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = Color.Black) },
                     visualTransformation = PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
                     singleLine = true,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -197,7 +200,7 @@ fun PantallaRegistro(
                     label = { Text("Confirmar contraseña") },
                     leadingIcon = { Icon(Icons.Default.Key, contentDescription = null, tint = Color.Black) },
                     visualTransformation = PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
                     singleLine = true,
                     modifier = Modifier
                         .fillMaxWidth()

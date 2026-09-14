@@ -58,12 +58,9 @@ fun PantallaCuenta(
     var modoOffline by remember { mutableStateOf(true) }
     var mostrarDialogoTema by remember { mutableStateOf(false) }
     var mostrarDialogoNombre by remember { mutableStateOf(false) }
-    var mostrarDialogoPrivacidad by remember { mutableStateOf(false) }
-    var mostrarDialogoAyuda by remember { mutableStateOf(false) }
     var mostrarDialogoAgregarRuta by remember { mutableStateOf(false) }
     var rutaSeleccionadaOpciones by remember { mutableStateOf<RutaFrecuenteItem?>(null) }
     var efectosPantallaActivados by remember { mutableStateOf(true) }
-    var talkbackActivado by remember { mutableStateOf(true) }
     var mostrarDialogoFoto by remember { mutableStateOf(false) }
     var mostrarDialogoCerrarSesion by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -74,13 +71,19 @@ fun PantallaCuenta(
     val inicialUsuario = if (nombreVisual.isNotBlank()) nombreVisual.take(1).uppercase() else "U"
     val fotoUri = viewModel.fotoPerfilUri.value
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .background(surfaceColor)
-            .padding(16.dp)
+            .background(surfaceColor),
+        contentAlignment = Alignment.TopCenter
     ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .widthIn(max = 850.dp)
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp)
+        ) {
         Spacer(modifier = Modifier.height(8.dp))
 
         Row(
@@ -469,6 +472,7 @@ fun PantallaCuenta(
                 mostrarDialogoFoto = false
             }
         )
+    }
     }
 }
 

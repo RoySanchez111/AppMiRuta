@@ -27,6 +27,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -35,6 +36,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.Dp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.example.appbanco.data.database.ConductorUbicacion
@@ -86,12 +88,9 @@ fun PantallaPrincipal(navController: NavController) {
     val haptic = LocalHapticFeedback.current
 
     val sessionManager = remember { SessionManager(context) }
-    val currentUsernameState = sessionManager.currentUsername.collectAsState(initial = "Pasajero")
-    val userRoleState = sessionManager.userRole.collectAsState(initial = "pasajero")
-    var rolUsuario by remember(userRoleState.value) { mutableStateOf(userRoleState.value) }
-    val nombreUsuario = currentUsernameState.value ?: "Pasajero"
+    val currentUsernameState = sessionManager.currentUsername.collectAsState(initial = "Usuario")
+    val nombreUsuario = currentUsernameState.value ?: "Usuario"
 
-    var transmitiendoUbicacion by remember { mutableStateOf(false) }
     var conductoresActivos by remember { mutableStateOf<List<ConductorUbicacion>>(emptyList()) }
     val scope = rememberCoroutineScope()
     val syncManager = remember { SyncManager() }
@@ -196,26 +195,7 @@ fun PantallaPrincipal(navController: NavController) {
         }
     }
 
-    // Transmisión GPS en vivo cuando el rol es Conductor
-    LaunchedEffect(transmitiendoUbicacion) {
-        if (transmitiendoUbicacion) {
-            while (isActive && transmitiendoUbicacion) {
-                obtenerUbicacionGpsReal { realPoint ->
-                    scope.launch {
-                        syncManager.broadcastConductorLocation(
-                            conductorId = nombreUsuario,
-                            nombre = "Conductor $nombreUsuario",
-                            ruta = "Línea L1",
-                            lat = realPoint.latitude(),
-                            lng = realPoint.longitude(),
-                            activo = true
-                        )
-                    }
-                }
-                delay(5000)
-            }
-        }
-    }
+
 
     val paradasFiltradas by remember(busquedaTexto, filtroActivo) {
         derivedStateOf {
@@ -233,13 +213,21 @@ fun PantallaPrincipal(navController: NavController) {
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+    val configuration = LocalConfiguration.current
+    val esPantallaAncha = configuration.screenWidthDp >= 600
+
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.TopCenter
     ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .widthIn(max = if (esPantallaAncha) 900.dp else Dp.Unspecified)
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
         // TARJETA INTERACTIVA DE SOLICITUD DE PERMISOS DE UBICACIÓN Y NOTIFICACIONES
         if (!tienePermisoUbicacion) {
             Card(
@@ -330,63 +318,7 @@ fun PantallaPrincipal(navController: NavController) {
             )
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
 
-        // SELECTOR DE MODO / ROL (PASAJERO VS CONDUCTOR)
-        Card(
-            shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = surfaceColor),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(4.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                // MODO PASAJERO
-                Button(
-                    onClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                        rolUsuario = "pasajero"
-                        transmitiendoUbicacion = false
-                        scope.launch { sessionManager.updateUserRole("pasajero") }
-                    },
-                    modifier = Modifier.weight(1f).height(38.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (rolUsuario != "conductor") MaterialTheme.colorScheme.primary else Color.Transparent,
-                        contentColor = if (rolUsuario != "conductor") Color.White else onSurface
-                    ),
-                    elevation = null,
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("Pasajero", fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                }
-
-                // MODO CONDUCTOR
-                Button(
-                    onClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        rolUsuario = "conductor"
-                        scope.launch { sessionManager.updateUserRole("conductor") }
-                    },
-                    modifier = Modifier.weight(1f).height(38.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (rolUsuario == "conductor") Color(0xFFE67E22) else Color.Transparent,
-                        contentColor = if (rolUsuario == "conductor") Color.White else onSurface
-                    ),
-                    elevation = null,
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Icon(Icons.Default.DirectionsBus, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("Conductor", fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                }
-            }
-        }
 
         Spacer(modifier = Modifier.height(10.dp))
 
@@ -422,7 +354,7 @@ fun PantallaPrincipal(navController: NavController) {
         // RESULTADOS DE BÚSQUEDA RÁPIDA
         if (busquedaTexto.isNotBlank()) {
             Text(
-                text = "Resultados para '${busquedaTexto}':",
+                text = "Resultados para '$busquedaTexto':",
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
                 color = onBackground.copy(alpha = 0.7f),
@@ -473,39 +405,7 @@ fun PantallaPrincipal(navController: NavController) {
             }
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
 
-        // =========================================================================
-        // 🧪 MODO DEV / DEBUG - CONTADOR DE CONDUCTORES EN BD EN TIEMPO REAL
-        // (SEÑALIZADO PARA REMOVER FÁCILMENTE)
-        // =========================================================================
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 2.dp),
-            shape = RoundedCornerShape(12.dp),
-            color = Color(0xFF2C3E50),
-            border = BorderStroke(1.dp, Color(0xFFF39C12))
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("🧪 MODO DEV:", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFFF39C12))
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("Conductores en BD: ${conductoresActivos.size}", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                }
-                Text(
-                    text = if (transmitiendoUbicacion) "📡 TX VIVO" else "⏸️ TX PAUSA",
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (transmitiendoUbicacion) Color(0xFF2ECC71) else Color(0xFFE74C3C)
-                )
-            }
-        }
-        // =========================================================================
 
         Spacer(modifier = Modifier.height(10.dp))
 
@@ -532,21 +432,12 @@ fun PantallaPrincipal(navController: NavController) {
                 modifier = Modifier.fillMaxSize()
             )
 
-            // INSIGNIA FLOTANTE DE PERFIL Y CAMBIO DE ROL (TopStart)
+            // INSIGNIA FLOTANTE DE PERFIL EN EL MAPA (TopStart)
             Surface(
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .padding(12.dp)
-                    .shadow(6.dp, RoundedCornerShape(20.dp))
-                    .clickable {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        val nuevoRol = if (rolUsuario == "conductor") "pasajero" else "conductor"
-                        rolUsuario = nuevoRol
-                        scope.launch {
-                            sessionManager.updateUserRole(nuevoRol)
-                        }
-                        Toast.makeText(context, "👤 Rol cambiado a: ${nuevoRol.uppercase()}", Toast.LENGTH_SHORT).show()
-                    },
+                    .shadow(4.dp, RoundedCornerShape(20.dp)),
                 shape = RoundedCornerShape(20.dp),
                 color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
@@ -558,19 +449,19 @@ fun PantallaPrincipal(navController: NavController) {
                     Box(contentAlignment = Alignment.BottomEnd) {
                         Surface(
                             shape = CircleShape,
-                            color = if (rolUsuario == "conductor") Color(0xFFE67E22) else MaterialTheme.colorScheme.primary,
+                            color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(30.dp)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
-                                    imageVector = if (rolUsuario == "conductor") Icons.Default.DirectionsBus else Icons.Default.Person,
+                                    imageVector = Icons.Default.Person,
                                     contentDescription = null,
                                     tint = Color.White,
                                     modifier = Modifier.size(18.dp)
                                 )
                             }
                         }
-                        // Indicador Verde "En línea / GPS Activo"
+                        // Indicador Verde "GPS Activo"
                         Box(
                             modifier = Modifier
                                 .size(10.dp)
@@ -587,9 +478,9 @@ fun PantallaPrincipal(navController: NavController) {
                             color = onSurface
                         )
                         Text(
-                            text = if (rolUsuario == "conductor") "🚌 Conductor L1" else "Pasajero • GPS",
+                            text = "GPS Activo",
                             fontSize = 10.sp,
-                            color = if (rolUsuario == "conductor") Color(0xFFE67E22) else Color(0xFF2ECC71),
+                            color = Color(0xFF2ECC71),
                             fontWeight = FontWeight.Medium
                         )
                     }
@@ -626,16 +517,16 @@ fun PantallaPrincipal(navController: NavController) {
                 }
             }
 
-            // CONTROLES SUPERIORES DERECHOS
+            // CONTROLES DE ACCIÓN DEL MAPA (M3 UNIFICADO)
             Column(
                 modifier = Modifier
-                    .align(Alignment.TopEnd)
+                    .align(Alignment.BottomEnd)
                     .padding(12.dp),
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalAlignment = Alignment.End
             ) {
-                // BOTÓN RECARGAR DATOS DE CONDUCTORES
-                IconButton(
+                // 1. BOTÓN RECALCULAR / ACTUALIZAR RUTAS Y CONDUCTORES
+                Surface(
                     onClick = {
                         haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                         scope.launch {
@@ -643,84 +534,70 @@ fun PantallaPrincipal(navController: NavController) {
                                 conductoresActivos = lista
                             }
                         }
-                        Toast.makeText(context, "🚌 Posiciones de conductores actualizadas", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "🔄 Rutas y autobuses recalculados en tiempo real", Toast.LENGTH_SHORT).show()
                     },
-                    modifier = Modifier
-                        .background(Color.White, CircleShape)
-                        .shadow(4.dp, CircleShape)
-                        .semantics {
-                            role = Role.Button
-                            contentDescription = "Actualizar posiciones de autobuses en tiempo real"
-                        }
+                    shape = RoundedCornerShape(16.dp),
+                    color = surfaceColor.copy(alpha = 0.95f),
+                    shadowElevation = 6.dp,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)),
+                    modifier = Modifier.semantics {
+                        role = Role.Button
+                        contentDescription = "Recalcular y actualizar posiciones de autobuses"
+                    }
                 ) {
-                    Icon(Icons.Default.Refresh, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                }
-
-                // SI ES CONDUCTOR: BOTÓN TRANSMITIR UBICACIÓN GPS EN VIVO
-                if (rolUsuario == "conductor") {
-                    Button(
-                        onClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            transmitiendoUbicacion = !transmitiendoUbicacion
-                            Toast.makeText(
-                                context,
-                                if (transmitiendoUbicacion) "📡 Transmitiendo ubicación GPS en tiempo real..." else "⏸️ Transmisión en vivo pausada",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (transmitiendoUbicacion) Color(0xFFE74C3C) else Color(0xFF2ECC71),
-                            contentColor = Color.White
-                        ),
-                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
-                        modifier = Modifier.shadow(4.dp, RoundedCornerShape(20.dp))
+                    Box(
+                        modifier = Modifier.padding(10.dp),
+                        contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = if (transmitiendoUbicacion) Icons.Default.Sensors else Icons.Default.SensorsOff,
+                            imageVector = Icons.Default.Autorenew,
                             contentDescription = null,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = if (transmitiendoUbicacion) "EN VIVO 📡" else "Transmitir",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(22.dp)
                         )
                     }
                 }
-            }
 
-            // BOTÓN CENTRAR EN MI UBICACIÓN GPS REAL (BottomEnd)
-            IconButton(
-                onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    if (!tienePermisoUbicacion) {
-                        val perms = mutableListOf(
-                            Manifest.permission.ACCESS_FINE_LOCATION,
-                            Manifest.permission.ACCESS_COARSE_LOCATION
-                        )
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            perms.add(Manifest.permission.POST_NOTIFICATIONS)
+                // 2. BOTÓN CENTRAR EN MI UBICACIÓN GPS REAL
+                Surface(
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        if (!tienePermisoUbicacion) {
+                            val perms = mutableListOf(
+                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                Manifest.permission.ACCESS_COARSE_LOCATION
+                            )
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                perms.add(Manifest.permission.POST_NOTIFICATIONS)
+                            }
+                            permissionLauncher.launch(perms.toTypedArray())
+                        } else {
+                            obtenerUbicacionGpsReal { realPoint ->
+                                ubicacionGpsPoint = realPoint
+                                Toast.makeText(context, "🎯 Mapa centrado en tu posición GPS", Toast.LENGTH_SHORT).show()
+                            }
                         }
-                        permissionLauncher.launch(perms.toTypedArray())
-                    } else {
-                        obtenerUbicacionGpsReal { realPoint ->
-                            ubicacionGpsPoint = realPoint
-                            Toast.makeText(context, "📍 Centrado en tus coordenadas GPS reales", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                },
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(12.dp)
-                    .background(Color.White, CircleShape)
-                    .shadow(4.dp, CircleShape)
-                    .semantics {
+                    },
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    shadowElevation = 6.dp,
+                    modifier = Modifier.semantics {
                         role = Role.Button
                         contentDescription = "Centrar mapa en mi ubicación GPS"
                     }
-            ) {
-                Icon(Icons.Default.MyLocation, contentDescription = null, tint = Color(0xFF4285F4))
+                ) {
+                    Box(
+                        modifier = Modifier.padding(10.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.GpsFixed,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                }
             }
         }
 
@@ -763,14 +640,14 @@ fun PantallaPrincipal(navController: NavController) {
 
                     if (parada.esIncidencia && parada.detalleIncidencia != null) {
                         Surface(
-                            color = Color(0xFFFDEDEC),
+                            color = MaterialTheme.colorScheme.errorContainer,
                             shape = RoundedCornerShape(12.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.ReportProblem, contentDescription = null, tint = Color(0xFFC0392B), modifier = Modifier.size(20.dp))
+                                Icon(Icons.Default.ReportProblem, contentDescription = null, tint = MaterialTheme.colorScheme.onErrorContainer, modifier = Modifier.size(20.dp))
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text(parada.detalleIncidencia, color = Color(0xFFC0392B), fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                                Text(parada.detalleIncidencia, color = MaterialTheme.colorScheme.onErrorContainer, fontSize = 12.sp, fontWeight = FontWeight.Medium)
                             }
                         }
                         Spacer(modifier = Modifier.height(10.dp))
@@ -883,6 +760,7 @@ fun PantallaPrincipal(navController: NavController) {
 
         Spacer(modifier = Modifier.height(20.dp))
     }
+}
 }
 
 @Composable

@@ -67,12 +67,20 @@ fun PantallaAlertas(navController: NavController, viewModel: MainViewModel) {
     var mostrarDialogo by remember { mutableStateOf(false) }
     var mostrarExito by remember { mutableStateOf(false) }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.TopCenter
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .widthIn(max = 850.dp)
         ) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
             if (listaIncidencias.isNotEmpty()) {
                 item {
                     Text(
@@ -154,6 +162,7 @@ fun PantallaAlertas(navController: NavController, viewModel: MainViewModel) {
                     fontSize = 16.sp
                 )
             }
+        }
         }
     }
 
@@ -538,9 +547,9 @@ fun DialogoReporte(
                     },
                     label = { Text("Descripción del problema") },
                     isError = errorDescripcion,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(110.dp)
+                    minLines = 3,
+                    maxLines = 5,
+                    modifier = Modifier.fillMaxWidth()
                 )
 
                 if (errorDescripcion) {
