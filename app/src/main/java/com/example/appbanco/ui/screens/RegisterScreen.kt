@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -53,7 +54,9 @@ fun PantallaRegistro(
     var correo by remember { mutableStateOf("") }
     var telefono by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
     var confirmarPassword by remember { mutableStateOf("") }
+    var confirmarPasswordVisible by remember { mutableStateOf(false) }
     var edad by remember { mutableStateOf("") }
 
     var mensajeError by remember { mutableStateOf("") }
@@ -179,7 +182,13 @@ fun PantallaRegistro(
                     },
                     label = { Text("Contraseña") },
                     leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = Color.Black) },
-                    visualTransformation = PasswordVisualTransformation(),
+                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    trailingIcon = {
+                        val image = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            Icon(imageVector = image, contentDescription = if (passwordVisible) "Ocultar" else "Mostrar", tint = Color.Black)
+                        }
+                    },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
                     singleLine = true,
                     modifier = Modifier
@@ -199,7 +208,13 @@ fun PantallaRegistro(
                     },
                     label = { Text("Confirmar contraseña") },
                     leadingIcon = { Icon(Icons.Default.Key, contentDescription = null, tint = Color.Black) },
-                    visualTransformation = PasswordVisualTransformation(),
+                    visualTransformation = if (confirmarPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    trailingIcon = {
+                        val image = if (confirmarPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
+                        IconButton(onClick = { confirmarPasswordVisible = !confirmarPasswordVisible }) {
+                            Icon(imageVector = image, contentDescription = if (confirmarPasswordVisible) "Ocultar" else "Mostrar", tint = Color.Black)
+                        }
+                    },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
                     singleLine = true,
                     modifier = Modifier

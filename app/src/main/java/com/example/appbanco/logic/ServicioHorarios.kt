@@ -1,7 +1,7 @@
 package com.example.appbanco.logic
-//Amor prohibido murmuran por las calles
 
 import androidx.compose.ui.graphics.Color
+import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -21,47 +21,56 @@ class ServicioHorarios {
     val lineasPublicas = listOf(
         LineaHorario(
             codigo = "L1",
-            nombre = "Línea 1",
-            recorrido = "Plaza Mayor → Aeropuerto",
-            frecuenciaMinutos = 8,
+            nombre = "Línea 1 - Troncal Expresa",
+            recorrido = "Terminal Central → Aeropuerto Internacional",
+            frecuenciaMinutos = 6,
             color = Color(0xFFFF8E56),
-            paradas = listOf("Tecmilenio Campus Puebla", "Plaza Mayor", "Hospital Norte", "Aeropuerto")
+            paradas = listOf("Estación Central", "Plaza Comercial Sur", "Hospital General Norte", "Terminal Aeropuerto"),
+            estadoServicio = "Operación Normal (GPS Activo)"
         ),
         LineaHorario(
             codigo = "L4",
-            nombre = "Línea 4",
-            recorrido = "Universidad CCU → Puerto",
-            frecuenciaMinutos = 12,
+            nombre = "Línea 4 - Universitaria",
+            recorrido = "Campus Universitario → Puerto Intermodal",
+            frecuenciaMinutos = 10,
             color = Color(0xFF327CF2),
-            paradas = listOf("Universidad CCU", "Tecmilenio Campus Puebla", "Centro", "Puerto")
+            paradas = listOf("Facultad de Ingeniería", "Estación Central", "Centro Histórico", "Puerto Intermodal"),
+            estadoServicio = "Operación Normal"
         ),
         LineaHorario(
             codigo = "L7",
-            nombre = "Línea 7",
-            recorrido = "Centro → Hospital Norte",
-            frecuenciaMinutos = 10,
+            nombre = "Línea 7 - Periférico",
+            recorrido = "Centro Histórico → Hospital General",
+            frecuenciaMinutos = 8,
             color = Color(0xFF0DBC61),
-            paradas = listOf("Centro", "Plaza Mayor", "Hospital Norte")
+            paradas = listOf("Centro Histórico", "Plaza Comercial Sur", "Hospital General Norte"),
+            estadoServicio = "Alta Demanda"
         ),
         LineaHorario(
             codigo = "MA",
-            nombre = "Metro A",
-            recorrido = "Central → Torre Central",
+            nombre = "Metro A - Conector Metropolitano",
+            recorrido = "Central Angelópolis → Torre Financiera",
             frecuenciaMinutos = 4,
             color = Color(0xFFA149A1),
-            paradas = listOf("Central", "Angelópolis", "Torre Central"),
-            estadoServicio = "Desvío Temporal"
+            paradas = listOf("Central Metropolitana", "Angelópolis", "Torre Financiera"),
+            estadoServicio = "Desvío Temporal por Obras"
         ),
         LineaHorario(
             codigo = "L5",
-            nombre = "Línea 5",
-            recorrido = "Mercado → Calzada Serdán → Estadio",
-            frecuenciaMinutos = 15,
+            nombre = "Línea 5 - Alimentadora Norte",
+            recorrido = "Mercado Central → Calzada Serdán → Estadio",
+            frecuenciaMinutos = 14,
             color = Color(0xFFC0392B),
-            paradas = listOf("Mercado", "Calzada Serdán", "Estadio"),
-            estadoServicio = "Retraso de 15 min"
+            paradas = listOf("Mercado Central", "Calzada Serdán", "Estadio Deportivo"),
+            estadoServicio = "Retraso de 12 min (Tráfico)"
         )
     )
+
+    // API simulada para consultar las líneas en tiempo real desde el backend
+    suspend fun obtenerLineasRemotas(): List<LineaHorario> {
+        delay(350) // Simula la latencia de consulta REST API del servicio de transporte
+        return lineasPublicas
+    }
 
     fun obtenerHoraActualFormateada(): String {
         val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
@@ -93,9 +102,9 @@ class ServicioHorarios {
         return salidas
     }
 
-    fun buscarLineas(query: String): List<LineaHorario> {
-        if (query.isBlank()) return lineasPublicas
-        return lineasPublicas.filter { linea ->
+    fun buscarLineas(query: String, listaBase: List<LineaHorario> = lineasPublicas): List<LineaHorario> {
+        if (query.isBlank()) return listaBase
+        return listaBase.filter { linea ->
             linea.codigo.contains(query, ignoreCase = true) ||
                     linea.nombre.contains(query, ignoreCase = true) ||
                     linea.recorrido.contains(query, ignoreCase = true) ||

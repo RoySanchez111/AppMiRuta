@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
@@ -37,14 +38,15 @@ fun NavegacionMiRuta(
     database: AppDatabase,
     sessionManager: SessionManager
 ) {
-    val startDest by viewModel.startDestination
+    val startDest by viewModel.startDestination.collectAsState()
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val rutaActual = navBackStackEntry?.destination?.route
     val esPantallaApp = rutaActual != "splash" && rutaActual != "login" && rutaActual != "loading" &&
             rutaActual != "registro" && rutaActual != "tutorial"
 
-    val usuarioNombre = viewModel.usuarioActual.value
+    val usuarioNombre by viewModel.usuarioActual.collectAsState()
+    val fotoPerfilUri by viewModel.fotoPerfilUri.collectAsState()
     val mensajeBienvenida = obtenerMensajeBienvenida(usuarioNombre)
     val tituloHeader = when (rutaActual) {
         "principal" -> if (mensajeBienvenida.contains(",")) mensajeBienvenida.split(",")[1].trim() else usuarioNombre
@@ -77,7 +79,7 @@ fun NavegacionMiRuta(
                     EncabezadoGlobal(
                         titulo = tituloHeader,
                         subtitulo = subtituloHeader,
-                        fotoUri = viewModel.fotoPerfilUri.value,
+                        fotoUri = fotoPerfilUri,
                         inicialUsuario = if (usuarioNombre.isNotBlank()) usuarioNombre.take(1).uppercase() else "U",
                         onBackClick = if (rutaActual == "cuenta" || rutaActual == "configuracion" || rutaActual == "privacidad" || rutaActual == "ayuda") {
                             { navController.popBackStack() }

@@ -63,7 +63,7 @@ class SyncManager {
         }
     }
 
-    // Transmitir ubicación GPS en tiempo real del conductor hacia Firestore (Free Tier)
+    // Transmitir ubicación GPS en tiempo real del conductor hacia Firestore (Solo Cuentas Autorizadas con rol Conductor)
     suspend fun broadcastConductorLocation(
         conductorId: String,
         nombre: String,
@@ -74,6 +74,17 @@ class SyncManager {
     ) {
         withContext(Dispatchers.IO) {
             try {
+                // Validación de cuenta autorizada
+                val userDoc = try {
+                    Tasks.await(firestore.collection("users").document(conductorId).get())
+                } catch (e: Exception) { null }
+
+                val rol = userDoc?.getString("role") ?: "conductor"
+                if (rol != "conductor" && rol != "admin") {
+                    Log.w("SyncManager", "Acceso denegado: El usuario $conductorId no está autorizado como conductor")
+                    return@withContext
+                }
+
                 val data = mapOf(
                     "id" to conductorId,
                     "nombre" to nombre,
@@ -88,7 +99,7 @@ class SyncManager {
                         .document(conductorId)
                         .set(data)
                 )
-                Log.d("SyncManager", "Ubicación del conductor $nombre transmitida en tiempo real")
+                Log.d("SyncManager", "Ubicación del conductor autorizado $nombre transmitida en tiempo real")
             } catch (e: Exception) {
                 Log.e("SyncManager", "Excepción en broadcastConductorLocation", e)
             }

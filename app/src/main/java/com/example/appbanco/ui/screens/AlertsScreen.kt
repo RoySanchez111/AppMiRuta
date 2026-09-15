@@ -168,6 +168,7 @@ fun PantallaAlertas(navController: NavController, viewModel: MainViewModel) {
 
     if (mostrarDialogo) {
         DialogoReporte(
+            rutasSugeridas = viewModel.servicioHorarios.lineasPublicas.map { it.codigo },
             onDismiss = { mostrarDialogo = false },
             onConfirm = { nuevaRuta, nuevaDescripcion ->
                 viewModel.agregarIncidencia(
@@ -457,6 +458,7 @@ fun TarjetaAlerta(
 
 @Composable
 fun DialogoReporte(
+    rutasSugeridas: List<String> = listOf("L1", "L4", "L5", "L7", "MA"),
     onDismiss: () -> Unit,
     onConfirm: (String, String) -> Unit
 ) {
@@ -465,8 +467,6 @@ fun DialogoReporte(
 
     var errorRuta by remember { mutableStateOf(false) }
     var errorDescripcion by remember { mutableStateOf(false) }
-
-    val rutasSugeridas = listOf("L1", "L4", "L5", "L7", "MA")
 
     AlertDialog(
         onDismissRequest = onDismiss,

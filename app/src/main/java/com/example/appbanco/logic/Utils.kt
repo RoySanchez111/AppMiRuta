@@ -5,9 +5,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
 import com.example.appbanco.R
-import com.example.appbanco.data.Incidencia
-import com.example.appbanco.data.Lugar
-import com.example.appbanco.data.obtenerLugaresMock
+import com.example.appbanco.ui.screens.Incidencia
 import java.util.Calendar
 import java.util.Locale
 
@@ -130,10 +128,6 @@ fun obtenerLogoSegunHora(): Int {
     } else {
         R.drawable.logo_blanco_vector
     }
-}
-
-fun obtenerDatosGuardados(callback: (List<Lugar>) -> List<Lugar>): List<Lugar> {
-    return callback(obtenerLugaresMock())
 }
 
 // NUEVO: Función para cargar las alertas base (simulando una base de datos)

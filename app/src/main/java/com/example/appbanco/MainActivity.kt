@@ -6,6 +6,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.material3.MaterialTheme
@@ -25,10 +27,6 @@ import com.example.appbanco.data.database.AppDatabase
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
-import com.example.appbanco.data.database.UserEntity
-import com.example.appbanco.logic.SecurityUtils
-import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private lateinit var sessionManager: SessionManager
@@ -49,8 +47,6 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        
-        prePoblarBaseDeDatos()
 
         setContent {
             val mainViewModel: MainViewModel = viewModel(
@@ -64,14 +60,16 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             )
+
+            val modoTema by mainViewModel.modoTema.collectAsState()
+            val escalaFuente by mainViewModel.escalaFuente.collectAsState()
             
-            val colorScheme = when (mainViewModel.modoTema.value) {
+            val colorScheme = when (modoTema) {
                 "Claro" -> obtenerEsquemaColoresClaro()
                 "Oscuro" -> obtenerEsquemaColoresOscuro()
                 else -> obtenerEsquemaColoresDinamico()
             }
 
-            val escalaFuente = mainViewModel.escalaFuente.value
             val fontScaleFactor = escalaFuente.factor
             val currentDensity = LocalDensity.current
 
@@ -92,19 +90,6 @@ class MainActivity : ComponentActivity() {
                         NavegacionMiRuta(mainViewModel, database, sessionManager)
                     }
                 }
-            }
-        }
-    }
-
-    private fun prePoblarBaseDeDatos() {
-
-        lifecycleScope.launch {
-            val userDao = database.userDao()
-            if (userDao.getUserByUsername("roy") == null) {
-                userDao.registerUser(UserEntity(username = "roy", passwordHash = SecurityUtils.hashPassword("123")))
-            }
-            if (userDao.getUserByUsername("alex") == null) {
-                userDao.registerUser(UserEntity(username = "alex", passwordHash = SecurityUtils.hashPassword("456")))
             }
         }
     }

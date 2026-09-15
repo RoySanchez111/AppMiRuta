@@ -123,19 +123,19 @@ fun DialogoAgregarRutaFrecuente(
                                     if (loc != null) {
                                         ubicacion = String.format(Locale.US, "GPS: %.4f, %.4f", loc.latitude, loc.longitude)
                                     } else {
-                                        ubicacion = "Tecmilenio Campus Puebla (GPS)"
+                                        ubicacion = "Ubicación GPS Seleccionada"
                                     }
                                     errorMsg = ""
                                 }.addOnFailureListener {
-                                    ubicacion = "Tecmilenio Campus Puebla (GPS)"
+                                    ubicacion = "Ubicación GPS Seleccionada"
                                     errorMsg = ""
                                 }
                             } catch (e: Exception) {
-                                ubicacion = "Tecmilenio Campus Puebla (GPS)"
+                                ubicacion = "Ubicación GPS Seleccionada"
                                 errorMsg = ""
                             }
                         } else {
-                            ubicacion = "Tecmilenio Campus Puebla (GPS)"
+                            ubicacion = "Ubicación GPS Seleccionada"
                             errorMsg = ""
                         }
                     },

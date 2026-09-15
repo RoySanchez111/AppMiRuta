@@ -1,7 +1,5 @@
 package com.example.appbanco.ui.viewmodel
 
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
@@ -9,6 +7,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.appbanco.logic.SessionManager
 import com.example.appbanco.ui.screens.Incidencia
 import com.example.appbanco.data.database.UserDao
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
@@ -29,42 +30,46 @@ data class RutaFrecuenteItem(
 )
 
 class MainViewModel(private val sessionManager: SessionManager) : ViewModel() {
-    private val _startDestination = mutableStateOf("loading")
-    val startDestination: State<String> = _startDestination
+    private val _startDestination = MutableStateFlow("loading")
+    val startDestination: StateFlow<String> = _startDestination.asStateFlow()
 
     // Servicio de API de Horarios
     val servicioHorarios = ServicioHorarios()
 
     // Tema dinámico de la app: "Degradados", "Claro", "Oscuro"
-    val modoTema = mutableStateOf("Degradados")
+    private val _modoTema = MutableStateFlow("Degradados")
+    val modoTema: StateFlow<String> = _modoTema.asStateFlow()
 
     // Accesibilidad: Escala de fuente centralizada
-    val escalaFuente = mutableStateOf(EscalaAccesibilidad.MEDIANO)
+    private val _escalaFuente = MutableStateFlow(EscalaAccesibilidad.MEDIANO)
+    val escalaFuente: StateFlow<EscalaAccesibilidad> = _escalaFuente.asStateFlow()
 
     // Nombre de usuario activo para saludos y perfil
-    val usuarioActual = mutableStateOf("Invitado")
+    private val _usuarioActual = MutableStateFlow("Invitado")
+    val usuarioActual: StateFlow<String> = _usuarioActual.asStateFlow()
 
     // URI de la foto de perfil activa del usuario
-    val fotoPerfilUri = mutableStateOf<String?>(null)
+    private val _fotoPerfilUri = MutableStateFlow<String?>(null)
+    val fotoPerfilUri: StateFlow<String?> = _fotoPerfilUri.asStateFlow()
 
     fun cambiarTema(nuevoTema: String) {
         viewModelScope.launch {
             sessionManager.updateAppTheme(nuevoTema)
-            modoTema.value = nuevoTema
+            _modoTema.value = nuevoTema
         }
     }
 
     fun cambiarEscalaFuente(nuevaEscala: EscalaAccesibilidad) {
         viewModelScope.launch {
             sessionManager.updateAccessibilityFontScale(nuevaEscala.nombre)
-            escalaFuente.value = nuevaEscala
+            _escalaFuente.value = nuevaEscala
         }
     }
 
     fun actualizarFotoPerfil(uriString: String?) {
         viewModelScope.launch {
             sessionManager.updateProfileImage(uriString)
-            fotoPerfilUri.value = uriString
+            _fotoPerfilUri.value = uriString
         }
     }
 
@@ -76,7 +81,7 @@ class MainViewModel(private val sessionManager: SessionManager) : ViewModel() {
                     userDao.updateUsername(userId, nuevoNombre)
                 }
                 sessionManager.updateUsername(nuevoNombre)
-                usuarioActual.value = nuevoNombre
+                _usuarioActual.value = nuevoNombre
                 onFinished(true)
             } else {
                 onFinished(false)
@@ -96,6 +101,14 @@ class MainViewModel(private val sessionManager: SessionManager) : ViewModel() {
 
     fun eliminarRutaFrecuente(id: String) {
         listaRutasFrecuentes.removeAll { it.id == id }
+    }
+
+    fun moverRutaArriba(id: String) {
+        val index = listaRutasFrecuentes.indexOfFirst { it.id == id }
+        if (index > 0) {
+            val item = listaRutasFrecuentes.removeAt(index)
+            listaRutasFrecuentes.add(index - 1, item)
+        }
     }
 
     // Lista global de incidencias que sobrevive al cambio de pestañas
@@ -133,25 +146,25 @@ class MainViewModel(private val sessionManager: SessionManager) : ViewModel() {
         viewModelScope.launch {
             sessionManager.currentUsername.collectLatest { name ->
                 if (!name.isNullOrBlank()) {
-                    usuarioActual.value = name
+                    _usuarioActual.value = name
                 } else {
-                    usuarioActual.value = "Invitado"
+                    _usuarioActual.value = "Invitado"
                 }
             }
         }
         viewModelScope.launch {
             sessionManager.profileImageUri.collectLatest { uri ->
-                fotoPerfilUri.value = uri
+                _fotoPerfilUri.value = uri
             }
         }
         viewModelScope.launch {
             sessionManager.appTheme.collectLatest { theme ->
-                modoTema.value = theme
+                _modoTema.value = theme
             }
         }
         viewModelScope.launch {
             sessionManager.escalaFuente.collectLatest { escalaStr ->
-                escalaFuente.value = EscalaAccesibilidad.desdeNombre(escalaStr)
+                _escalaFuente.value = EscalaAccesibilidad.desdeNombre(escalaStr)
             }
         }
     }

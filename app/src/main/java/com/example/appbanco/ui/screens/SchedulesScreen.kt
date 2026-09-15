@@ -45,9 +45,17 @@ fun PantallaHorarios(navController: NavController, viewModel: MainViewModel) {
     var busquedaTexto by remember { mutableStateOf("") }
     var fechaOffsetDias by remember { mutableStateOf(0) }
     var lineaSeleccionada by remember { mutableStateOf<LineaHorario?>(null) }
+    var cargandoLineas by remember { mutableStateOf(true) }
+    var lineasApi by remember { mutableStateOf<List<LineaHorario>>(emptyList()) }
+
+    LaunchedEffect(Unit) {
+        cargandoLineas = true
+        lineasApi = servicioHorarios.obtenerLineasRemotas()
+        cargandoLineas = false
+    }
 
     val horaActualFormateada = remember(fechaOffsetDias) { servicioHorarios.obtenerHoraActualFormateada() }
-    val lineasFiltradas by remember(busquedaTexto) { derivedStateOf { servicioHorarios.buscarLineas(busquedaTexto) } }
+    val lineasFiltradas by remember(busquedaTexto, lineasApi) { derivedStateOf { servicioHorarios.buscarLineas(busquedaTexto, lineasApi) } }
     val proximasSalidasPlazaMayor by remember(fechaOffsetDias) { derivedStateOf { servicioHorarios.calcularProximasSalidas(frecuenciaMinutos = 8, cantidad = 3, fechaOffsetDias = fechaOffsetDias) } }
 
     Box(
@@ -231,7 +239,16 @@ fun PantallaHorarios(navController: NavController, viewModel: MainViewModel) {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        if (lineasFiltradas.isEmpty()) {
+        if (cargandoLineas) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(180.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+            }
+        } else if (lineasFiltradas.isEmpty()) {
             Text(
                 text = "No se encontraron rutas con '$busquedaTexto'",
                 color = onSurface.copy(alpha = 0.6f),

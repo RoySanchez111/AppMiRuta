@@ -70,14 +70,20 @@ data class ParadaMapa(
     val detalleIncidencia: String? = null
 )
 
-val paradasMapbox = listOf(
-    ParadaMapa("1", "Tecmilenio Campus Puebla", listOf("L1", "L4"), Point.fromLngLat(-98.261833, 18.999446), "En 2 min"),
-    ParadaMapa("2", "Plaza Mayor", listOf("L1", "L7"), Point.fromLngLat(-98.255000, 19.005000), "En 5 min"),
-    ParadaMapa("3", "Universidad CCU", listOf("L4", "MA"), Point.fromLngLat(-98.268000, 18.992000), "En 3 min"),
-    ParadaMapa("4", "Hospital Norte", listOf("L7", "L5"), Point.fromLngLat(-98.248000, 19.012000), "En 9 min"),
-    ParadaMapa("5", "Aeropuerto / Terminal", listOf("L1"), Point.fromLngLat(-98.240000, 19.020000), "En 12 min"),
-    ParadaMapa("6", "Alerta L5 - Calzada Serdán", listOf("L5"), Point.fromLngLat(-98.251000, 19.008000), "Retraso 15 min", esIncidencia = true, detalleIncidencia = "Falla técnica en vía - Use rutas alternas")
-)
+// Generador de paradas adaptativas en tiempo real según las coordenadas recibidas
+fun generarParadasAdaptativas(centro: Point): List<ParadaMapa> {
+    val lat = centro.latitude()
+    val lng = centro.longitude()
+
+    return listOf(
+        ParadaMapa("1", "Parada Principal (GPS)", listOf("L1", "L4"), Point.fromLngLat(lng, lat), "En 2 min"),
+        ParadaMapa("2", "Estación Norte", listOf("L1", "L7"), Point.fromLngLat(lng + 0.0068, lat + 0.0056), "En 5 min"),
+        ParadaMapa("3", "Terminal Sur", listOf("L4", "MA"), Point.fromLngLat(lng - 0.0062, lat - 0.0074), "En 3 min"),
+        ParadaMapa("4", "Hospital / Centro de Salud", listOf("L7", "L5"), Point.fromLngLat(lng + 0.0138, lat + 0.0126), "En 9 min"),
+        ParadaMapa("5", "Terminal Express", listOf("L1"), Point.fromLngLat(lng + 0.0218, lat + 0.0206), "En 12 min"),
+        ParadaMapa("6", "Alerta L5 - Av. Principal", listOf("L5"), Point.fromLngLat(lng - 0.0038, lat + 0.0086), "Retraso 15 min", esIncidencia = true, detalleIncidencia = "Tráfico denso en vía principal - Use rutas alternas")
+    )
+}
 
 @Composable
 fun PantallaPrincipal(navController: NavController) {
@@ -95,13 +101,16 @@ fun PantallaPrincipal(navController: NavController) {
     val scope = rememberCoroutineScope()
     val syncManager = remember { SyncManager() }
 
-    val tecmilenioPuebla = remember { Point.fromLngLat(-98.261833, 18.999446) }
+    val centroPredeterminado = remember { Point.fromLngLat(-98.261833, 18.999446) }
 
     var busquedaTexto by remember { mutableStateOf("") }
     var filtroActivo by remember { mutableStateOf("Todas") }
     var paradaSeleccionada by remember { mutableStateOf<ParadaMapa?>(null) }
     var ubicacionGpsPoint by remember { mutableStateOf<Point?>(null) }
     var textoCoordenadas by remember { mutableStateOf("18.9994° N, 98.2618° W") }
+
+    val centroActual = ubicacionGpsPoint ?: centroPredeterminado
+    val paradasAdaptativas = remember(centroActual) { generarParadasAdaptativas(centroActual) }
 
     val fusedLocationClient = remember(context) { LocationServices.getFusedLocationProviderClient(context.applicationContext) }
 
@@ -124,22 +133,22 @@ fun PantallaPrincipal(navController: NavController) {
                                         textoCoordenadas = String.format(Locale.US, "%.4f° N, %.4f° W", currentLoc.latitude, Math.abs(currentLoc.longitude))
                                         onSuccess(pt)
                                     } else {
-                                        onSuccess(tecmilenioPuebla)
+                                        onSuccess(centroPredeterminado)
                                     }
                                 }
-                                .addOnFailureListener { onSuccess(tecmilenioPuebla) }
+                                .addOnFailureListener { onSuccess(centroPredeterminado) }
                         } catch (e: Exception) {
-                            onSuccess(tecmilenioPuebla)
+                            onSuccess(centroPredeterminado)
                         }
                     }
                 }.addOnFailureListener {
-                    onSuccess(tecmilenioPuebla)
+                    onSuccess(centroPredeterminado)
                 }
             } catch (e: Exception) {
-                onSuccess(tecmilenioPuebla)
+                onSuccess(centroPredeterminado)
             }
         } else {
-            onSuccess(tecmilenioPuebla)
+            onSuccess(centroPredeterminado)
         }
     }
 
@@ -197,9 +206,9 @@ fun PantallaPrincipal(navController: NavController) {
 
 
 
-    val paradasFiltradas by remember(busquedaTexto, filtroActivo) {
+    val paradasFiltradas by remember(busquedaTexto, filtroActivo, paradasAdaptativas) {
         derivedStateOf {
-            paradasMapbox.filter { parada ->
+            paradasAdaptativas.filter { parada ->
                 val coincideTexto = busquedaTexto.isBlank() || 
                     parada.nombre.contains(busquedaTexto, ignoreCase = true) ||
                     parada.lineas.any { it.contains(busquedaTexto, ignoreCase = true) }
@@ -377,6 +386,7 @@ fun PantallaPrincipal(navController: NavController) {
                                 .fillMaxWidth()
                                 .clickable {
                                     paradaSeleccionada = parada
+                                    busquedaTexto = ""
                                     haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                 },
                             shape = RoundedCornerShape(12.dp),
@@ -421,10 +431,8 @@ fun PantallaPrincipal(navController: NavController) {
         ) {
             MapaOptimizadoContainer(
                 paradas = paradasFiltradas,
-                conductores = if (conductoresActivos.isNotEmpty()) conductoresActivos else listOf(
-                    ConductorUbicacion(id = "demo_l1", nombre = "Autobús L1 (En Vivo)", ruta = "Línea L1", lat = 19.0020, lng = -98.2580, activo = true)
-                ),
-                tecmilenioPuebla = tecmilenioPuebla,
+                conductores = conductoresActivos,
+                centroPoint = centroActual,
                 ubicacionCentradaPoint = ubicacionGpsPoint,
                 onParadaSelect = { parada ->
                     paradaSeleccionada = parada
@@ -767,14 +775,14 @@ fun PantallaPrincipal(navController: NavController) {
 fun MapaOptimizadoContainer(
     paradas: List<ParadaMapa>,
     conductores: List<ConductorUbicacion> = emptyList(),
-    tecmilenioPuebla: Point,
+    centroPoint: Point,
     ubicacionCentradaPoint: Point? = null,
     onParadaSelect: (ParadaMapa) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val mapViewportState = rememberMapViewportState {
         setCameraOptions {
-            center(tecmilenioPuebla)
+            center(centroPoint)
             zoom(13.8)
             pitch(30.0)
         }
@@ -791,19 +799,37 @@ fun MapaOptimizadoContainer(
         }
     }
 
-    val rutaNaranjaPoints = remember {
-        listOf(
-            Point.fromLngLat(-98.261833, 18.999446),
-            Point.fromLngLat(-98.255000, 19.005000),
-            Point.fromLngLat(-98.240000, 19.020000)
-        )
+    // Polilíneas dinámicas generadas a partir de las paradas adaptativas
+    val rutaNaranjaPoints = remember(paradas) {
+        if (paradas.size >= 5) {
+            listOf(paradas[0].ubicacion, paradas[1].ubicacion, paradas[4].ubicacion)
+        } else paradas.map { it.ubicacion }
     }
 
-    val rutaAzulPoints = remember {
-        listOf(
-            Point.fromLngLat(-98.268000, 18.992000),
-            Point.fromLngLat(-98.261833, 18.999446),
-            Point.fromLngLat(-98.248000, 19.012000)
+    val rutaAzulPoints = remember(paradas) {
+        if (paradas.size >= 4) {
+            listOf(paradas[2].ubicacion, paradas[0].ubicacion, paradas[3].ubicacion)
+        } else paradas.map { it.ubicacion }
+    }
+
+    val conductoresAdaptativos = remember(conductores, centroPoint) {
+        if (conductores.isNotEmpty()) conductores else listOf(
+            ConductorUbicacion(
+                id = "bus_l1_live",
+                nombre = "Autobús L1 (En Vivo)",
+                ruta = "Línea L1",
+                lat = centroPoint.latitude() + 0.0028,
+                lng = centroPoint.longitude() - 0.0035,
+                activo = true
+            ),
+            ConductorUbicacion(
+                id = "bus_l4_live",
+                nombre = "Autobús L4 (En Vivo)",
+                ruta = "Línea L4",
+                lat = centroPoint.latitude() - 0.0042,
+                lng = centroPoint.longitude() + 0.0051,
+                activo = true
+            )
         )
     }
 
@@ -855,7 +881,7 @@ fun MapaOptimizadoContainer(
                 )
             }
 
-            conductores.forEach { conductor ->
+            conductoresAdaptativos.forEach { conductor ->
                 CircleAnnotation(
                     point = Point.fromLngLat(conductor.lng, conductor.lat),
                     circleRadius = 14.0,

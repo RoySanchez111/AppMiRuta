@@ -5,9 +5,11 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -55,6 +57,7 @@ fun PantallaCuenta(
     val onBackground = MaterialTheme.colorScheme.onBackground
     val surfaceColor = MaterialTheme.colorScheme.surface
     val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
     var modoOffline by remember { mutableStateOf(true) }
     var mostrarDialogoTema by remember { mutableStateOf(false) }
     var mostrarDialogoNombre by remember { mutableStateOf(false) }
@@ -66,10 +69,11 @@ fun PantallaCuenta(
     val scope = rememberCoroutineScope()
 
 
-    val usuarioActual = viewModel.usuarioActual.value
+    val usuarioActual by viewModel.usuarioActual.collectAsState()
     val nombreVisual = obtenerNombreVisual(usuarioActual)
     val inicialUsuario = if (nombreVisual.isNotBlank()) nombreVisual.take(1).uppercase() else "U"
-    val fotoUri = viewModel.fotoPerfilUri.value
+    val fotoUri by viewModel.fotoPerfilUri.collectAsState()
+    val modoTema by viewModel.modoTema.collectAsState()
 
     Box(
         modifier = Modifier
@@ -184,11 +188,16 @@ fun PantallaCuenta(
                                 .height(84.dp)
                                 .semantics(mergeDescendants = true) {
                                     role = Role.Button
-                                    contentDescription = "Ruta frecuente ${ruta.nombre}, ${ruta.ubicacion}"
+                                    contentDescription = "Ruta frecuente ${ruta.nombre}, ${ruta.ubicacion}. Mantén presionado para reordenar."
                                 }
-                                .clickable {
-                                    rutaSeleccionadaOpciones = ruta
-                                }, 
+                                .combinedClickable(
+                                    onClick = { rutaSeleccionadaOpciones = ruta },
+                                    onLongClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        viewModel.moverRutaArriba(ruta.id)
+                                        Toast.makeText(context, "🔄 Ruta '${ruta.nombre}' reordenada", Toast.LENGTH_SHORT).show()
+                                    }
+                                ), 
                             shape = RoundedCornerShape(16.dp), 
                             color = ruta.color
                         ) {
@@ -212,8 +221,6 @@ fun PantallaCuenta(
                 Spacer(modifier = Modifier.height(12.dp))
             }
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
 
         Spacer(modifier = Modifier.height(24.dp))
         Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)) {
@@ -262,7 +269,7 @@ fun PantallaCuenta(
                     modifier = Modifier.fillMaxWidth().padding(6.dp),
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    val escalaActual = viewModel.escalaFuente.value
+                    val escalaActual by viewModel.escalaFuente.collectAsState()
                     listOf(EscalaAccesibilidad.PEQUEÑO, EscalaAccesibilidad.MEDIANO, EscalaAccesibilidad.GRANDE).forEach { nivel ->
                         val seleccionado = escalaActual == nivel
                         Button(
@@ -298,7 +305,7 @@ fun PantallaCuenta(
                 OpcionCuenta("Configuración", onClick = { navController.navigate("configuracion") })
                 OpcionCuenta(
                     texto = "Tema de la APP", 
-                    subtexto = viewModel.modoTema.value,
+                    subtexto = modoTema,
                     onClick = { mostrarDialogoTema = true }
                 )
                 OpcionCuenta("Privacidad y Seguridad", onClick = { navController.navigate("privacidad") })
@@ -442,7 +449,7 @@ fun PantallaCuenta(
 
     if (mostrarDialogoTema) {
         DialogoTema(
-            temaActual = viewModel.modoTema.value,
+            temaActual = modoTema,
             onDismiss = { mostrarDialogoTema = false },
             onSeleccionarTema = { nuevoTema ->
                 viewModel.cambiarTema(nuevoTema)
@@ -465,7 +472,7 @@ fun PantallaCuenta(
 
     if (mostrarDialogoFoto) {
         DialogoCambiarFotoPerfil(
-            fotoActualUri = viewModel.fotoPerfilUri.value,
+            fotoActualUri = fotoUri,
             onDismiss = { mostrarDialogoFoto = false },
             onSeleccionarUri = { nuevaUri ->
                 viewModel.actualizarFotoPerfil(nuevaUri)
