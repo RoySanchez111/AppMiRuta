@@ -96,6 +96,8 @@ fun PantallaPrincipal(navController: NavController) {
     val sessionManager = remember { SessionManager(context) }
     val currentUsernameState = sessionManager.currentUsername.collectAsState(initial = "Usuario")
     val nombreUsuario = currentUsernameState.value ?: "Usuario"
+    val userRoleState = sessionManager.userRole.collectAsState(initial = "pasajero")
+    val esConductor = userRoleState.value == "conductor" || userRoleState.value == "admin"
 
     var conductoresActivos by remember { mutableStateOf<List<ConductorUbicacion>>(emptyList()) }
     val scope = rememberCoroutineScope()
@@ -194,13 +196,43 @@ fun PantallaPrincipal(navController: NavController) {
         }
     }
 
+    // MODO OFFLINE / AHORRO DE DATOS
+    val modoOffline by sessionManager.modoOffline.collectAsState(initial = false)
+
     // Cargar y actualizar conductores activos de la nube periódicamente (Free Tier Optimizado)
-    LaunchedEffect(Unit) {
-        while (isActive) {
-            syncManager.fetchConductoresActivos { lista ->
-                conductoresActivos = lista
+    LaunchedEffect(modoOffline) {
+        if (!modoOffline) {
+            while (isActive) {
+                syncManager.fetchConductoresActivos { lista ->
+                    conductoresActivos = lista
+                }
+                delay(6000)
             }
-            delay(6000)
+        } else {
+            // Si entra en modo Offline, limpia los autobuses en vivo y ahorra batería/datos
+            conductoresActivos = emptyList()
+        }
+    }
+
+    // Si el usuario es Conductor, transmite su posición GPS de forma segura a Firebase
+    var transmitiendoUbicacion by remember { mutableStateOf(false) }
+    LaunchedEffect(transmitiendoUbicacion, esConductor) {
+        if (esConductor && transmitiendoUbicacion) {
+            while (isActive && transmitiendoUbicacion) {
+                obtenerUbicacionGpsReal { realPoint ->
+                    scope.launch {
+                        syncManager.broadcastConductorLocation(
+                            conductorId = nombreUsuario,
+                            nombre = "Conductor $nombreUsuario",
+                            ruta = "Línea L1",
+                            lat = realPoint.latitude(),
+                            lng = realPoint.longitude(),
+                            activo = true
+                        )
+                    }
+                }
+                delay(5000)
+            }
         }
     }
 
@@ -415,9 +447,29 @@ fun PantallaPrincipal(navController: NavController) {
             }
         }
 
-
-
         Spacer(modifier = Modifier.height(10.dp))
+
+        if (modoOffline) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                color = Color(0xFFF39C12).copy(alpha = 0.15f),
+                border = BorderStroke(1.dp, Color(0xFFF39C12))
+            ) {
+                Row(
+                    modifier = Modifier.padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Default.CloudOff, contentDescription = null, tint = Color(0xFFF39C12), modifier = Modifier.size(20.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Column {
+                        Text("Modo Offline Activo", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = Color(0xFFF39C12))
+                        Text("Ahorrando datos móviles. Actualización en tiempo real pausada.", fontSize = 11.sp, color = onSurface.copy(alpha = 0.7f))
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(10.dp))
+        }
 
         // MAPA INTERACTIVO NATIVO EN MAPBOX COMPOSE V11
         Box(
@@ -533,6 +585,47 @@ fun PantallaPrincipal(navController: NavController) {
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 horizontalAlignment = Alignment.End
             ) {
+                // BOTÓN TRANSMITIR UBICACIÓN GPS EN VIVO (SOLO PARA CONDUCTORES AUTORIZADOS)
+                if (esConductor) {
+                    Surface(
+                        onClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            transmitiendoUbicacion = !transmitiendoUbicacion
+                            Toast.makeText(
+                                context,
+                                if (transmitiendoUbicacion) "📡 Transmitiendo ubicación GPS en tiempo real..." else "⏸️ Transmisión en vivo pausada",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        },
+                        shape = RoundedCornerShape(16.dp),
+                        color = if (transmitiendoUbicacion) Color(0xFFE74C3C) else Color(0xFF2ECC71),
+                        shadowElevation = 6.dp,
+                        modifier = Modifier.semantics {
+                            role = Role.Button
+                            contentDescription = "Transmitir ubicación en vivo a pasajeros"
+                        }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = if (transmitiendoUbicacion) Icons.Default.Sensors else Icons.Default.SensorsOff,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = if (transmitiendoUbicacion) "EN VIVO" else "Transmitir",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
+                    }
+                }
+
                 // 1. BOTÓN RECALCULAR / ACTUALIZAR RUTAS Y CONDUCTORES
                 Surface(
                     onClick = {

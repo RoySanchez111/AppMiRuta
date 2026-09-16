@@ -17,6 +17,7 @@ class SessionManager(private val context: Context) {
         private val PROFILE_IMAGE_URI = stringPreferencesKey("profile_image_uri")
         private val APP_THEME = stringPreferencesKey("app_theme")
         private val ACCESSIBILITY_FONT_SCALE = stringPreferencesKey("accessibility_font_scale")
+        private val OFFLINE_MODE = booleanPreferencesKey("offline_mode")
         private val USER_ROLE = stringPreferencesKey("user_role")
         private val HAS_COMPLETED_TUTORIAL = booleanPreferencesKey("has_completed_tutorial")
     }
@@ -52,6 +53,10 @@ class SessionManager(private val context: Context) {
 
     val escalaFuente: Flow<String> = context.dataStore.data.map { preferences ->
         preferences[ACCESSIBILITY_FONT_SCALE] ?: "Mediano"
+    }
+
+    val modoOffline: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[OFFLINE_MODE] ?: false
     }
 
     val hasCompletedTutorial: Flow<Boolean> = context.dataStore.data.map { preferences ->
@@ -91,6 +96,12 @@ class SessionManager(private val context: Context) {
     suspend fun updateAccessibilityFontScale(escala: String) {
         context.dataStore.edit { preferences ->
             preferences[ACCESSIBILITY_FONT_SCALE] = escala
+        }
+    }
+
+    suspend fun updateOfflineMode(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[OFFLINE_MODE] = enabled
         }
     }
 

@@ -68,12 +68,10 @@ fun PantallaPrivacidad(navController: NavController) {
                 Spacer(modifier = Modifier.height(10.dp))
 
                 Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .shadow(elevation = 2.dp, shape = RoundedCornerShape(20.dp)),
+                    modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(20.dp),
-                    color = onSurfaceColor.copy(alpha = 0.05f),
-                    border = BorderStroke(1.dp, onSurfaceColor.copy(alpha = 0.08f))
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
                 ) {
                     Column(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
@@ -127,12 +125,10 @@ fun PantallaPrivacidad(navController: NavController) {
                 Spacer(modifier = Modifier.height(10.dp))
 
                 Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .shadow(elevation = 2.dp, shape = RoundedCornerShape(20.dp)),
+                    modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(20.dp),
-                    color = onSurfaceColor.copy(alpha = 0.05f),
-                    border = BorderStroke(1.dp, onSurfaceColor.copy(alpha = 0.08f))
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
                 ) {
                     Column(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
@@ -151,7 +147,7 @@ fun PantallaPrivacidad(navController: NavController) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 6.dp)
+                                .padding(vertical = 12.dp)
                                 .clickable {
                                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                     Toast.makeText(context, "Configurar contraseña de acceso", Toast.LENGTH_SHORT).show()
@@ -159,14 +155,15 @@ fun PantallaPrivacidad(navController: NavController) {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f).padding(end = 12.dp)
                             ) {
                                 Text(
                                     text = "Establecer contraseña de acceso",
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
                                     color = onSurfaceColor
                                 )
+                                Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = "Contraseña local adicional para asegurar la app",
                                     fontSize = 11.sp,
@@ -313,14 +310,15 @@ fun OpcionPrivacidadSwitch(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f).padding(end = 12.dp)
         ) {
             Text(
                 text = titulo,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Medium,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
                 color = onSurfaceColor
             )
+            Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = descripcion,
                 fontSize = 11.sp,

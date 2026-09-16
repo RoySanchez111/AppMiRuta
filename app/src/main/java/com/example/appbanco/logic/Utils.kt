@@ -1,5 +1,7 @@
 package com.example.appbanco.logic
 
+import android.content.Context
+import android.media.RingtoneManager
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -127,6 +129,16 @@ fun obtenerLogoSegunHora(): Int {
         R.drawable.logo_negro_vector
     } else {
         R.drawable.logo_blanco_vector
+    }
+}
+
+fun reproducirSonidoNotificacion(context: Context) {
+    try {
+        val uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+        val ringtone = RingtoneManager.getRingtone(context, uri)
+        ringtone?.play()
+    } catch (e: Exception) {
+        // Ignorar si el dispositivo está en silencio o no tiene ringtone
     }
 }
 

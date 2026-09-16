@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.appbanco.ui.viewmodel.MainViewModel
 import androidx.constraintlayout.compose.*
+import com.example.appbanco.logic.reproducirSonidoNotificacion
 import kotlinx.coroutines.delay
 
 data class Incidencia(
@@ -184,6 +185,7 @@ fun PantallaAlertas(navController: NavController, viewModel: MainViewModel) {
                 )
                 mostrarDialogo = false
                 mostrarExito = true
+                reproducirSonidoNotificacion(context)
             }
         )
     }

@@ -13,6 +13,9 @@ interface UserDao {
     @Query("UPDATE users SET username = :newUsername WHERE id = :userId")
     suspend fun updateUsername(userId: Int, newUsername: String)
 
-    @Insert(onConflict = OnConflictStrategy.ABORT)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun registerUser(user: UserEntity)
+
+    @Query("DELETE FROM users")
+    suspend fun deleteAllUsers()
 }

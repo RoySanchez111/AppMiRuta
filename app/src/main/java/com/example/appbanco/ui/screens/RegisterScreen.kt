@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
@@ -40,6 +41,7 @@ import com.example.appbanco.data.database.UserDao
 import com.example.appbanco.data.database.UserEntity
 import com.example.appbanco.logic.SecurityUtils
 import com.example.appbanco.logic.SessionManager
+import com.example.appbanco.logic.reproducirSonidoNotificacion
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
@@ -63,6 +65,7 @@ fun PantallaRegistro(
     var datosCorrectos by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val haptic = LocalHapticFeedback.current
+    val context = LocalContext.current
     val syncManager = remember { SyncManager() }
 
     Column(
@@ -314,6 +317,7 @@ fun PantallaRegistro(
                             mensajeError = "El nombre de usuario ya se encuentra registrado"
                             datosCorrectos = false
                         } else {
+                            reproducirSonidoNotificacion(context)
                             datosCorrectos = true
                             val newUser = UserEntity(
                                 username = usuarioLimpio,

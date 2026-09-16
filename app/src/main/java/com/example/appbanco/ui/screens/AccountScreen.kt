@@ -58,7 +58,7 @@ fun PantallaCuenta(
     val surfaceColor = MaterialTheme.colorScheme.surface
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
-    var modoOffline by remember { mutableStateOf(true) }
+    val modoOffline by viewModel.modoOffline.collectAsState()
     var mostrarDialogoTema by remember { mutableStateOf(false) }
     var mostrarDialogoNombre by remember { mutableStateOf(false) }
     var mostrarDialogoAgregarRuta by remember { mutableStateOf(false) }
@@ -237,14 +237,23 @@ fun PantallaCuenta(
                     .fillMaxWidth()
                     .semantics(mergeDescendants = true) {
                         role = Role.Switch
-                        contentDescription = "Modo Offline, Habilitar descarga de mapas: ${if (modoOffline) "Activado" else "Desactivado"}"
+                        contentDescription = "Modo Offline y Ahorro de Datos: ${if (modoOffline) "Activado" else "Desactivado"}"
                     }, 
                 shape = RoundedCornerShape(18.dp), 
                 color = onSurface.copy(alpha = 0.05f)
             ) {
                 Row(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("Habilitar descarga de mapas", fontSize = 13.sp, color = onSurface.copy(alpha = 0.7f), modifier = Modifier.weight(1f))
-                    Switch(checked = modoOffline, onCheckedChange = { modoOffline = it }, colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = Color(0xFFFEB30F)))
+                    Text("Habilitar ahorro de datos (Offline)", fontSize = 13.sp, color = onSurface.copy(alpha = 0.7f), modifier = Modifier.weight(1f))
+                    Switch(
+                        checked = modoOffline, 
+                        onCheckedChange = { 
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            viewModel.cambiarModoOffline(it)
+                            val msj = if (it) "Modo Offline y Ahorro de Datos activado" else "Modo Offline desactivado"
+                            Toast.makeText(context, msj, Toast.LENGTH_SHORT).show()
+                        }, 
+                        colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = Color(0xFFFEB30F))
+                    )
                 }
             }
         }

@@ -44,6 +44,10 @@ class MainViewModel(private val sessionManager: SessionManager) : ViewModel() {
     private val _escalaFuente = MutableStateFlow(EscalaAccesibilidad.MEDIANO)
     val escalaFuente: StateFlow<EscalaAccesibilidad> = _escalaFuente.asStateFlow()
 
+    // Modo Offline y Ahorro de Datos
+    private val _modoOffline = MutableStateFlow(false)
+    val modoOffline: StateFlow<Boolean> = _modoOffline.asStateFlow()
+
     // Nombre de usuario activo para saludos y perfil
     private val _usuarioActual = MutableStateFlow("Invitado")
     val usuarioActual: StateFlow<String> = _usuarioActual.asStateFlow()
@@ -63,6 +67,13 @@ class MainViewModel(private val sessionManager: SessionManager) : ViewModel() {
         viewModelScope.launch {
             sessionManager.updateAccessibilityFontScale(nuevaEscala.nombre)
             _escalaFuente.value = nuevaEscala
+        }
+    }
+
+    fun cambiarModoOffline(activado: Boolean) {
+        viewModelScope.launch {
+            sessionManager.updateOfflineMode(activado)
+            _modoOffline.value = activado
         }
     }
 
@@ -165,6 +176,11 @@ class MainViewModel(private val sessionManager: SessionManager) : ViewModel() {
         viewModelScope.launch {
             sessionManager.escalaFuente.collectLatest { escalaStr ->
                 _escalaFuente.value = EscalaAccesibilidad.desdeNombre(escalaStr)
+            }
+        }
+        viewModelScope.launch {
+            sessionManager.modoOffline.collectLatest { enabled ->
+                _modoOffline.value = enabled
             }
         }
     }
