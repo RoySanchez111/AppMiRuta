@@ -6,11 +6,25 @@ import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -115,6 +129,36 @@ fun PantallaPrincipal(navController: NavController) {
     val paradasAdaptativas = remember(centroActual) { generarParadasAdaptativas(centroActual) }
 
     val fusedLocationClient = remember(context) { LocationServices.getFusedLocationProviderClient(context.applicationContext) }
+
+    // 🌟 CONTROL DEL CICLO DE VIDA PARA DESMONTAJE LIGERO DEL MAPA
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var isMapVisible by remember { mutableStateOf(true) }
+    var mapReady by remember { mutableStateOf(false) } // Ocultar el "borrón" al INICIAR
+    var isLeavingScreen by remember { mutableStateOf(false) } // Detectar SALIDA
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_PAUSE || event == Lifecycle.Event.ON_STOP) {
+                isMapVisible = false
+                isLeavingScreen = true
+                mapReady = false
+            } else if (event == Lifecycle.Event.ON_RESUME) {
+                isMapVisible = true
+                isLeavingScreen = false
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    LaunchedEffect(isMapVisible) {
+        if (isMapVisible) {
+            delay(50) // Micro-pausa mínima solo para permitir el renderizado del frame de Compose
+            mapReady = true
+        }
+    }
 
     fun obtenerUbicacionGpsReal(onSuccess: (Point) -> Unit) {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
@@ -477,20 +521,52 @@ fun PantallaPrincipal(navController: NavController) {
                 .fillMaxWidth()
                 .height(380.dp)
                 .clip(RoundedCornerShape(20.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .semantics {
                     contentDescription = "Mapa interactivo nativo Mapbox con líneas de transporte y ubicaciones"
                 }
         ) {
-            MapaOptimizadoContainer(
-                paradas = paradasFiltradas,
-                conductores = conductoresActivos,
-                centroPoint = centroActual,
-                ubicacionCentradaPoint = ubicacionGpsPoint,
-                onParadaSelect = { parada ->
-                    paradaSeleccionada = parada
-                },
-                modifier = Modifier.fillMaxSize()
-            )
+            if (isMapVisible) {
+                MapaOptimizadoContainer(
+                    paradas = paradasFiltradas,
+                    conductores = conductoresActivos,
+                    centroPoint = centroActual,
+                    ubicacionCentradaPoint = ubicacionGpsPoint,
+                    onParadaSelect = { parada ->
+                        paradaSeleccionada = parada
+                    },
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+
+            // Capa superpuesta (FadeOut) que cubre el "borrón" inicial de Mapbox
+            // PERO evitamos mostrarla (o el círculo de carga) cuando el usuario ESTÁ SALIENDO de la pestaña
+            if (!mapReady && !isLeavingScreen) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = "Actualizando GPS...",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            } else if (!isMapVisible) {
+                // Durante la salida rápida, simplemente muestra el fondo liso para un desmonte instantáneo sin parpadeos
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                )
+            }
 
             // INSIGNIA FLOTANTE DE PERFIL EN EL MAPA (TopStart)
             Surface(

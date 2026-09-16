@@ -43,7 +43,8 @@ fun PantallaSplash(navController: NavController) {
     }
 
     LaunchedEffect(Unit) {
-        delay(2500.milliseconds)
+        // Reducimos el tiempo de la animación del GIF inicial
+        delay(1500.milliseconds)
         navController.navigate("loading") {
             popUpTo("splash") { inclusive = true }
         }
@@ -77,7 +78,9 @@ fun PantallaLoading(
     sessionManager: SessionManager
 ) {
     LaunchedEffect(Unit) {
-        delay(2500.milliseconds)
+        // En lugar de una demora estática, damos un margen generoso pero fluido
+        // para que la base de datos local y Firebase preparen la sesión
+        delay(1200.milliseconds)
         val tutorialCompletado = sessionManager.hasCompletedTutorial.firstOrNull() ?: false
         val destinoFinal = if (!tutorialCompletado && targetDestination == "principal") "tutorial" else targetDestination
         navController.navigate(destinoFinal) {
