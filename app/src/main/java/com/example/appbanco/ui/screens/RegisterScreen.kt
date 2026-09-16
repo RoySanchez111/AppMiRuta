@@ -96,17 +96,17 @@ fun PantallaRegistro(
             text = "Crear cuenta",
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.semantics { heading() }
         )
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // TARJETA CONTENEDORA DE FORMULARIO CON BORDE Y DIFUMINADO
+        // TARJETA CONTENEDORA DE FORMULARIO
         Surface(
             shape = RoundedCornerShape(24.dp),
-            color = Color.White.copy(alpha = 0.12f),
-            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.3f)),
+            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)),
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(
@@ -122,7 +122,7 @@ fun PantallaRegistro(
                         datosCorrectos = false
                     },
                     label = { Text("Nombre de usuario") },
-                    leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = Color.Black) },
+                    leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface) },
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                     singleLine = true,
                     modifier = Modifier
@@ -141,7 +141,7 @@ fun PantallaRegistro(
                         datosCorrectos = false
                     },
                     label = { Text("Correo electrónico") },
-                    leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = Color.Black) },
+                    leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
                     singleLine = true,
                     modifier = Modifier
@@ -162,7 +162,7 @@ fun PantallaRegistro(
                         datosCorrectos = false
                     },
                     label = { Text("Teléfono") },
-                    leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null, tint = Color.Black) },
+                    leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone, imeAction = ImeAction.Next),
                     singleLine = true,
                     modifier = Modifier
@@ -181,12 +181,12 @@ fun PantallaRegistro(
                         datosCorrectos = false
                     },
                     label = { Text("Contraseña") },
-                    leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = Color.Black) },
+                    leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface) },
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
                         val image = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                            Icon(imageVector = image, contentDescription = if (passwordVisible) "Ocultar" else "Mostrar", tint = Color.Black)
+                            Icon(imageVector = image, contentDescription = if (passwordVisible) "Ocultar" else "Mostrar", tint = MaterialTheme.colorScheme.onSurface)
                         }
                     },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
@@ -207,12 +207,12 @@ fun PantallaRegistro(
                         datosCorrectos = false
                     },
                     label = { Text("Confirmar contraseña") },
-                    leadingIcon = { Icon(Icons.Default.Key, contentDescription = null, tint = Color.Black) },
+                    leadingIcon = { Icon(Icons.Default.Key, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface) },
                     visualTransformation = if (confirmarPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
                         val image = if (confirmarPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
                         IconButton(onClick = { confirmarPasswordVisible = !confirmarPasswordVisible }) {
-                            Icon(imageVector = image, contentDescription = if (confirmarPasswordVisible) "Ocultar" else "Mostrar", tint = Color.Black)
+                            Icon(imageVector = image, contentDescription = if (confirmarPasswordVisible) "Ocultar" else "Mostrar", tint = MaterialTheme.colorScheme.onSurface)
                         }
                     },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
@@ -235,8 +235,8 @@ fun PantallaRegistro(
                         datosCorrectos = false
                     },
                     label = { Text("Edad (13 a 98 años)") },
-                    leadingIcon = { Icon(Icons.Default.Cake, contentDescription = null, tint = Color.Black) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    leadingIcon = { Icon(Icons.Default.Cake, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
                     singleLine = true,
                     modifier = Modifier
                         .fillMaxWidth()

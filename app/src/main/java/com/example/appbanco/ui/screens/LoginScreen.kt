@@ -134,7 +134,7 @@ fun PantallaLogin(
             value = usuario,
             onValueChange = { usuario = it },
             label = {
-                Text("Usuario", color = Color.Black, modifier = Modifier.background(Color.White))
+                Text("Usuario")
             },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Text,
@@ -145,11 +145,11 @@ fun PantallaLogin(
                 .fillMaxWidth()
                 .semantics { contentDescription = "Campo para ingresar usuario" },
             colors = OutlinedTextFieldDefaults.colors(
-                unfocusedContainerColor = Color.White,
-                focusedContainerColor = Color.White,
-                unfocusedTextColor = Color.Black,
-                focusedTextColor = Color.Black,
-                cursorColor = Color.Black
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                cursorColor = MaterialTheme.colorScheme.primary
             )
         )
         
@@ -159,14 +159,14 @@ fun PantallaLogin(
             value = password,
             onValueChange = { password = it },
             label = {
-                Text("Contraseña", color = Color.Black, modifier = Modifier.background(Color.White))
+                Text("Contraseña")
             },
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
                 val image = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
                 val description = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña"
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                    Icon(imageVector = image, contentDescription = description, tint = Color.Black)
+                    Icon(imageVector = image, contentDescription = description, tint = MaterialTheme.colorScheme.onSurface)
                 }
             },
             keyboardOptions = KeyboardOptions(
@@ -183,11 +183,11 @@ fun PantallaLogin(
                 .fillMaxWidth()
                 .semantics { contentDescription = "Campo para ingresar contraseña" },
             colors = OutlinedTextFieldDefaults.colors(
-                unfocusedContainerColor = Color.White,
-                focusedContainerColor = Color.White,
-                unfocusedTextColor = Color.Black,
-                focusedTextColor = Color.Black,
-                cursorColor = Color.Black
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                cursorColor = MaterialTheme.colorScheme.primary
             )
         )
         

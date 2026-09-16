@@ -2,6 +2,7 @@ package com.example.appbanco.ui.screens
 
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -39,11 +40,12 @@ fun PantallaPrivacidad(navController: NavController) {
     var verAnuncios by remember { mutableStateOf(false) }
     var verificacionDosPasos by remember { mutableStateOf(false) }
 
-    TimeBasedBackground {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.TopCenter
-        ) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surface),
+        contentAlignment = Alignment.TopCenter
+    ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -149,7 +151,7 @@ fun PantallaPrivacidad(navController: NavController) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(54.dp)
+                                .padding(vertical = 6.dp)
                                 .clickable {
                                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                     Toast.makeText(context, "Configurar contraseña de acceso", Toast.LENGTH_SHORT).show()
@@ -211,13 +213,14 @@ fun PantallaPrivacidad(navController: NavController) {
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(52.dp),
+                        .padding(vertical = 4.dp),
                     shape = RoundedCornerShape(16.dp),
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f)),
                     colors = ButtonDefaults.outlinedButtonColors(
                         containerColor = onSurfaceColor.copy(alpha = 0.05f),
                         contentColor = MaterialTheme.colorScheme.error
-                    )
+                    ),
+                    contentPadding = PaddingValues(vertical = 14.dp)
                 ) {
                     Text(
                         text = "Borrar historial de viajes",
@@ -226,7 +229,7 @@ fun PantallaPrivacidad(navController: NavController) {
                     )
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
                 OutlinedButton(
                     onClick = {
@@ -235,13 +238,14 @@ fun PantallaPrivacidad(navController: NavController) {
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(52.dp),
+                        .padding(vertical = 4.dp),
                     shape = RoundedCornerShape(16.dp),
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f)),
                     colors = ButtonDefaults.outlinedButtonColors(
                         containerColor = onSurfaceColor.copy(alpha = 0.05f),
                         contentColor = MaterialTheme.colorScheme.error
-                    )
+                    ),
+                    contentPadding = PaddingValues(vertical = 14.dp)
                 ) {
                     Text(
                         text = "Eliminar cuenta permanentemente",
@@ -286,7 +290,6 @@ fun PantallaPrivacidad(navController: NavController) {
                 Spacer(modifier = Modifier.height(32.dp))
             }
         }
-    }
 }
 
 @Composable
@@ -302,7 +305,7 @@ fun OpcionPrivacidadSwitch(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(54.dp)
+            .padding(vertical = 6.dp)
             .semantics(mergeDescendants = true) {
                 role = Role.Switch
                 contentDescription = "$titulo, $descripcion, ${if (activado) "Activado" else "Desactivado"}"
