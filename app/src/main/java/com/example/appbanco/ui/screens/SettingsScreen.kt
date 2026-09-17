@@ -39,10 +39,10 @@ fun PantallaConfiguracion(
     var notifRetrasos by remember { mutableStateOf(true) }
     var notifSonidoVibracion by remember { mutableStateOf(false) }
 
-    var modoOffline by remember { mutableStateOf(true) }
+    val modoOffline by viewModel.modoOffline.collectAsState()
     var unidadDistancia by remember { mutableStateOf("km") }
 
-    val temaActual = viewModel.modoTema.value
+    val temaActual by viewModel.modoTema.collectAsState()
     var temaSeleccionado by remember(temaActual) {
         mutableStateOf(
             when (temaActual) {
@@ -170,7 +170,7 @@ fun PantallaConfiguracion(
                         checked = modoOffline,
                         onCheckedChange = {
                             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                            modoOffline = it
+                            viewModel.cambiarModoOffline(it)
                         },
                         colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = primaryColor)
                     )

@@ -18,6 +18,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
+import kotlin.math.abs
+import kotlin.time.Duration.Companion.milliseconds
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -155,7 +157,7 @@ fun PantallaPrincipal(navController: NavController) {
 
     LaunchedEffect(isMapVisible) {
         if (isMapVisible) {
-            delay(50) // Micro-pausa mínima solo para permitir el renderizado del frame de Compose
+            delay(50.milliseconds) // Micro-pausa mínima solo para permitir el renderizado del frame de Compose
             mapReady = true
         }
     }
@@ -167,7 +169,7 @@ fun PantallaPrincipal(navController: NavController) {
                 fusedLocationClient.lastLocation.addOnSuccessListener { loc ->
                     if (loc != null) {
                         val pt = Point.fromLngLat(loc.longitude, loc.latitude)
-                        textoCoordenadas = String.format(Locale.US, "%.4f° N, %.4f° W", loc.latitude, Math.abs(loc.longitude))
+                        textoCoordenadas = String.format(Locale.US, "%.4f° N, %.4f° W", loc.latitude, abs(loc.longitude))
                         onSuccess(pt)
                     } else {
                         // Fallback de alta precisión para dispositivos físicos cuando lastLocation es null
@@ -176,7 +178,7 @@ fun PantallaPrincipal(navController: NavController) {
                                 .addOnSuccessListener { currentLoc ->
                                     if (currentLoc != null) {
                                         val pt = Point.fromLngLat(currentLoc.longitude, currentLoc.latitude)
-                                        textoCoordenadas = String.format(Locale.US, "%.4f° N, %.4f° W", currentLoc.latitude, Math.abs(currentLoc.longitude))
+                                        textoCoordenadas = String.format(Locale.US, "%.4f° N, %.4f° W", currentLoc.latitude, abs(currentLoc.longitude))
                                         onSuccess(pt)
                                     } else {
                                         onSuccess(centroPredeterminado)
@@ -250,7 +252,7 @@ fun PantallaPrincipal(navController: NavController) {
                 syncManager.fetchConductoresActivos { lista ->
                     conductoresActivos = lista
                 }
-                delay(6000)
+                delay(6000.milliseconds)
             }
         } else {
             // Si entra en modo Offline, limpia los autobuses en vivo y ahorra batería/datos
@@ -275,7 +277,7 @@ fun PantallaPrincipal(navController: NavController) {
                         )
                     }
                 }
-                delay(5000)
+                delay(5000.milliseconds)
             }
         }
     }
@@ -528,14 +530,14 @@ fun PantallaPrincipal(navController: NavController) {
         ) {
             if (isMapVisible) {
                 MapaOptimizadoContainer(
+                    modifier = Modifier.fillMaxSize(),
                     paradas = paradasFiltradas,
                     conductores = conductoresActivos,
                     centroPoint = centroActual,
                     ubicacionCentradaPoint = ubicacionGpsPoint,
                     onParadaSelect = { parada ->
                         paradaSeleccionada = parada
-                    },
-                    modifier = Modifier.fillMaxSize()
+                    }
                 )
             }
 
@@ -942,12 +944,12 @@ fun PantallaPrincipal(navController: NavController) {
 
 @Composable
 fun MapaOptimizadoContainer(
+    modifier: Modifier = Modifier,
     paradas: List<ParadaMapa>,
     conductores: List<ConductorUbicacion> = emptyList(),
     centroPoint: Point,
     ubicacionCentradaPoint: Point? = null,
-    onParadaSelect: (ParadaMapa) -> Unit,
-    modifier: Modifier = Modifier
+    onParadaSelect: (ParadaMapa) -> Unit
 ) {
     val mapViewportState = rememberMapViewportState {
         setCameraOptions {
