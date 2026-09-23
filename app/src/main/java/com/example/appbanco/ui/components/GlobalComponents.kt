@@ -85,14 +85,18 @@ fun BarraNavegacionInferior(navController: NavController, rutaActual: String?) {
                 onClick = { 
                     if (rutaActual != ruta) {
                         haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                        navController.navigate(ruta) { 
-                            popUpTo("principal") { 
-                                saveState = true
-                                inclusive = false
-                            }
-                            launchSingleTop = true
-                            restoreState = true 
-                        } 
+                        if (ruta == "principal") {
+                            navController.popBackStack("principal", inclusive = false)
+                        } else {
+                            navController.navigate(ruta) { 
+                                popUpTo("principal") { 
+                                    saveState = true
+                                    inclusive = false
+                                }
+                                launchSingleTop = true
+                                restoreState = true 
+                            } 
+                        }
                     } 
                 }
             )
@@ -133,14 +137,18 @@ fun RielNavegacionLateral(navController: NavController, rutaActual: String?) {
                 onClick = { 
                     if (rutaActual != ruta) {
                         haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                        navController.navigate(ruta) { 
-                            popUpTo("principal") { 
-                                saveState = true
-                                inclusive = false
-                            }
-                            launchSingleTop = true
-                            restoreState = true 
-                        } 
+                        if (ruta == "principal") {
+                            navController.popBackStack("principal", inclusive = false)
+                        } else {
+                            navController.navigate(ruta) { 
+                                popUpTo("principal") { 
+                                    saveState = true
+                                    inclusive = false
+                                }
+                                launchSingleTop = true
+                                restoreState = true 
+                            } 
+                        }
                     } 
                 }
             )
@@ -521,7 +529,7 @@ fun AlertCard(alerta: AlertaIncidencia) {
 
                 Spacer(modifier = Modifier.width(12.dp))
 
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = alerta.titulo,
                         fontWeight = FontWeight.Bold,

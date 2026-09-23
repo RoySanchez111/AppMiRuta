@@ -1,7 +1,13 @@
 package com.example.appbanco.logic
 
 import android.content.Context
+import android.media.AudioAttributes
+import android.media.AudioManager
 import android.media.RingtoneManager
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -132,13 +138,47 @@ fun obtenerLogoSegunHora(): Int {
     }
 }
 
+fun ejecutarVibracionHaptica(context: Context, duracionMs: Long = 45L) {
+    try {
+        val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager
+            vibratorManager?.defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+        }
+
+        if (vibrator != null && vibrator.hasVibrator()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                vibrator.vibrate(VibrationEffect.createOneShot(duracionMs, VibrationEffect.DEFAULT_AMPLITUDE))
+            } else {
+                @Suppress("DEPRECATION")
+                vibrator.vibrate(duracionMs)
+            }
+        }
+    } catch (e: Exception) {
+        // Fallback en caso de restricciones de hardware
+    }
+}
+
 fun reproducirSonidoNotificacion(context: Context) {
     try {
+        // 1. Efecto de sonido del sistema (Audible en todos los dispositivos físicos)
+        val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
+        audioManager?.playSoundEffect(AudioManager.FX_KEY_CLICK, 1.0f)
+
+        // 2. Tono de notificación de cortesía mediante Ringtone con atributos de audio explícitos
         val uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-        val ringtone = RingtoneManager.getRingtone(context, uri)
-        ringtone?.play()
+        if (uri != null) {
+            val ringtone = RingtoneManager.getRingtone(context, uri)
+            ringtone?.audioAttributes = AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build()
+            ringtone?.play()
+        }
     } catch (e: Exception) {
-        // Ignorar si el dispositivo está en silencio o no tiene ringtone
+        // Fallback en caso de dispositivos en modo silencio
     }
 }
 

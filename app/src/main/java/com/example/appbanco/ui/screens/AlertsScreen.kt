@@ -343,7 +343,9 @@ fun TarjetaAlerta(
                 modifier = Modifier.constrainAs(typeSurface) {
                     top.linkTo(routeSurface.top)
                     bottom.linkTo(routeSurface.bottom)
-                    start.linkTo(routeSurface.end, margin = 10.dp)
+                    start.linkTo(routeSurface.end, margin = 8.dp)
+                    end.linkTo(timeText.start, margin = 6.dp)
+                    width = Dimension.preferredWrapContent
                 }
             ) {
                 Text(
