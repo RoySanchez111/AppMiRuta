@@ -39,6 +39,7 @@ import androidx.navigation.NavController
 import com.example.appbanco.data.database.UserDao
 import com.example.appbanco.logic.SessionManager
 import com.example.appbanco.logic.obtenerNombreVisual
+import com.example.appbanco.logic.ejecutarVibracionHaptica
 import com.example.appbanco.ui.components.FotoPerfilAvatar
 import com.example.appbanco.ui.components.OpcionCuenta
 import com.example.appbanco.ui.theme.EscalaAccesibilidad
@@ -185,7 +186,7 @@ fun PantallaCuenta(
                         Surface(
                             modifier = Modifier
                                 .weight(1f)
-                                .height(84.dp)
+                                .defaultMinSize(minHeight = 84.dp)
                                 .semantics(mergeDescendants = true) {
                                     role = Role.Button
                                     contentDescription = "Ruta frecuente ${ruta.nombre}, ${ruta.ubicacion}. Mantén presionado para reordenar."
@@ -193,6 +194,7 @@ fun PantallaCuenta(
                                 .combinedClickable(
                                     onClick = { rutaSeleccionadaOpciones = ruta },
                                     onLongClick = {
+                                        ejecutarVibracionHaptica(context, 60L)
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                         viewModel.moverRutaArriba(ruta.id)
                                         Toast.makeText(context, "🔄 Ruta '${ruta.nombre}' reordenada", Toast.LENGTH_SHORT).show()
@@ -202,15 +204,17 @@ fun PantallaCuenta(
                             color = ruta.color
                         ) {
                             Column(
-                                modifier = Modifier.fillMaxSize().padding(12.dp), 
-                                verticalArrangement = Arrangement.SpaceBetween
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp), 
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) { 
                                     Icon(ruta.icono, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Text(ruta.nombre, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold) 
+                                    Text(ruta.nombre, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1) 
                                 }
-                                Text(ruta.ubicacion, color = Color.White.copy(alpha = 0.85f), fontSize = 11.sp, maxLines = 1)
+                                Text(ruta.ubicacion, color = Color.White.copy(alpha = 0.85f), fontSize = 11.sp, maxLines = 2)
                             }
                         }
                     }

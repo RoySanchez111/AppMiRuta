@@ -343,7 +343,9 @@ fun TarjetaAlerta(
                 modifier = Modifier.constrainAs(typeSurface) {
                     top.linkTo(routeSurface.top)
                     bottom.linkTo(routeSurface.bottom)
-                    start.linkTo(routeSurface.end, margin = 10.dp)
+                    start.linkTo(routeSurface.end, margin = 8.dp)
+                    end.linkTo(timeText.start, margin = 6.dp)
+                    width = Dimension.preferredWrapContent
                 }
             ) {
                 Text(
@@ -613,7 +615,7 @@ fun AnimacionReporteExitoso(
                 .width(280.dp)
                 .wrapContentHeight(),
             shape = RoundedCornerShape(24.dp),
-            color = Color.White,
+            color = MaterialTheme.colorScheme.surface,
             shadowElevation = 8.dp
         ) {
             Column(
@@ -640,7 +642,7 @@ fun AnimacionReporteExitoso(
                     text = "¡Reporte enviado!",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(modifier = Modifier.height(6.dp))
@@ -648,7 +650,7 @@ fun AnimacionReporteExitoso(
                 Text(
                     text = "La incidencia fue registrada correctamente.",
                     fontSize = 14.sp,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                     textAlign = TextAlign.Center
                 )
             }

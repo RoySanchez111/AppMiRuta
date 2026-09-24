@@ -58,6 +58,7 @@ import androidx.navigation.NavController
 import com.example.appbanco.data.database.ConductorUbicacion
 import com.example.appbanco.data.database.SyncManager
 import com.example.appbanco.logic.SessionManager
+import com.example.appbanco.logic.ejecutarVibracionHaptica
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.mapbox.geojson.Point
@@ -198,6 +199,7 @@ fun PantallaPrincipal(navController: NavController) {
         } else {
             onSuccess(centroPredeterminado)
         }
+        
     }
 
     var tienePermisoUbicacion by remember {
@@ -667,6 +669,7 @@ fun PantallaPrincipal(navController: NavController) {
                 if (esConductor) {
                     Surface(
                         onClick = {
+                            ejecutarVibracionHaptica(context, 60L)
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             transmitiendoUbicacion = !transmitiendoUbicacion
                             Toast.makeText(
@@ -892,7 +895,12 @@ fun PantallaPrincipal(navController: NavController) {
                         OutlinedButton(
                             onClick = {
                                 haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                navController.navigate("horarios")
+                                paradaSeleccionada = null
+                                navController.navigate("horario") {
+                                    popUpTo("principal") { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
                             },
                             modifier = Modifier.weight(1f).height(38.dp),
                             contentPadding = PaddingValues(horizontal = 8.dp)
@@ -906,7 +914,12 @@ fun PantallaPrincipal(navController: NavController) {
                         OutlinedButton(
                             onClick = {
                                 haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                navController.navigate("alertas")
+                                paradaSeleccionada = null
+                                navController.navigate("alertas") {
+                                    popUpTo("principal") { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
                             },
                             modifier = Modifier.weight(1f).height(38.dp),
                             contentPadding = PaddingValues(horizontal = 8.dp),
@@ -923,7 +936,12 @@ fun PantallaPrincipal(navController: NavController) {
                         OutlinedButton(
                             onClick = {
                                 haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                navController.navigate("frecuentes")
+                                paradaSeleccionada = null
+                                navController.navigate("cuenta") {
+                                    popUpTo("principal") { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
                             },
                             modifier = Modifier.weight(1f).height(38.dp),
                             contentPadding = PaddingValues(horizontal = 8.dp)

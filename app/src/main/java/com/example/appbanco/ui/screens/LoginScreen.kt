@@ -347,6 +347,7 @@ fun DialogoGoogleSignIn(
 ) {
     var correo by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
     var cargando by remember { mutableStateOf(false) }
     var errorMsg by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
@@ -389,7 +390,15 @@ fun DialogoGoogleSignIn(
                         errorMsg = ""
                     },
                     label = { Text("Contraseña de Google") },
-                    visualTransformation = PasswordVisualTransformation(),
+                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    trailingIcon = {
+                        val image = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
+                        val description = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña"
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            Icon(imageVector = image, contentDescription = description)
+                        }
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -409,10 +418,15 @@ fun DialogoGoogleSignIn(
             Button(
                 onClick = {
                     val emailTrim = correo.trim()
+                    val passTrim = password.trim()
                     if (emailTrim.isBlank() || !emailTrim.contains("@")) {
                         errorMsg = "Introduce un correo electrónico válido"
-                    } else if (password.length < 4) {
+                    } else if (passTrim.isBlank()) {
                         errorMsg = "Introduce tu contraseña"
+                    } else if (passTrim.length < 8) {
+                        errorMsg = "La contraseña debe tener mínimo 8 caracteres"
+                    } else if (!passTrim.any { it.isLetter() } || !passTrim.any { it.isDigit() }) {
+                        errorMsg = "La contraseña debe contener letras y números"
                     } else {
                         cargando = true
                         scope.launch {

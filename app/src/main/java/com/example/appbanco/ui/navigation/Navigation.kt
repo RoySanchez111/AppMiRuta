@@ -81,8 +81,16 @@ fun NavegacionMiRuta(
                         subtitulo = subtituloHeader,
                         fotoUri = fotoPerfilUri,
                         inicialUsuario = if (usuarioNombre.isNotBlank()) usuarioNombre.take(1).uppercase() else "U",
-                        onBackClick = if (rutaActual == "cuenta" || rutaActual == "configuracion" || rutaActual == "privacidad" || rutaActual == "ayuda") {
-                            { navController.popBackStack() }
+                        onBackClick = if (rutaActual != "principal") {
+                            {
+                                if (navController.previousBackStackEntry != null) {
+                                    navController.popBackStack()
+                                } else {
+                                    navController.navigate("principal") {
+                                        popUpTo("principal") { inclusive = true }
+                                    }
+                                }
+                            }
                         } else null,
                         onProfileClick = {
                             if (rutaActual != "cuenta") {
