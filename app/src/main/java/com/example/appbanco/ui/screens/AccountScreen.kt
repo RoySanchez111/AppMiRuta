@@ -4,8 +4,7 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.ui.draw.blur
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -82,276 +81,360 @@ fun PantallaCuenta(
             .background(surfaceColor),
         contentAlignment = Alignment.TopCenter
     ) {
-        Column(
+
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .widthIn(max = 850.dp)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp)
-        ) {
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 4.dp)
-                .semantics(mergeDescendants = true) {
-                    contentDescription = "Usuario $usuarioActual. Toca la foto para cambiarla."
-                }, 
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(60.dp)
-                    .clickable { mostrarDialogoFoto = true },
-                contentAlignment = Alignment.BottomEnd
-            ) {
-                FotoPerfilAvatar(
-                    fotoUri = fotoUri,
-                    inicialNombre = inicialUsuario,
-                    tamanoDp = 60,
-                    onFotoClick = { mostrarDialogoFoto = true }
-                )
-                Box(
-                    modifier = Modifier
-                        .size(20.dp)
-                        .background(MaterialTheme.colorScheme.primary, CircleShape)
-                        .border(1.dp, Color.White, CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.PhotoCamera,
-                        contentDescription = "Cambiar foto de perfil",
-                        tint = Color.White,
-                        modifier = Modifier.size(12.dp)
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(nombreVisual, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = onSurface)
-                Text(if (usuarioActual.contains("@")) usuarioActual else "Usuario registrado", fontSize = 12.sp, color = onSurface.copy(alpha = 0.6f))
-            }
-            IconButton(
-                onClick = { mostrarDialogoNombre = true },
-                modifier = Modifier.semantics {
-                    role = Role.Button
-                    contentDescription = "Editar nombre de usuario"
-                }
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = "Editar nombre",
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(28.dp))
-
-        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    "Rutas frecuentes", 
-                    fontSize = 16.sp, 
-                    fontWeight = FontWeight.Bold, 
-                    color = onSurface,
-                    modifier = Modifier.semantics { heading() }
-                )
-                TextButton(
-                    onClick = { mostrarDialogoAgregarRuta = true },
-                    modifier = Modifier.semantics {
-                        role = Role.Button
-                        contentDescription = "Agregar nueva ruta frecuente"
+                .then(
+                    if (mostrarDialogoCerrarSesion) {
+                        Modifier.blur(6.dp)
+                    } else {
+                        Modifier
                     }
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Agregar", fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                }
-            }
+                ),
+            contentAlignment = Alignment.TopCenter
+        ) {
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .widthIn(max = 850.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp)
+            ) {
 
-            viewModel.listaRutasFrecuentes.chunked(2).forEach { parRutas ->
+                Spacer(modifier = Modifier.height(8.dp))
+
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 4.dp)
+                        .semantics(mergeDescendants = true) {
+                            contentDescription =
+                                "Usuario $usuarioActual. Toca la foto para cambiarla."
+                        },
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    parRutas.forEach { ruta ->
-                        Surface(
+                    Box(
+                        modifier = Modifier
+                            .size(60.dp)
+                            .clickable { mostrarDialogoFoto = true },
+                        contentAlignment = Alignment.BottomEnd
+                    ) {
+                        FotoPerfilAvatar(
+                            fotoUri = fotoUri,
+                            inicialNombre = inicialUsuario,
+                            tamanoDp = 60,
+                            onFotoClick = { mostrarDialogoFoto = true }
+                        )
+                        Box(
                             modifier = Modifier
-                                .weight(1f)
-                                .defaultMinSize(minHeight = 84.dp)
-                                .semantics(mergeDescendants = true) {
-                                    role = Role.Button
-                                    contentDescription = "Ruta frecuente ${ruta.nombre}, ${ruta.ubicacion}. Mantén presionado para reordenar."
-                                }
-                                .combinedClickable(
-                                    onClick = { rutaSeleccionadaOpciones = ruta },
-                                    onLongClick = {
-                                        ejecutarVibracionHaptica(context, 60L)
-                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        viewModel.moverRutaArriba(ruta.id)
-                                        Toast.makeText(context, "🔄 Ruta '${ruta.nombre}' reordenada", Toast.LENGTH_SHORT).show()
-                                    }
-                                ), 
-                            shape = RoundedCornerShape(16.dp), 
-                            color = ruta.color
+                                .size(20.dp)
+                                .background(MaterialTheme.colorScheme.primary, CircleShape)
+                                .border(1.dp, Color.White, CircleShape),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(12.dp), 
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) { 
-                                    Icon(ruta.icono, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(ruta.nombre, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1) 
-                                }
-                                Text(ruta.ubicacion, color = Color.White.copy(alpha = 0.85f), fontSize = 11.sp, maxLines = 2)
-                            }
+                            Icon(
+                                imageVector = Icons.Default.PhotoCamera,
+                                contentDescription = "Cambiar foto de perfil",
+                                tint = Color.White,
+                                modifier = Modifier.size(12.dp)
+                            )
                         }
                     }
-                    if (parRutas.size == 1) {
-                        Spacer(modifier = Modifier.weight(1f))
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            nombreVisual,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                            color = onSurface
+                        )
+                        Text(
+                            if (usuarioActual.contains("@")) usuarioActual else "Usuario registrado",
+                            fontSize = 12.sp,
+                            color = onSurface.copy(alpha = 0.6f)
+                        )
+                    }
+                    IconButton(
+                        onClick = { mostrarDialogoNombre = true },
+                        modifier = Modifier.semantics {
+                            role = Role.Button
+                            contentDescription = "Editar nombre de usuario"
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Editar nombre",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
                     }
                 }
-                Spacer(modifier = Modifier.height(12.dp))
-            }
-        }
 
-        Spacer(modifier = Modifier.height(24.dp))
-        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)) {
-            Text(
-                "Modo Offline", 
-                fontSize = 16.sp, 
-                fontWeight = FontWeight.Bold, 
-                color = onSurface,
-                modifier = Modifier.semantics { heading() }
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .semantics(mergeDescendants = true) {
-                        role = Role.Switch
-                        contentDescription = "Modo Offline y Ahorro de Datos: ${if (modoOffline) "Activado" else "Desactivado"}"
-                    }, 
-                shape = RoundedCornerShape(18.dp), 
-                color = onSurface.copy(alpha = 0.05f)
-            ) {
-                Row(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("Habilitar ahorro de datos (Offline)", fontSize = 13.sp, color = onSurface.copy(alpha = 0.7f), modifier = Modifier.weight(1f))
-                    Switch(
-                        checked = modoOffline, 
-                        onCheckedChange = { 
-                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                            viewModel.cambiarModoOffline(it)
-                            val msj = if (it) "Modo Offline y Ahorro de Datos activado" else "Modo Offline desactivado"
-                            Toast.makeText(context, msj, Toast.LENGTH_SHORT).show()
-                        }, 
-                        colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = Color(0xFFFEB30F))
-                    )
-                }
-            }
-        }
+                Spacer(modifier = Modifier.height(28.dp))
 
-        Spacer(modifier = Modifier.height(24.dp))
-        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)) {
-            Text(
-                "Accesibilidad (Tamaño de Letra)", 
-                fontSize = 16.sp, 
-                fontWeight = FontWeight.Bold, 
-                color = onSurface,
-                modifier = Modifier.semantics { heading() }
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            Card(
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = onSurface.copy(alpha = 0.05f)),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(6.dp),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    val escalaActual by viewModel.escalaFuente.collectAsState()
-                    listOf(EscalaAccesibilidad.PEQUEÑO, EscalaAccesibilidad.MEDIANO, EscalaAccesibilidad.GRANDE).forEach { nivel ->
-                        val seleccionado = escalaActual == nivel
-                        Button(
-                            onClick = { viewModel.cambiarEscalaFuente(nivel) },
-                            modifier = Modifier.weight(1f).height(40.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = if (seleccionado) Color(0xFFFEB30F) else Color.Transparent,
-                                contentColor = if (seleccionado) Color.White else onSurface.copy(alpha = 0.8f)
-                            ),
-                            elevation = null,
-                            shape = RoundedCornerShape(14.dp),
-                            contentPadding = PaddingValues(0.dp)
-                        ) {
-                            val prefijoIcono = when(nivel) {
-                                EscalaAccesibilidad.PEQUEÑO -> "Aa "
-                                EscalaAccesibilidad.MEDIANO -> "Aa "
-                                EscalaAccesibilidad.GRANDE -> "AA "
+                Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            "Rutas frecuentes",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = onSurface,
+                            modifier = Modifier.semantics { heading() }
+                        )
+                        TextButton(
+                            onClick = { mostrarDialogoAgregarRuta = true },
+                            modifier = Modifier.semantics {
+                                role = Role.Button
+                                contentDescription = "Agregar nueva ruta frecuente"
                             }
+                        ) {
+                            Icon(
+                                Icons.Default.Add,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Agregar", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    viewModel.listaRutasFrecuentes.chunked(2).forEach { parRutas ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            parRutas.forEach { ruta ->
+                                Surface(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .defaultMinSize(minHeight = 84.dp)
+                                        .semantics(mergeDescendants = true) {
+                                            role = Role.Button
+                                            contentDescription =
+                                                "Ruta frecuente ${ruta.nombre}, ${ruta.ubicacion}. Mantén presionado para reordenar."
+                                        }
+                                        .combinedClickable(
+                                            onClick = { rutaSeleccionadaOpciones = ruta },
+                                            onLongClick = {
+                                                ejecutarVibracionHaptica(context, 60L)
+                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                viewModel.moverRutaArriba(ruta.id)
+                                                Toast.makeText(
+                                                    context,
+                                                    "🔄 Ruta '${ruta.nombre}' reordenada",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        ),
+                                    shape = RoundedCornerShape(16.dp),
+                                    color = ruta.color
+                                ) {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(12.dp),
+                                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Icon(
+                                                ruta.icono,
+                                                contentDescription = null,
+                                                tint = Color.White,
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text(
+                                                ruta.nombre,
+                                                color = Color.White,
+                                                fontSize = 14.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                maxLines = 1
+                                            )
+                                        }
+                                        Text(
+                                            ruta.ubicacion,
+                                            color = Color.White.copy(alpha = 0.85f),
+                                            fontSize = 11.sp,
+                                            maxLines = 2
+                                        )
+                                    }
+                                }
+                            }
+                            if (parRutas.size == 1) {
+                                Spacer(modifier = Modifier.weight(1f))
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+                Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)) {
+                    Text(
+                        "Modo Offline",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = onSurface,
+                        modifier = Modifier.semantics { heading() }
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .semantics(mergeDescendants = true) {
+                                role = Role.Switch
+                                contentDescription =
+                                    "Modo Offline y Ahorro de Datos: ${if (modoOffline) "Activado" else "Desactivado"}"
+                            },
+                        shape = RoundedCornerShape(18.dp),
+                        color = onSurface.copy(alpha = 0.05f)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             Text(
-                                text = prefijoIcono + nivel.nombre, 
-                                fontSize = 12.sp, 
-                                fontWeight = if (seleccionado) FontWeight.Bold else FontWeight.Medium
+                                "Habilitar ahorro de datos (Offline)",
+                                fontSize = 13.sp,
+                                color = onSurface.copy(alpha = 0.7f),
+                                modifier = Modifier.weight(1f)
+                            )
+                            Switch(
+                                checked = modoOffline,
+                                onCheckedChange = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                    viewModel.cambiarModoOffline(it)
+                                    val msj =
+                                        if (it) "Modo Offline y Ahorro de Datos activado" else "Modo Offline desactivado"
+                                    Toast.makeText(context, msj, Toast.LENGTH_SHORT).show()
+                                },
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = Color.White,
+                                    checkedTrackColor = Color(0xFFFEB30F)
+                                )
                             )
                         }
                     }
                 }
+
+                Spacer(modifier = Modifier.height(24.dp))
+                Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)) {
+                    Text(
+                        "Accesibilidad (Tamaño de Letra)",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = onSurface,
+                        modifier = Modifier.semantics { heading() }
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Card(
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = onSurface.copy(alpha = 0.05f)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(6.dp),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            val escalaActual by viewModel.escalaFuente.collectAsState()
+                            listOf(
+                                EscalaAccesibilidad.PEQUEÑO,
+                                EscalaAccesibilidad.MEDIANO,
+                                EscalaAccesibilidad.GRANDE
+                            ).forEach { nivel ->
+                                val seleccionado = escalaActual == nivel
+                                Button(
+                                    onClick = { viewModel.cambiarEscalaFuente(nivel) },
+                                    modifier = Modifier.weight(1f).height(40.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = if (seleccionado) Color(0xFFFEB30F) else Color.Transparent,
+                                        contentColor = if (seleccionado) Color.White else onSurface.copy(
+                                            alpha = 0.8f
+                                        )
+                                    ),
+                                    elevation = null,
+                                    shape = RoundedCornerShape(14.dp),
+                                    contentPadding = PaddingValues(0.dp)
+                                ) {
+                                    val prefijoIcono = when (nivel) {
+                                        EscalaAccesibilidad.PEQUEÑO -> "Aa "
+                                        EscalaAccesibilidad.MEDIANO -> "Aa "
+                                        EscalaAccesibilidad.GRANDE -> "AA "
+                                    }
+                                    Text(
+                                        text = prefijoIcono + nivel.nombre,
+                                        fontSize = 12.sp,
+                                        fontWeight = if (seleccionado) FontWeight.Bold else FontWeight.Medium
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+                Surface(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+                    shape = RoundedCornerShape(24.dp),
+                    color = onBackground.copy(alpha = 0.03f)
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OpcionCuenta(
+                            "Configuración",
+                            onClick = { navController.navigate("configuracion") })
+                        OpcionCuenta(
+                            texto = "Tema de la APP",
+                            subtexto = modoTema,
+                            onClick = { mostrarDialogoTema = true }
+                        )
+                        OpcionCuenta(
+                            "Privacidad y Seguridad",
+                            onClick = { navController.navigate("privacidad") })
+                        OpcionCuenta(
+                            texto = "Ayuda y Soporte",
+                            subtexto = if (efectosPantallaActivados) "Efectos ON" else "Efectos OFF",
+                            onClick = { navController.navigate("ayuda") }
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                Button(
+                    onClick = {
+                        mostrarDialogoCerrarSesion = true
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp)
+                        .padding(horizontal = 4.dp)
+                        .semantics {
+                            role = Role.Button
+                            contentDescription = "Cerrar sesión"
+                        },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFC0392B),
+                        contentColor = Color.White
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Cerrar Sesión", fontWeight = FontWeight.Bold)
+                }
+
+                Spacer(modifier = Modifier.height(40.dp))
             }
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
-        Surface(modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp), shape = RoundedCornerShape(24.dp), color = onBackground.copy(alpha = 0.03f)) {
-            Column(modifier = Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OpcionCuenta("Configuración", onClick = { navController.navigate("configuracion") })
-                OpcionCuenta(
-                    texto = "Tema de la APP", 
-                    subtexto = modoTema,
-                    onClick = { mostrarDialogoTema = true }
-                )
-                OpcionCuenta("Privacidad y Seguridad", onClick = { navController.navigate("privacidad") })
-                OpcionCuenta(
-                    texto = "Ayuda y Soporte", 
-                    subtexto = if (efectosPantallaActivados) "Efectos ON" else "Efectos OFF",
-                    onClick = { navController.navigate("ayuda") }
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Button(
-            onClick = {
-                mostrarDialogoCerrarSesion = true
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(52.dp)
-                .padding(horizontal = 4.dp)
-                .semantics {
-                    role = Role.Button
-                    contentDescription = "Cerrar sesión"
-                },
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC0392B), contentColor = Color.White),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Text("Cerrar Sesión", fontWeight = FontWeight.Bold)
-        }
-
-        Spacer(modifier = Modifier.height(40.dp))
-    }
     if (mostrarDialogoCerrarSesion) {
         Dialog(
             onDismissRequest = {
