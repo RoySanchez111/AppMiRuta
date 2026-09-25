@@ -23,7 +23,7 @@ import com.example.appbanco.logic.obtenerMensajeBienvenida
 import com.example.appbanco.ui.components.TimeBasedBackground
 import com.example.appbanco.ui.screens.*
 import com.example.appbanco.tutorial.PantallaTutorial
-
+import com.example.appbanco.ui.screens.conductor.PantallaInicioConductor
 import com.example.appbanco.ui.viewmodel.MainViewModel
 import com.example.appbanco.ui.viewmodel.LoginViewModel
 import com.example.appbanco.data.database.AppDatabase
@@ -43,7 +43,7 @@ fun NavegacionMiRuta(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val rutaActual = navBackStackEntry?.destination?.route
     val esPantallaApp = rutaActual != "splash" && rutaActual != "login" && rutaActual != "loading" &&
-            rutaActual != "registro" && rutaActual != "tutorial"
+            rutaActual != "registro" && rutaActual != "tutorial" && rutaActual != "inicio_conductor"
 
     val usuarioNombre by viewModel.usuarioActual.collectAsState()
     val fotoPerfilUri by viewModel.fotoPerfilUri.collectAsState()
@@ -136,6 +136,7 @@ fun NavegacionMiRuta(
                 }
             }
             composable("principal") { PantallaPrincipal(navController) }
+                composable("inicio_conductor") { PantallaInicioConductor(navController) }
             composable("horario") { PantallaHorarios(navController, viewModel) }
             composable("alertas") { PantallaAlertas(navController, viewModel) }
             composable("cuenta") { PantallaCuenta(sessionManager, navController, viewModel, database.userDao()) }
