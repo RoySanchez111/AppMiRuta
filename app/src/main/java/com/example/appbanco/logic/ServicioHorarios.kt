@@ -82,6 +82,123 @@ class ServicioHorarios {
             color = Color(0xFF9B59B6), // Morado JBS
             paradas = listOf("La Resurrección", "Bosques", "China Poblana", "Mercado 5 de Mayo", "Centro Histórico"),
             estadoServicio = "Operación Normal"
+        ),
+        LineaHorario(
+            codigo = "R10",
+            nombre = "Ruta 10",
+            recorrido = "San Jerónimo → Centro → C.U. BUAP",
+            frecuenciaMinutos = 6,
+            color = Color(0xFF2C3E50), // Azul Marino oscuro
+            paradas = listOf("San Jerónimo", "CAPU", "Paseo Bravo", "Centro Histórico", "Plaza Dorada", "C.U. BUAP"),
+            estadoServicio = "Alta Demanda"
+        ),
+        LineaHorario(
+            codigo = "R72",
+            nombre = "Ruta 72 / 72A",
+            recorrido = "Maravillas → Los Héroes",
+            frecuenciaMinutos = 11,
+            color = Color(0xFF16A085), // Verde Agua
+            paradas = listOf("Maravillas", "Estadio Cuauhtémoc", "Plaza Loreto", "Centro Histórico", "C.U. BUAP", "Los Héroes"),
+            estadoServicio = "Operación Normal"
+        ),
+        LineaHorario(
+            codigo = "R33",
+            nombre = "Ruta 33",
+            recorrido = "Los Héroes → 11 Sur → Centro",
+            frecuenciaMinutos = 10,
+            color = Color(0xFFE74C3C), // Rojo Coral
+            paradas = listOf("Los Héroes", "14 Sur", "11 Sur", "Paseo Bravo", "Centro Histórico"),
+            estadoServicio = "Operación Normal"
+        ),
+        LineaHorario(
+            codigo = "RLB",
+            nombre = "Ruta Loma Bella",
+            recorrido = "Loma Bella → Centro → CAPU",
+            frecuenciaMinutos = 8,
+            color = Color(0xFF34495E), // Gris Azulado
+            paradas = listOf("Loma Bella", "16 de Septiembre", "Centro Histórico", "CAPU"),
+            estadoServicio = "Retraso de 5 min"
+        ),
+        LineaHorario(
+            codigo = "RCM",
+            nombre = "Ruta CREE - Madero",
+            recorrido = "Madero → Diagonal → Zavaleta",
+            frecuenciaMinutos = 9,
+            color = Color(0xFFD35400), // Naranja Oscuro
+            paradas = listOf("Madero", "Diagonal Defensores", "Reforma", "CREE", "Calzada Zavaleta"),
+            estadoServicio = "Operación Normal"
+        ),
+        LineaHorario(
+            codigo = "RCH",
+            nombre = "Ruta Cholula (Directo)",
+            recorrido = "Terminal Cholula → Recta → Paseo Bravo",
+            frecuenciaMinutos = 5,
+            color = Color(0xFF8E44AD), // Púrpura
+            paradas = listOf("Terminal Cholula", "Recta a Cholula", "La Paz", "Avenida Juárez", "Paseo Bravo"),
+            estadoServicio = "Operación Normal (GPS Activo)"
+        ),
+        LineaHorario(
+            codigo = "BCU",
+            nombre = "Ruta Boulevard - C.U.",
+            recorrido = "Blvd 5 de Mayo → C.U. BUAP",
+            frecuenciaMinutos = 7,
+            color = Color(0xFF2980B9), // Azul Brillante
+            paradas = listOf("Blvd 5 de Mayo", "Analco", "Plaza Dorada", "San Manuel", "C.U. BUAP"),
+            estadoServicio = "Alta Demanda"
+        ),
+        LineaHorario(
+            codigo = "R14",
+            nombre = "Ruta 14",
+            recorrido = "La Joya → Libertad → Centro",
+            frecuenciaMinutos = 12,
+            color = Color(0xFF27AE60), // Verde
+            paradas = listOf("La Joya", "La Libertad", "Avenida Reforma", "Centro Histórico"),
+            estadoServicio = "Operación Normal"
+        ),
+        LineaHorario(
+            codigo = "R68",
+            nombre = "Ruta 68",
+            recorrido = "Xonaca → Barrio de la Luz → San Manuel",
+            frecuenciaMinutos = 10,
+            color = Color(0xFFC0392B), // Rojo Oscuro
+            paradas = listOf("Xonaca", "Barrio de la Luz", "Centro Histórico", "San Manuel"),
+            estadoServicio = "Operación Normal"
+        ),
+        LineaHorario(
+            codigo = "R25",
+            nombre = "Ruta 25",
+            recorrido = "Valsequillo → Centro Histórico",
+            frecuenciaMinutos = 8,
+            color = Color(0xFF16A085),
+            paradas = listOf("Valsequillo", "Paseo Bravo", "Mercado de Sabores", "Centro Histórico"),
+            estadoServicio = "Operación Normal"
+        ),
+        LineaHorario(
+            codigo = "R2A",
+            nombre = "Ruta 2 A",
+            recorrido = "San Baltazar Campeche → Centro",
+            frecuenciaMinutos = 6,
+            color = Color(0xFF2980B9),
+            paradas = listOf("San Baltazar", "Juárez", "El Gallito", "Centro Histórico"),
+            estadoServicio = "Operación Normal"
+        ),
+        LineaHorario(
+            codigo = "R44",
+            nombre = "Ruta 44",
+            recorrido = "Amalucan → San Manuel → C.U.",
+            frecuenciaMinutos = 11,
+            color = Color(0xFFD35400),
+            paradas = listOf("Amalucan", "Plaza Loreto", "San Manuel", "C.U. BUAP"),
+            estadoServicio = "Operación Normal"
+        ),
+        LineaHorario(
+            codigo = "R19",
+            nombre = "Ruta 19",
+            recorrido = "San Felipe Hueyotlipan → CAPU → Centro",
+            frecuenciaMinutos = 10,
+            color = Color(0xFF8E44AD),
+            paradas = listOf("San Felipe", "CAPU", "China Poblana", "Centro Histórico"),
+            estadoServicio = "Retraso de 6 min"
         )
     )
 

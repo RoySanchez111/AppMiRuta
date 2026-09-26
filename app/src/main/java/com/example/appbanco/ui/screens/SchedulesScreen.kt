@@ -1,9 +1,11 @@
 package com.example.appbanco.ui.screens
 
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -33,7 +35,7 @@ import com.example.appbanco.logic.LineaHorario
 import com.example.appbanco.logic.ServicioHorarios
 import com.example.appbanco.ui.viewmodel.MainViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun PantallaHorarios(navController: NavController, viewModel: MainViewModel) {
     val servicioHorarios = viewModel.servicioHorarios
@@ -43,6 +45,7 @@ fun PantallaHorarios(navController: NavController, viewModel: MainViewModel) {
     val haptic = LocalHapticFeedback.current
 
     var busquedaTexto by remember { mutableStateOf("") }
+    var categoriaFiltro by remember { mutableStateOf("Principales") }
     var fechaOffsetDias by remember { mutableStateOf(0) }
     var lineaSeleccionada by remember { mutableStateOf<LineaHorario?>(null) }
     var cargandoLineas by remember { mutableStateOf(true) }
@@ -55,8 +58,26 @@ fun PantallaHorarios(navController: NavController, viewModel: MainViewModel) {
     }
 
     val horaActualFormateada = remember(fechaOffsetDias) { servicioHorarios.obtenerHoraActualFormateada() }
-    val lineasFiltradas by remember(busquedaTexto, lineasApi) { derivedStateOf { servicioHorarios.buscarLineas(busquedaTexto, lineasApi) } }
-    val proximasSalidasPlazaMayor by remember(fechaOffsetDias) { derivedStateOf { servicioHorarios.calcularProximasSalidas(frecuenciaMinutos = 8, cantidad = 3, fechaOffsetDias = fechaOffsetDias) } }
+    val lineasFiltradas by remember(busquedaTexto, categoriaFiltro, lineasApi) { 
+        derivedStateOf { 
+            val listaPorCategoria = when (categoriaFiltro) {
+                "Principales" -> lineasApi.filter { it.codigo in listOf("R1", "R2", "R3", "R4", "AZ") }
+                "Frecuentes" -> lineasApi.filter { it.codigo in listOf("R10", "R72", "R33", "JBS", "RLB") }
+                "Cercanas" -> lineasApi.filter { it.codigo in listOf("RCH", "BCU", "RCM", "R25", "R2A", "R44") }
+                else -> lineasApi
+            }
+            servicioHorarios.buscarLineas(busquedaTexto, listaPorCategoria) 
+        } 
+    }
+    
+    val lineaDestacada = lineasApi.firstOrNull()
+    val proximasSalidasDestacada by remember(fechaOffsetDias, lineaDestacada) { 
+        derivedStateOf { 
+            lineaDestacada?.let {
+                servicioHorarios.calcularProximasSalidas(frecuenciaMinutos = it.frecuenciaMinutos, cantidad = 3, fechaOffsetDias = fechaOffsetDias) 
+            } ?: emptyList()
+        } 
+    }
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -99,6 +120,31 @@ fun PantallaHorarios(navController: NavController, viewModel: MainViewModel) {
             ),
             singleLine = true
         )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            listOf("Principales", "Frecuentes", "Cercanas", "Todas").forEach { cat ->
+                val seleccionado = categoriaFiltro == cat
+                FilterChip(
+                    selected = seleccionado,
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        categoriaFiltro = cat
+                    },
+                    label = { Text(cat, fontSize = 12.sp, fontWeight = FontWeight.Bold) },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primary,
+                        selectedLabelColor = Color.White
+                    )
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -163,67 +209,91 @@ fun PantallaHorarios(navController: NavController, viewModel: MainViewModel) {
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(20.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.DirectionsBus, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Próximas Salidas (Plaza Mayor)",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp,
-                            color = onSurface
-                        )
-                    }
-                    Text("Frecuencia: 8 min", fontSize = 11.sp, color = onSurface.copy(alpha = 0.6f))
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    proximasSalidasPlazaMayor.forEachIndexed { index, hora ->
-                        val esInmediata = index == 0 && fechaOffsetDias == 0
-                        Surface(
-                            modifier = Modifier.weight(1f),
-                            color = if (esInmediata) MaterialTheme.colorScheme.primary else onBackground.copy(alpha = 0.05f),
-                            shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(1.dp, if (esInmediata) MaterialTheme.colorScheme.primary else onBackground.copy(alpha = 0.1f))
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(10.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
+            AnimatedVisibility(visible = lineaDestacada != null) {
+                lineaDestacada?.let { linea ->
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(20.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(
-                                    text = if (esInmediata) "Próximo" else "Salida ${index + 1}",
-                                    fontSize = 10.sp,
-                                    color = if (esInmediata) Color.White.copy(alpha = 0.9f) else onSurface.copy(alpha = 0.6f)
-                                )
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = hora,
-                                    fontSize = 15.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (esInmediata) Color.White else onSurface
-                                )
+                                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f).padding(end = 8.dp)) {
+                                    Icon(Icons.Default.DirectionsBus, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = "Destacado: ${linea.nombre}",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp,
+                                        color = onSurface,
+                                        maxLines = 1
+                                    )
+                                }
+                                Text("Cada ${linea.frecuenciaMinutos} min", fontSize = 11.sp, color = onSurface.copy(alpha = 0.6f))
+                            }
+    
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "🕒 Toca cualquier horario para ver paradas",
+                                fontSize = 11.sp,
+                                color = onSurface.copy(alpha = 0.6f)
+                            )
+    
+                            Spacer(modifier = Modifier.height(10.dp))
+    
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                proximasSalidasDestacada.forEachIndexed { index, hora ->
+                                    val esInmediata = index == 0 && fechaOffsetDias == 0
+                                    Surface(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clickable {
+                                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                                lineaSeleccionada = linea
+                                            },
+                                        color = if (esInmediata) MaterialTheme.colorScheme.primary else onBackground.copy(alpha = 0.08f),
+                                        shape = RoundedCornerShape(12.dp),
+                                        border = BorderStroke(1.dp, if (esInmediata) MaterialTheme.colorScheme.primary else onBackground.copy(alpha = 0.15f))
+                                    ) {
+                                        Column(
+                                            modifier = Modifier.padding(10.dp),
+                                            horizontalAlignment = Alignment.CenterHorizontally
+                                        ) {
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                if (esInmediata) {
+                                                    Box(modifier = Modifier.size(5.dp).background(Color.White, CircleShape))
+                                                    Spacer(modifier = Modifier.width(3.dp))
+                                                }
+                                                Text(
+                                                    text = if (esInmediata) "PRÓXIMO" else "Salida ${index + 1}",
+                                                    fontSize = 10.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = if (esInmediata) Color.White.copy(alpha = 0.9f) else onSurface.copy(alpha = 0.6f)
+                                                )
+                                            }
+                                            Spacer(modifier = Modifier.height(2.dp))
+                                            Text(
+                                                text = hora,
+                                                fontSize = 15.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = if (esInmediata) Color.White else onSurface
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
-        }
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -350,7 +420,12 @@ fun DialogoDetalleLinea(
                 Spacer(modifier = Modifier.height(14.dp))
                 Text("Próximas Salidas Estimadas:", fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 Spacer(modifier = Modifier.height(6.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                @OptIn(ExperimentalLayoutApi::class)
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     salidasCalculadas.take(3).forEach { hora ->
                         Surface(
                             color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
@@ -416,7 +491,7 @@ fun TarjetaLineaHorario(linea: LineaHorario, proximaSalida: String, onClick: () 
             }
             Spacer(modifier = Modifier.width(12.dp))
 
-            Column(modifier = Modifier.weight(1f)) {
+            Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
                 Text(
                     text = linea.nombre,
                     color = onSurfaceColor,
@@ -426,7 +501,8 @@ fun TarjetaLineaHorario(linea: LineaHorario, proximaSalida: String, onClick: () 
                 Text(
                     text = linea.recorrido,
                     color = onSurfaceColor.copy(alpha = 0.7f),
-                    fontSize = 13.sp
+                    fontSize = 13.sp,
+                    maxLines = 2
                 )
             }
 

@@ -301,25 +301,6 @@ fun PantallaLogin(
         ) {
             Text("Continuar como invitado")
         }
-        // TEMPORAL: acceso rápido para probar la pantalla del conductor
-        Spacer(modifier = Modifier.height(12.dp))
-
-        OutlinedButton(
-            onClick = {
-                navController.navigate("inicio_conductor")
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(46.dp),
-            colors = ButtonDefaults.outlinedButtonColors(
-                contentColor = Color(0xFFFEB30F)
-            )
-        ) {
-            Text(
-                text = "Vista conductor (DEV)",
-                fontWeight = FontWeight.Bold
-            )
-        }
     }
 
     if (mostrarDialogoGoogle) {
