@@ -73,6 +73,8 @@ fun PantallaRegistro(
             .fillMaxSize()
             .widthIn(max = 580.dp)
             .padding(20.dp)
+            .imePadding()
+            .navigationBarsPadding()
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -447,11 +449,11 @@ fun validarRegistro(
 
 @Composable
 fun coloresRegistro() = OutlinedTextFieldDefaults.colors(
-    unfocusedContainerColor = Color.White,
-    focusedContainerColor = Color.White,
-    unfocusedTextColor = Color.Black,
-    focusedTextColor = Color.Black,
-    unfocusedLabelColor = Color.Black,
-    focusedLabelColor = Color.Black,
-    cursorColor = Color.Black
+    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+    focusedContainerColor = MaterialTheme.colorScheme.surface,
+    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+    unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+    focusedLabelColor = MaterialTheme.colorScheme.primary,
+    cursorColor = MaterialTheme.colorScheme.primary
 )

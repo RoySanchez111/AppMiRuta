@@ -55,17 +55,19 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 
 @Composable
-fun BarraNavegacionInferior(navController: NavController, rutaActual: String?) {
+fun BarraNavegacionInferior(navController: NavController, rutaActual: String?, esConductor: Boolean = false) {
     val themeColor = MaterialTheme.colorScheme.onSurface
     val containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
     val haptic = LocalHapticFeedback.current
+
+    val inicioRoute = if (esConductor) "inicio_conductor" else "principal"
 
     NavigationBar(
         containerColor = containerColor,
         contentColor = themeColor
     ) {
         val items = listOf(
-            Triple("principal", "Inicio", Icons.Default.Home), 
+            Triple(inicioRoute, "Inicio", Icons.Default.Home), 
             Triple("horario", "Horario", Icons.Default.Schedule), 
             Triple("alertas", "Alertas", Icons.Default.Notifications), 
             Triple("cuenta", "Cuenta", Icons.Default.Person)
@@ -85,11 +87,11 @@ fun BarraNavegacionInferior(navController: NavController, rutaActual: String?) {
                 onClick = { 
                     if (rutaActual != ruta) {
                         haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                        if (ruta == "principal") {
-                            navController.popBackStack("principal", inclusive = false)
+                        if (ruta == inicioRoute) {
+                            navController.popBackStack(inicioRoute, inclusive = false)
                         } else {
                             navController.navigate(ruta) { 
-                                popUpTo("principal") { 
+                                popUpTo(inicioRoute) { 
                                     saveState = true
                                     inclusive = false
                                 }
@@ -105,10 +107,12 @@ fun BarraNavegacionInferior(navController: NavController, rutaActual: String?) {
 }
 
 @Composable
-fun RielNavegacionLateral(navController: NavController, rutaActual: String?) {
+fun RielNavegacionLateral(navController: NavController, rutaActual: String?, esConductor: Boolean = false) {
     val themeColor = MaterialTheme.colorScheme.onSurface
     val containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
     val haptic = LocalHapticFeedback.current
+
+    val inicioRoute = if (esConductor) "inicio_conductor" else "principal"
 
     NavigationRail(
         containerColor = containerColor,
@@ -117,7 +121,7 @@ fun RielNavegacionLateral(navController: NavController, rutaActual: String?) {
     ) {
         Spacer(modifier = Modifier.height(16.dp))
         val items = listOf(
-            Triple("principal", "Inicio", Icons.Default.Home), 
+            Triple(inicioRoute, "Inicio", Icons.Default.Home), 
             Triple("horario", "Horario", Icons.Default.Schedule), 
             Triple("alertas", "Alertas", Icons.Default.Notifications), 
             Triple("cuenta", "Cuenta", Icons.Default.Person)
@@ -137,11 +141,11 @@ fun RielNavegacionLateral(navController: NavController, rutaActual: String?) {
                 onClick = { 
                     if (rutaActual != ruta) {
                         haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                        if (ruta == "principal") {
-                            navController.popBackStack("principal", inclusive = false)
+                        if (ruta == inicioRoute) {
+                            navController.popBackStack(inicioRoute, inclusive = false)
                         } else {
                             navController.navigate(ruta) { 
-                                popUpTo("principal") { 
+                                popUpTo(inicioRoute) { 
                                     saveState = true
                                     inclusive = false
                                 }

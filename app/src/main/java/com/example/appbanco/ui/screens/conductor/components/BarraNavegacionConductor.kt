@@ -8,18 +8,21 @@ import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 
 @Composable
 fun BarraNavegacionConductor(
-    navController: NavController
+    navController: NavController,
+    rutaActual: String?
 ) {
     val themeColor = MaterialTheme.colorScheme.onSurface
     val containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
     val primaryColor = MaterialTheme.colorScheme.primary
+    val haptic = LocalHapticFeedback.current
 
     NavigationBar(
         modifier = Modifier
@@ -28,10 +31,19 @@ fun BarraNavegacionConductor(
         containerColor = containerColor,
         contentColor = themeColor
     ) {
-        // Inicio
+        // Inicio (Mapa Conductor)
         NavigationBarItem(
-            selected = true,
-            onClick = { },
+            selected = rutaActual == "inicio_conductor",
+            onClick = {
+                if (rutaActual != "inicio_conductor") {
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    navController.navigate("inicio_conductor") {
+                        popUpTo("inicio_conductor") { inclusive = false }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
+            },
             icon = { Icon(Icons.Outlined.Home, contentDescription = "Inicio") },
             label = { Text("Inicio", fontSize = 11.sp) },
             colors = NavigationBarItemDefaults.colors(
@@ -45,10 +57,15 @@ fun BarraNavegacionConductor(
 
         // Alertas
         NavigationBarItem(
-            selected = false,
+            selected = rutaActual == "alertas",
             onClick = {
-                navController.navigate("alertas") {
-                    launchSingleTop = true
+                if (rutaActual != "alertas") {
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    navController.navigate("alertas") {
+                        popUpTo("inicio_conductor") { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
                 }
             },
             icon = { Icon(Icons.Outlined.Notifications, contentDescription = "Alertas") },
@@ -64,10 +81,15 @@ fun BarraNavegacionConductor(
 
         // Cuenta
         NavigationBarItem(
-            selected = false,
+            selected = rutaActual == "cuenta",
             onClick = {
-                navController.navigate("cuenta") {
-                    launchSingleTop = true
+                if (rutaActual != "cuenta") {
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    navController.navigate("cuenta") {
+                        popUpTo("inicio_conductor") { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
                 }
             },
             icon = { Icon(Icons.Outlined.Person, contentDescription = "Cuenta") },

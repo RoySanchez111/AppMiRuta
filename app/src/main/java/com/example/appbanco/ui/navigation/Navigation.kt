@@ -65,9 +65,12 @@ fun NavegacionMiRuta(
     val configuration = LocalConfiguration.current
     val esPantallaAncha = configuration.screenWidthDp >= 600
 
+    val userRole by sessionManager.userRole.collectAsState(initial = "pasajero")
+    val esConductor = userRole == "conductor" || userRole == "admin"
+
     Row(modifier = Modifier.fillMaxSize()) {
         if (esPantallaApp && esPantallaAncha) {
-            RielNavegacionLateral(navController, rutaActual)
+            RielNavegacionLateral(navController, rutaActual, esConductor)
         }
 
         Scaffold(
@@ -81,21 +84,23 @@ fun NavegacionMiRuta(
                         subtitulo = subtituloHeader,
                         fotoUri = fotoPerfilUri,
                         inicialUsuario = if (usuarioNombre.isNotBlank()) usuarioNombre.take(1).uppercase() else "U",
-                        onBackClick = if (rutaActual != "principal") {
+                        onBackClick = if (rutaActual != "principal" && rutaActual != "inicio_conductor") {
                             {
+                                val destinoBack = if (esConductor) "inicio_conductor" else "principal"
                                 if (navController.previousBackStackEntry != null) {
                                     navController.popBackStack()
                                 } else {
-                                    navController.navigate("principal") {
-                                        popUpTo("principal") { inclusive = true }
+                                    navController.navigate(destinoBack) {
+                                        popUpTo(destinoBack) { inclusive = true }
                                     }
                                 }
                             }
                         } else null,
                         onProfileClick = {
                             if (rutaActual != "cuenta") {
+                                val destinoInicio = if (esConductor) "inicio_conductor" else "principal"
                                 navController.navigate("cuenta") {
-                                    popUpTo("principal") { saveState = true }
+                                    popUpTo(destinoInicio) { saveState = true }
                                     launchSingleTop = true
                                     restoreState = true
                                 }
@@ -106,7 +111,7 @@ fun NavegacionMiRuta(
             },
             bottomBar = {
                 if (esPantallaApp && !esPantallaAncha) {
-                    BarraNavegacionInferior(navController, rutaActual)
+                    BarraNavegacionInferior(navController, rutaActual, esConductor)
                 }
             }
         ) { paddingValues ->

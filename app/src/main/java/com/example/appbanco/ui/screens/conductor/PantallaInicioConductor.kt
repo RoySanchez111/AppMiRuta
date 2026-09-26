@@ -11,6 +11,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.appbanco.data.database.SyncManager
 import com.example.appbanco.logic.SessionManager
 import com.example.appbanco.logic.ejecutarVibracionHaptica
@@ -35,6 +36,9 @@ fun PantallaInicioConductor(
     val currentUsernameState = sessionManager.currentUsername.collectAsState(initial = "Rafael")
     val nombreConductor = currentUsernameState.value ?: "Rafael"
     val ubicacionTexto = "Puebla - Ruta Troncal Activa"
+
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val rutaActual = navBackStackEntry?.destination?.route
 
     var ubicacionActual by remember {
         mutableStateOf(Point.fromLngLat(-98.261833, 18.999446))
@@ -132,7 +136,8 @@ fun PantallaInicioConductor(
         )
 
         BarraNavegacionConductor(
-            navController = navController
+            navController = navController,
+            rutaActual = rutaActual
         )
     }
 }
