@@ -17,40 +17,29 @@ import androidx.navigation.NavController
 fun BarraNavegacionConductor(
     navController: NavController
 ) {
-
-    val coral = Color(0xFFF26767)
-    val gris = Color(0xFF555555)
+    val themeColor = MaterialTheme.colorScheme.onSurface
+    val containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
+    val primaryColor = MaterialTheme.colorScheme.primary
 
     NavigationBar(
         modifier = Modifier
             .fillMaxWidth()
             .height(70.dp),
-        containerColor = Color.White,
-        tonalElevation = 2.dp
+        containerColor = containerColor,
+        contentColor = themeColor
     ) {
-
         // Inicio
         NavigationBarItem(
             selected = true,
             onClick = { },
-            icon = {
-                Icon(
-                    imageVector = Icons.Outlined.Home,
-                    contentDescription = "Inicio"
-                )
-            },
-            label = {
-                Text(
-                    text = "Inicio",
-                    fontSize = 11.sp
-                )
-            },
+            icon = { Icon(Icons.Outlined.Home, contentDescription = "Inicio") },
+            label = { Text("Inicio", fontSize = 11.sp) },
             colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = coral,
-                selectedTextColor = coral,
-                indicatorColor = Color.Transparent,
-                unselectedIconColor = gris,
-                unselectedTextColor = gris
+                selectedIconColor = primaryColor,
+                selectedTextColor = primaryColor,
+                unselectedIconColor = themeColor.copy(alpha = 0.6f),
+                unselectedTextColor = themeColor.copy(alpha = 0.6f),
+                indicatorColor = primaryColor.copy(alpha = 0.15f)
             )
         )
 
@@ -62,24 +51,14 @@ fun BarraNavegacionConductor(
                     launchSingleTop = true
                 }
             },
-            icon = {
-                Icon(
-                    imageVector = Icons.Outlined.Notifications,
-                    contentDescription = "Alertas"
-                )
-            },
-            label = {
-                Text(
-                    text = "Alertas",
-                    fontSize = 11.sp
-                )
-            },
+            icon = { Icon(Icons.Outlined.Notifications, contentDescription = "Alertas") },
+            label = { Text("Alertas", fontSize = 11.sp) },
             colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = coral,
-                selectedTextColor = coral,
-                indicatorColor = Color.Transparent,
-                unselectedIconColor = gris,
-                unselectedTextColor = gris
+                selectedIconColor = primaryColor,
+                selectedTextColor = primaryColor,
+                unselectedIconColor = themeColor.copy(alpha = 0.6f),
+                unselectedTextColor = themeColor.copy(alpha = 0.6f),
+                indicatorColor = primaryColor.copy(alpha = 0.15f)
             )
         )
 
@@ -91,24 +70,14 @@ fun BarraNavegacionConductor(
                     launchSingleTop = true
                 }
             },
-            icon = {
-                Icon(
-                    imageVector = Icons.Outlined.Person,
-                    contentDescription = "Cuenta"
-                )
-            },
-            label = {
-                Text(
-                    text = "Cuenta",
-                    fontSize = 11.sp
-                )
-            },
+            icon = { Icon(Icons.Outlined.Person, contentDescription = "Cuenta") },
+            label = { Text("Cuenta", fontSize = 11.sp) },
             colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = coral,
-                selectedTextColor = coral,
-                indicatorColor = Color.Transparent,
-                unselectedIconColor = gris,
-                unselectedTextColor = gris
+                selectedIconColor = primaryColor,
+                selectedTextColor = primaryColor,
+                unselectedIconColor = themeColor.copy(alpha = 0.6f),
+                unselectedTextColor = themeColor.copy(alpha = 0.6f),
+                indicatorColor = primaryColor.copy(alpha = 0.15f)
             )
         )
     }
