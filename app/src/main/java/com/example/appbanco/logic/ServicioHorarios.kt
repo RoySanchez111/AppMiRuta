@@ -18,51 +18,70 @@ data class LineaHorario(
 
 class ServicioHorarios {
 
+    // Rutas Reales Oficiales de Puebla, Puebla (RED RUTA y Rutas Convencionales)
     val lineasPublicas = listOf(
         LineaHorario(
-            codigo = "L1",
-            nombre = "Línea 1 - Troncal Expresa",
-            recorrido = "Terminal Central → Aeropuerto Internacional",
+            codigo = "R1",
+            nombre = "Línea 1 RUTA Puebla (Troncal)",
+            recorrido = "Tlaxcalancingo → Chachapa",
             frecuenciaMinutos = 6,
-            color = Color(0xFFFF8E56),
-            paradas = listOf("Estación Central", "Plaza Comercial Sur", "Hospital General Norte", "Terminal Aeropuerto"),
+            color = Color(0xFFE67E22), // Naranja RUTA L1
+            paradas = listOf("Terminal Tlaxcalancingo", "Paseo Bravo", "China Poblana", "Hospitales", "Terminal Chachapa"),
             estadoServicio = "Operación Normal (GPS Activo)"
         ),
         LineaHorario(
-            codigo = "L4",
-            nombre = "Línea 4 - Universitaria",
-            recorrido = "Campus Universitario → Puerto Intermodal",
-            frecuenciaMinutos = 10,
-            color = Color(0xFF327CF2),
-            paradas = listOf("Facultad de Ingeniería", "Estación Central", "Centro Histórico", "Puerto Intermodal"),
-            estadoServicio = "Operación Normal"
-        ),
-        LineaHorario(
-            codigo = "L7",
-            nombre = "Línea 7 - Periférico",
-            recorrido = "Centro Histórico → Hospital General",
-            frecuenciaMinutos = 8,
-            color = Color(0xFF0DBC61),
-            paradas = listOf("Centro Histórico", "Plaza Comercial Sur", "Hospital General Norte"),
+            codigo = "R2",
+            nombre = "Línea 2 RUTA Puebla (Diagonal)",
+            recorrido = "Limones → Diagonal Defensores → 11 Sur",
+            frecuenciaMinutos = 5,
+            color = Color(0xFF2980B9), // Azul RUTA L2
+            paradas = listOf("Terminal Margaritas / Limones", "11 Sur-Panteón", "El Gallito", "China Poblana", "Terminal Diagonal"),
             estadoServicio = "Alta Demanda"
         ),
         LineaHorario(
-            codigo = "MA",
-            nombre = "Metro A - Conector Metropolitano",
-            recorrido = "Central Angelópolis → Torre Financiera",
-            frecuenciaMinutos = 4,
-            color = Color(0xFFA149A1),
-            paradas = listOf("Central Metropolitana", "Angelópolis", "Torre Financiera"),
-            estadoServicio = "Desvío Temporal por Obras"
+            codigo = "R3",
+            nombre = "Línea 3 RUTA Puebla (Valsequillo - CAPU)",
+            recorrido = "BUAP Valsequillo → CAPU",
+            frecuenciaMinutos = 7,
+            color = Color(0xFF27AE60), // Verde RUTA L3
+            paradas = listOf("Terminal Valsequillo", "Facultad de Contaduría BUAP", "Plaza Cristal", "CU BUAP", "CAPU"),
+            estadoServicio = "Operación Normal"
         ),
         LineaHorario(
-            codigo = "L5",
-            nombre = "Línea 5 - Alimentadora Norte",
-            recorrido = "Mercado Central → Calzada Serdán → Estadio",
-            frecuenciaMinutos = 14,
-            color = Color(0xFFC0392B),
-            paradas = listOf("Mercado Central", "Calzada Serdán", "Estadio Deportivo"),
-            estadoServicio = "Retraso de 12 min (Tráfico)"
+            codigo = "R4",
+            nombre = "Línea 4 RUTA (Periférico Ecológico)",
+            recorrido = "Valsequillo → Amalucan → Autopista",
+            frecuenciaMinutos = 10,
+            color = Color(0xFF8E44AD), // Morado Línea 4
+            paradas = listOf("Periférico Sur (Valsequillo)", "Ciudad Judicial", "Angelópolis", "Flor del Bosque", "Amalucan"),
+            estadoServicio = "En Pruebas / Operación Regular"
+        ),
+        LineaHorario(
+            codigo = "AZ",
+            nombre = "Ruta Azteca (Convencional)",
+            recorrido = "Bosques de San Sebastián → Centro → BUAP",
+            frecuenciaMinutos = 8,
+            color = Color(0xFFC0392B), // Rojo Ruta Azteca
+            paradas = listOf("Bosques de San Sebastián", "Amalucan", "Mercado de Sabores", "Centro Histórico", "Ciudad Universitaria"),
+            estadoServicio = "Retraso de 8 min (Tráfico en Centro)"
+        ),
+        LineaHorario(
+            codigo = "R28",
+            nombre = "Ruta 28 (Convencional)",
+            recorrido = "Clavijero → Diagonal → CAPU",
+            frecuenciaMinutos = 12,
+            color = Color(0xFFF39C12), // Amarillo/Naranja Ruta 28
+            paradas = listOf("Clavijero", "Xonaca", "Diagonal Defensores de la República", "CAPU"),
+            estadoServicio = "Operación Normal"
+        ),
+        LineaHorario(
+            codigo = "JBS",
+            nombre = "Ruta Morados (JBS)",
+            recorrido = "La Resurrección → Centro Histórico",
+            frecuenciaMinutos = 9,
+            color = Color(0xFF9B59B6), // Morado JBS
+            paradas = listOf("La Resurrección", "Bosques", "China Poblana", "Mercado 5 de Mayo", "Centro Histórico"),
+            estadoServicio = "Operación Normal"
         )
     )
 

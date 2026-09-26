@@ -149,6 +149,22 @@ fun DialogoAgregarRutaFrecuente(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
+                Button(
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        ubicacion = "Estación Central de Autobuses (L1 / L4)"
+                        errorMsg = ""
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f), contentColor = MaterialTheme.colorScheme.secondary)
+                ) {
+                    Icon(Icons.Default.Map, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("🗺️ Autocompletar con Parada Clave del Mapa", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
                 OutlinedTextField(
                     value = ubicacion,
                     onValueChange = {

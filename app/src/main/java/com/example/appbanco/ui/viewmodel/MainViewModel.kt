@@ -7,19 +7,25 @@ import androidx.lifecycle.viewModelScope
 import com.example.appbanco.logic.SessionManager
 import com.example.appbanco.ui.screens.Incidencia
 import com.example.appbanco.data.database.UserDao
+import com.example.appbanco.data.database.SyncManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.launch
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.Place
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.appbanco.ui.theme.EscalaAccesibilidad
 import com.example.appbanco.logic.ServicioHorarios
+import java.util.UUID
 
 data class RutaFrecuenteItem(
     val id: String,
@@ -36,17 +42,28 @@ class MainViewModel(private val sessionManager: SessionManager) : ViewModel() {
     // Servicio de API de Horarios
     val servicioHorarios = ServicioHorarios()
 
-    // Tema dinámico de la app: "Degradados", "Claro", "Oscuro"
-    private val _modoTema = MutableStateFlow("Degradados")
-    val modoTema: StateFlow<String> = _modoTema.asStateFlow()
+    // Tema dinámico de la app respaldado por DataStore
+    val modoTema: StateFlow<String> = sessionManager.appTheme
+        .stateIn(viewModelScope, SharingStarted.Eagerly, "Degradados")
 
-    // Accesibilidad: Escala de fuente centralizada
-    private val _escalaFuente = MutableStateFlow(EscalaAccesibilidad.MEDIANO)
-    val escalaFuente: StateFlow<EscalaAccesibilidad> = _escalaFuente.asStateFlow()
+    // Accesibilidad: Escala de fuente centralizada respaldada por DataStore
+    val escalaFuente: StateFlow<EscalaAccesibilidad> = sessionManager.escalaFuente
+        .map { EscalaAccesibilidad.desdeNombre(it) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, EscalaAccesibilidad.MEDIANO)
 
-    // Modo Offline y Ahorro de Datos
-    private val _modoOffline = MutableStateFlow(false)
-    val modoOffline: StateFlow<Boolean> = _modoOffline.asStateFlow()
+    // Modo Offline respaldado por DataStore
+    val modoOffline: StateFlow<Boolean> = sessionManager.modoOffline
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    // Notificaciones respaldadas por DataStore
+    val notifTiempoReal: StateFlow<Boolean> = sessionManager.notifTiempoReal
+        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
+    val notifRetrasos: StateFlow<Boolean> = sessionManager.notifRetrasos
+        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
+    val notifSonidoVibracion: StateFlow<Boolean> = sessionManager.notifSonidoVibracion
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     // Nombre de usuario activo para saludos y perfil
     private val _usuarioActual = MutableStateFlow("Invitado")
@@ -59,21 +76,36 @@ class MainViewModel(private val sessionManager: SessionManager) : ViewModel() {
     fun cambiarTema(nuevoTema: String) {
         viewModelScope.launch {
             sessionManager.updateAppTheme(nuevoTema)
-            _modoTema.value = nuevoTema
         }
     }
 
     fun cambiarEscalaFuente(nuevaEscala: EscalaAccesibilidad) {
         viewModelScope.launch {
             sessionManager.updateAccessibilityFontScale(nuevaEscala.nombre)
-            _escalaFuente.value = nuevaEscala
         }
     }
 
     fun cambiarModoOffline(activado: Boolean) {
         viewModelScope.launch {
             sessionManager.updateOfflineMode(activado)
-            _modoOffline.value = activado
+        }
+    }
+
+    fun cambiarNotifTiempoReal(enabled: Boolean) {
+        viewModelScope.launch {
+            sessionManager.updateNotifTiempoReal(enabled)
+        }
+    }
+
+    fun cambiarNotifRetrasos(enabled: Boolean) {
+        viewModelScope.launch {
+            sessionManager.updateNotifRetrasos(enabled)
+        }
+    }
+
+    fun cambiarNotifSonidoVibracion(enabled: Boolean) {
+        viewModelScope.launch {
+            sessionManager.updateNotifSonidoVibracion(enabled)
         }
     }
 
@@ -101,13 +133,39 @@ class MainViewModel(private val sessionManager: SessionManager) : ViewModel() {
     }
 
     // Lista global de rutas frecuentes que sobrevive al cambio de pestañas
-    val listaRutasFrecuentes = mutableStateListOf(
-        RutaFrecuenteItem("1", "Casa", "Registrar ubicación", Color(0xFF4A86F7), Icons.Default.Home),
-        RutaFrecuenteItem("2", "Universidad", "Registrar ubicación", Color(0xFFF26E68), Icons.Default.School)
-    )
+    val listaRutasFrecuentes = mutableStateListOf<RutaFrecuenteItem>()
 
     fun agregarRutaFrecuente(nueva: RutaFrecuenteItem) {
         listaRutasFrecuentes.add(nueva)
+        viewModelScope.launch {
+            val userId = sessionManager.currentUsername.firstOrNull() ?: "invitado"
+            syncManager.syncRutaFrecuenteToCloud(userId, nueva.nombre, nueva.ubicacion)
+        }
+    }
+
+    private fun cargarRutasFrecuentesRemotas() {
+        viewModelScope.launch {
+            val userId = sessionManager.currentUsername.firstOrNull() ?: "invitado"
+            syncManager.fetchRutasFrecuentesFromCloud(userId) { listaMapas ->
+                if (listaMapas.isNotEmpty()) {
+                    listaMapas.forEach { map ->
+                        val nombre = map["nombre"] as? String ?: "Destino"
+                        val ubicacion = map["ubicacion"] as? String ?: ""
+                        if (listaRutasFrecuentes.none { it.nombre == nombre }) {
+                            listaRutasFrecuentes.add(
+                                RutaFrecuenteItem(
+                                    id = System.currentTimeMillis().toString() + nombre,
+                                    nombre = nombre,
+                                    ubicacion = ubicacion,
+                                    color = Color(0xFF4A86F7),
+                                    icono = Icons.Default.Place
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 
     fun eliminarRutaFrecuente(id: String) {
@@ -123,34 +181,61 @@ class MainViewModel(private val sessionManager: SessionManager) : ViewModel() {
     }
 
     // Lista global de incidencias que sobrevive al cambio de pestañas
-    val listaIncidencias = mutableStateListOf(
-        Incidencia(
-            tipo = "Retraso grave",
-            ruta = "L5",
-            titulo = "Retraso grave - Ruta Guadalupana",
-            descripcion = "Interrupción parcial del servicio en la Colonia Serdán. Retrasos de 10 a 30 min.",
-            tiempo = "Hace 10 min",
-            colorEtiqueta = Color(0xFFC0392B),
-            colorRuta = Color(0xFFF39C12)
-        ),
-        Incidencia(
-            tipo = "Desvío de Ruta",
-            ruta = "MA",
-            titulo = "Desvío de Ruta - Ruta Angelópolis",
-            descripcion = "Cierre de vialidad por manifestación en Av. Insurgentes Norte.",
-            tiempo = "Hace 30 min",
-            colorEtiqueta = Color(0xFFF39C12),
-            colorRuta = Color(0xFF9B59B6)
-        )
-    )
+    val listaIncidencias = mutableStateListOf<Incidencia>()
+
+    private val syncManager = SyncManager()
 
     fun agregarIncidencia(nueva: Incidencia) {
         listaIncidencias.add(0, nueva)
+        viewModelScope.launch {
+            syncManager.syncIncidenciaToCloud(
+                id = nueva.id,
+                tipo = nueva.tipo,
+                ruta = nueva.ruta,
+                titulo = nueva.titulo,
+                descripcion = nueva.descripcion,
+                tiempo = nueva.tiempo
+            )
+        }
+    }
+
+    private fun cargarIncidenciasRemotas() {
+        viewModelScope.launch {
+            syncManager.fetchIncidenciasFromCloud { listaMapas ->
+                if (listaMapas.isNotEmpty()) {
+                    listaMapas.forEach { map ->
+                        val id = map["id"] as? String ?: UUID.randomUUID().toString()
+                        val tipo = map["tipo"] as? String ?: "Reporte"
+                        val ruta = map["ruta"] as? String ?: "L1"
+                        val titulo = map["titulo"] as? String ?: "Incidencia"
+                        val descripcion = map["descripcion"] as? String ?: ""
+                        val tiempo = map["tiempo"] as? String ?: "Hace un momento"
+
+                        if (listaIncidencias.none { it.id == id }) {
+                            listaIncidencias.add(
+                                Incidencia(
+                                    id = id,
+                                    tipo = tipo,
+                                    ruta = ruta,
+                                    titulo = titulo,
+                                    descripcion = descripcion,
+                                    tiempo = tiempo,
+                                    colorEtiqueta = Color(0xFFC0392B),
+                                    colorRuta = Color(0xFFF39C12)
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 
     init {
         checkSession()
         observarUsuario()
+        cargarIncidenciasRemotas()
+        cargarRutasFrecuentesRemotas()
     }
 
     private fun observarUsuario() {
@@ -166,21 +251,6 @@ class MainViewModel(private val sessionManager: SessionManager) : ViewModel() {
         viewModelScope.launch {
             sessionManager.profileImageUri.collectLatest { uri ->
                 _fotoPerfilUri.value = uri
-            }
-        }
-        viewModelScope.launch {
-            sessionManager.appTheme.collectLatest { theme ->
-                _modoTema.value = theme
-            }
-        }
-        viewModelScope.launch {
-            sessionManager.escalaFuente.collectLatest { escalaStr ->
-                _escalaFuente.value = EscalaAccesibilidad.desdeNombre(escalaStr)
-            }
-        }
-        viewModelScope.launch {
-            sessionManager.modoOffline.collectLatest { enabled ->
-                _modoOffline.value = enabled
             }
         }
     }

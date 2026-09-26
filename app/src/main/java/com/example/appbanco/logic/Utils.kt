@@ -1,7 +1,6 @@
 package com.example.appbanco.logic
 
 import android.content.Context
-import android.media.AudioAttributes
 import android.media.AudioManager
 import android.media.RingtoneManager
 import android.os.Build
@@ -167,18 +166,14 @@ fun reproducirSonidoNotificacion(context: Context) {
         val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
         audioManager?.playSoundEffect(AudioManager.FX_KEY_CLICK, 1.0f)
 
-        // 2. Tono de notificación de cortesía mediante Ringtone con atributos de audio explícitos
+        // 2. Tono de notificación predeterminado del sistema de manera segura
         val uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
         if (uri != null) {
-            val ringtone = RingtoneManager.getRingtone(context, uri)
-            ringtone?.audioAttributes = AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
-                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                .build()
+            val ringtone = RingtoneManager.getRingtone(context.applicationContext, uri)
             ringtone?.play()
         }
     } catch (e: Exception) {
-        // Fallback en caso de dispositivos en modo silencio
+        // Fallback seguro en caso de restricciones del sistema
     }
 }
 

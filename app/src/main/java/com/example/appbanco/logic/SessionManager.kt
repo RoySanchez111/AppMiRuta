@@ -18,6 +18,9 @@ class SessionManager(private val context: Context) {
         private val APP_THEME = stringPreferencesKey("app_theme")
         private val ACCESSIBILITY_FONT_SCALE = stringPreferencesKey("accessibility_font_scale")
         private val OFFLINE_MODE = booleanPreferencesKey("offline_mode")
+        private val NOTIF_TIEMPO_REAL = booleanPreferencesKey("notif_tiempo_real")
+        private val NOTIF_RETRASOS = booleanPreferencesKey("notif_retrasos")
+        private val NOTIF_SONIDO_VIBRACION = booleanPreferencesKey("notif_sonido_vibracion")
         private val USER_ROLE = stringPreferencesKey("user_role")
         private val HAS_COMPLETED_TUTORIAL = booleanPreferencesKey("has_completed_tutorial")
     }
@@ -57,6 +60,18 @@ class SessionManager(private val context: Context) {
 
     val modoOffline: Flow<Boolean> = context.dataStore.data.map { preferences ->
         preferences[OFFLINE_MODE] ?: false
+    }
+
+    val notifTiempoReal: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[NOTIF_TIEMPO_REAL] ?: true
+    }
+
+    val notifRetrasos: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[NOTIF_RETRASOS] ?: true
+    }
+
+    val notifSonidoVibracion: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[NOTIF_SONIDO_VIBRACION] ?: false
     }
 
     val hasCompletedTutorial: Flow<Boolean> = context.dataStore.data.map { preferences ->
@@ -102,6 +117,24 @@ class SessionManager(private val context: Context) {
     suspend fun updateOfflineMode(enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[OFFLINE_MODE] = enabled
+        }
+    }
+
+    suspend fun updateNotifTiempoReal(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[NOTIF_TIEMPO_REAL] = enabled
+        }
+    }
+
+    suspend fun updateNotifRetrasos(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[NOTIF_RETRASOS] = enabled
+        }
+    }
+
+    suspend fun updateNotifSonidoVibracion(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[NOTIF_SONIDO_VIBRACION] = enabled
         }
     }
 

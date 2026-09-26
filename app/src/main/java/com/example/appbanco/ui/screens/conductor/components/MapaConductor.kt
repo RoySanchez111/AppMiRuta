@@ -16,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.appbanco.ui.screens.MapaOptimizadoContainer
-import com.example.appbanco.ui.screens.generarParadasAdaptativas
 import com.mapbox.geojson.Point
 
 @Composable
@@ -37,7 +36,7 @@ fun MapaConductor(
         // mapa
         MapaOptimizadoContainer(
             modifier = Modifier.fillMaxSize(),
-            paradas = generarParadasAdaptativas(ubicacionActual),
+            paradas = emptyList(),
             conductores = emptyList(),
             centroPoint = ubicacionActual,
             ubicacionCentradaPoint = ubicacionActual,

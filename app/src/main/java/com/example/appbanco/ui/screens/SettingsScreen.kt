@@ -35,9 +35,9 @@ fun PantallaConfiguracion(
     navController: NavController,
     viewModel: MainViewModel
 ) {
-    var notifTiempoReal by remember { mutableStateOf(true) }
-    var notifRetrasos by remember { mutableStateOf(true) }
-    var notifSonidoVibracion by remember { mutableStateOf(false) }
+    val notifTiempoReal by viewModel.notifTiempoReal.collectAsState()
+    val notifRetrasos by viewModel.notifRetrasos.collectAsState()
+    val notifSonidoVibracion by viewModel.notifSonidoVibracion.collectAsState()
 
     val modoOffline by viewModel.modoOffline.collectAsState()
     var unidadDistancia by remember { mutableStateOf("km") }
@@ -101,7 +101,7 @@ fun PantallaConfiguracion(
                         checked = notifTiempoReal,
                         onCheckedChange = {
                             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                            notifTiempoReal = it
+                            viewModel.cambiarNotifTiempoReal(it)
                         },
                         colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = primaryColor)
                     )
@@ -118,7 +118,7 @@ fun PantallaConfiguracion(
                         checked = notifRetrasos,
                         onCheckedChange = {
                             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                            notifRetrasos = it
+                            viewModel.cambiarNotifRetrasos(it)
                         },
                         colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = primaryColor)
                     )
@@ -135,7 +135,7 @@ fun PantallaConfiguracion(
                         checked = notifSonidoVibracion,
                         onCheckedChange = {
                             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                            notifSonidoVibracion = it
+                            viewModel.cambiarNotifSonidoVibracion(it)
                         },
                         colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = primaryColor)
                     )

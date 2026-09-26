@@ -45,8 +45,10 @@ import com.example.appbanco.ui.viewmodel.MainViewModel
 import androidx.constraintlayout.compose.*
 import com.example.appbanco.logic.reproducirSonidoNotificacion
 import kotlinx.coroutines.delay
+import java.util.UUID
 
 data class Incidencia(
+    val id: String = UUID.randomUUID().toString(),
     val tipo: String,
     val ruta: String,
     val titulo: String,
@@ -118,7 +120,7 @@ fun PantallaAlertas(navController: NavController, viewModel: MainViewModel) {
 
             items(
                 items = listaIncidencias,
-                key = { it.titulo }
+                key = { it.id }
             ) { incidencia ->
                 ItemAlertaDeslizable(
                     incidencia = incidencia,

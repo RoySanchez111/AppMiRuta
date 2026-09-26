@@ -1,22 +1,12 @@
 package com.example.appbanco.ui.screens
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import kotlin.math.abs
 import kotlin.time.Duration.Companion.milliseconds
@@ -58,6 +48,7 @@ import androidx.navigation.NavController
 import com.example.appbanco.data.database.ConductorUbicacion
 import com.example.appbanco.data.database.SyncManager
 import com.example.appbanco.logic.SessionManager
+import com.example.appbanco.logic.ServicioOverpassPuebla
 import com.example.appbanco.logic.ejecutarVibracionHaptica
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
@@ -87,19 +78,9 @@ data class ParadaMapa(
     val detalleIncidencia: String? = null
 )
 
-// Generador de paradas adaptativas en tiempo real según las coordenadas recibidas
-fun generarParadasAdaptativas(centro: Point): List<ParadaMapa> {
-    val lat = centro.latitude()
-    val lng = centro.longitude()
-
-    return listOf(
-        ParadaMapa("1", "Parada Principal (GPS)", listOf("L1", "L4"), Point.fromLngLat(lng, lat), "En 2 min"),
-        ParadaMapa("2", "Estación Norte", listOf("L1", "L7"), Point.fromLngLat(lng + 0.0068, lat + 0.0056), "En 5 min"),
-        ParadaMapa("3", "Terminal Sur", listOf("L4", "MA"), Point.fromLngLat(lng - 0.0062, lat - 0.0074), "En 3 min"),
-        ParadaMapa("4", "Hospital / Centro de Salud", listOf("L7", "L5"), Point.fromLngLat(lng + 0.0138, lat + 0.0126), "En 9 min"),
-        ParadaMapa("5", "Terminal Express", listOf("L1"), Point.fromLngLat(lng + 0.0218, lat + 0.0206), "En 12 min"),
-        ParadaMapa("6", "Alerta L5 - Av. Principal", listOf("L5"), Point.fromLngLat(lng - 0.0038, lat + 0.0086), "Retraso 15 min", esIncidencia = true, detalleIncidencia = "Tráfico denso en vía principal - Use rutas alternas")
-    )
+// Generador de paradas adaptativas vacío (Sin Mock Data)
+fun generarParadasAdaptativas(): List<ParadaMapa> {
+    return emptyList()
 }
 
 @Composable
@@ -129,7 +110,7 @@ fun PantallaPrincipal(navController: NavController) {
     var textoCoordenadas by remember { mutableStateOf("18.9994° N, 98.2618° W") }
 
     val centroActual = ubicacionGpsPoint ?: centroPredeterminado
-    val paradasAdaptativas = remember(centroActual) { generarParadasAdaptativas(centroActual) }
+    val paradasAdaptativas = remember { generarParadasAdaptativas() }
 
     val fusedLocationClient = remember(context) { LocationServices.getFusedLocationProviderClient(context.applicationContext) }
 
@@ -246,6 +227,20 @@ fun PantallaPrincipal(navController: NavController) {
 
     // MODO OFFLINE / AHORRO DE DATOS
     val modoOffline by sessionManager.modoOffline.collectAsState(initial = false)
+
+    var rutasOsmReal by remember { mutableStateOf<List<List<Point>>>(emptyList()) }
+    val overpassService = remember { ServicioOverpassPuebla() }
+
+    LaunchedEffect(modoOffline) {
+        if (!modoOffline) {
+            val resultado = overpassService.obtenerCoordenadasRutasBusPuebla()
+            if (resultado.isNotEmpty()) {
+                rutasOsmReal = resultado
+            }
+        } else {
+            rutasOsmReal = emptyList()
+        }
+    }
 
     // Cargar y actualizar conductores activos de la nube periódicamente (Free Tier Optimizado)
     LaunchedEffect(modoOffline) {
@@ -535,6 +530,7 @@ fun PantallaPrincipal(navController: NavController) {
                     modifier = Modifier.fillMaxSize(),
                     paradas = paradasFiltradas,
                     conductores = conductoresActivos,
+                    rutasOsm = rutasOsmReal,
                     centroPoint = centroActual,
                     ubicacionCentradaPoint = ubicacionGpsPoint,
                     onParadaSelect = { parada ->
@@ -936,12 +932,12 @@ fun PantallaPrincipal(navController: NavController) {
                         OutlinedButton(
                             onClick = {
                                 haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                paradaSeleccionada = null
-                                navController.navigate("cuenta") {
-                                    popUpTo("principal") { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState = true
+                                scope.launch {
+                                    val userId = nombreUsuario
+                                    syncManager.syncRutaFrecuenteToCloud(userId, parada.nombre, "Líneas: ${parada.lineas.joinToString(", ")}")
                                 }
+                                Toast.makeText(context, "⭐ Parada '${parada.nombre}' guardada en tus favoritas", Toast.LENGTH_SHORT).show()
+                                paradaSeleccionada = null
                             },
                             modifier = Modifier.weight(1f).height(38.dp),
                             contentPadding = PaddingValues(horizontal = 8.dp)
@@ -960,11 +956,13 @@ fun PantallaPrincipal(navController: NavController) {
 }
 }
 
+@SuppressLint("ClickableViewAccessibility")
 @Composable
 fun MapaOptimizadoContainer(
     modifier: Modifier = Modifier,
     paradas: List<ParadaMapa>,
     conductores: List<ConductorUbicacion> = emptyList(),
+    rutasOsm: List<List<Point>> = emptyList(),
     centroPoint: Point,
     ubicacionCentradaPoint: Point? = null,
     onParadaSelect: (ParadaMapa) -> Unit
@@ -990,36 +988,15 @@ fun MapaOptimizadoContainer(
 
     // Polilíneas dinámicas generadas a partir de las paradas adaptativas
     val rutaNaranjaPoints = remember(paradas) {
-        if (paradas.size >= 5) {
-            listOf(paradas[0].ubicacion, paradas[1].ubicacion, paradas[4].ubicacion)
-        } else paradas.map { it.ubicacion }
+        paradas.map { it.ubicacion }
     }
 
     val rutaAzulPoints = remember(paradas) {
-        if (paradas.size >= 4) {
-            listOf(paradas[2].ubicacion, paradas[0].ubicacion, paradas[3].ubicacion)
-        } else paradas.map { it.ubicacion }
+        paradas.map { it.ubicacion }
     }
 
     val conductoresAdaptativos = remember(conductores, centroPoint) {
-        if (conductores.isNotEmpty()) conductores else listOf(
-            ConductorUbicacion(
-                id = "bus_l1_live",
-                nombre = "Autobús L1 (En Vivo)",
-                ruta = "Línea L1",
-                lat = centroPoint.latitude() + 0.0028,
-                lng = centroPoint.longitude() - 0.0035,
-                activo = true
-            ),
-            ConductorUbicacion(
-                id = "bus_l4_live",
-                nombre = "Autobús L4 (En Vivo)",
-                ruta = "Línea L4",
-                lat = centroPoint.latitude() - 0.0042,
-                lng = centroPoint.longitude() + 0.0051,
-                activo = true
-            )
-        )
+        conductores
     }
 
     Box(modifier = modifier) {
@@ -1037,9 +1014,10 @@ fun MapaOptimizadoContainer(
                     }
                     mapView.setOnTouchListener { v, _ ->
                         v.parent?.requestDisallowInterceptTouchEvent(true)
+                        v.performClick()
                         false
                     }
-                } catch (e: Exception) { }
+                } catch (_: Exception) { }
             }
 
             PolylineAnnotation(
@@ -1053,6 +1031,15 @@ fun MapaOptimizadoContainer(
                 lineColorString = "#327CF2",
                 lineWidth = 5.0
             )
+
+            // Rutas reales de OpenStreetMap (Puebla) en tiempo real (100% Gratis)
+            rutasOsm.forEach { puntos ->
+                PolylineAnnotation(
+                    points = puntos,
+                    lineColorString = "#16A085",
+                    lineWidth = 3.5
+                )
+            }
 
             paradas.forEach { parada ->
                 PointAnnotation(

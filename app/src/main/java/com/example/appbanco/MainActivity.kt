@@ -27,11 +27,7 @@ import com.example.appbanco.data.database.AppDatabase
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
-import com.example.appbanco.data.database.UserEntity
 import com.example.appbanco.data.database.SyncManager
-import com.example.appbanco.logic.SecurityUtils
-import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private lateinit var sessionManager: SessionManager
@@ -52,25 +48,6 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-
-        // 🧪 MODO DEBUG: Limpiar BD y repoblar usuarios
-        lifecycleScope.launch {
-            val userDao = database.userDao()
-            userDao.deleteAllUsers() // 🧹 Limpia al 100%
-            
-            val sync = SyncManager()
-            
-            val usuariosDebug = listOf(
-                UserEntity(username = "roy", passwordHash = SecurityUtils.hashPassword("123"), role = "admin"),
-                UserEntity(username = "rafa", passwordHash = SecurityUtils.hashPassword("123"), role = "conductor"),
-                UserEntity(username = "alex", passwordHash = SecurityUtils.hashPassword("123"), role = "pasajero")
-            )
-            
-            for (u in usuariosDebug) {
-                userDao.registerUser(u)
-                sync.syncUserToCloud(u) // Forza actualización en Firebase
-            }
-        }
 
         setContent {
             val mainViewModel: MainViewModel = viewModel(

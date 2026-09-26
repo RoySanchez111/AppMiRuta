@@ -185,4 +185,50 @@ class SyncManager {
             }
         }
     }
+
+    // Sincronizar incidencia / alerta a la nube
+    suspend fun syncIncidenciaToCloud(id: String, tipo: String, ruta: String, titulo: String, descripcion: String, tiempo: String) {
+        withContext(Dispatchers.IO) {
+            try {
+                val data = mapOf(
+                    "id" to id,
+                    "tipo" to tipo,
+                    "ruta" to ruta,
+                    "titulo" to titulo,
+                    "descripcion" to descripcion,
+                    "tiempo" to tiempo,
+                    "updatedAt" to System.currentTimeMillis()
+                )
+                Tasks.await(
+                    firestore.collection("incidencias")
+                        .document(id)
+                        .set(data)
+                )
+                Log.d("SyncManager", "Incidencia sincronizada en la nube")
+            } catch (e: Exception) {
+                Log.e("SyncManager", "Excepción en syncIncidenciaToCloud", e)
+            }
+        }
+    }
+
+    // Obtener incidencias de la nube
+    suspend fun fetchIncidenciasFromCloud(onResult: (List<Map<String, Any>>) -> Unit) {
+        withContext(Dispatchers.IO) {
+            try {
+                val querySnapshot = Tasks.await(
+                    firestore.collection("incidencias")
+                        .get()
+                )
+                val lista = querySnapshot.documents.mapNotNull { it.data }
+                withContext(Dispatchers.Main) {
+                    onResult(lista)
+                }
+            } catch (e: Exception) {
+                Log.e("SyncManager", "Excepción en fetchIncidenciasFromCloud", e)
+                withContext(Dispatchers.Main) {
+                    onResult(emptyList())
+                }
+            }
+        }
+    }
 }
