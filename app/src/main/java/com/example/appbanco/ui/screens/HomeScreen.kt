@@ -83,6 +83,7 @@ fun generarParadasAdaptativas(): List<ParadaMapa> {
     return emptyList()
 }
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 fun PantallaPrincipal(navController: NavController) {
     val onBackground = MaterialTheme.colorScheme.onBackground

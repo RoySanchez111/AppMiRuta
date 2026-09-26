@@ -1,5 +1,6 @@
 package com.example.appbanco.ui.navigation
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -32,6 +33,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 fun NavegacionMiRuta(
     viewModel: MainViewModel,

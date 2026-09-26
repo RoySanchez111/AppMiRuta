@@ -22,7 +22,7 @@ android {
     defaultConfig {
         applicationId = "com.example.appbanco"
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 37
         versionCode = 1
         versionName = "1.0"
 
@@ -63,7 +63,7 @@ dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)
-    implementation("androidx.compose.material3:material3-window-size-class")
+    implementation(libs.androidx.compose.material3.window)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
@@ -77,10 +77,10 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
-    implementation("androidx.core:core-splashscreen:1.0.0")
-    implementation("androidx.navigation:navigation-compose:2.7.7")
-    implementation("androidx.compose.material:material-icons-extended")
-    implementation("androidx.constraintlayout:constraintlayout-compose:1.1.2")
+    implementation(libs.androidx.core.splashscreen)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.androidx.constraintlayout.compose)
     implementation("com.mapbox.maps:android:11.4.0")
     implementation("com.mapbox.extension:maps-compose:11.4.0")
     implementation(libs.playServicesLocation)
@@ -97,10 +97,10 @@ dependencies {
     implementation(libs.jbcrypt)
 
     // Coil para GIFs e imágenes
-    implementation("io.coil-kt:coil-compose:2.6.0")
-    implementation("io.coil-kt:coil-gif:2.6.0")
+    implementation(libs.coil.compose)
+    implementation(libs.coil.gif)
 
     // Firebase BoM (Strictly Free Tier Spark Plan)
-    implementation(platform("com.google.firebase:firebase-bom:34.18.0"))
-    implementation("com.google.firebase:firebase-firestore")
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.firestore)
 }

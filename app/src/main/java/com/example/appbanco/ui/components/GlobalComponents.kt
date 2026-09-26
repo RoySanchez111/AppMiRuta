@@ -2,6 +2,7 @@ package com.example.appbanco.ui.components
 
 import android.net.Uri
 import android.graphics.BitmapFactory
+import androidx.core.net.toUri
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -173,7 +174,7 @@ fun FotoPerfilAvatar(
     LaunchedEffect(fotoUri) {
         if (fotoUri != null && !fotoUri.startsWith("preset:")) {
             try {
-                val uri = Uri.parse(fotoUri)
+                val uri = fotoUri.toUri()
                 val inputStream = context.contentResolver.openInputStream(uri)
                 val bitmap = BitmapFactory.decodeStream(inputStream)
                 if (bitmap != null) {
