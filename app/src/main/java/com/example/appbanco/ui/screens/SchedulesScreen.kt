@@ -46,7 +46,7 @@ fun PantallaHorarios(navController: NavController, viewModel: MainViewModel) {
 
     var busquedaTexto by remember { mutableStateOf("") }
     var categoriaFiltro by remember { mutableStateOf("Principales") }
-    var fechaOffsetDias by remember { mutableStateOf(0) }
+    var fechaOffsetDias by remember { mutableIntStateOf(0) }
     var lineaSeleccionada by remember { mutableStateOf<LineaHorario?>(null) }
     var cargandoLineas by remember { mutableStateOf(true) }
     var lineasApi by remember { mutableStateOf<List<LineaHorario>>(emptyList()) }

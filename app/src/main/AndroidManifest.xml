@@ -36,7 +36,6 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="Mi Ruta"
             android:theme="@style/Theme.MiRuta.Splash"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
