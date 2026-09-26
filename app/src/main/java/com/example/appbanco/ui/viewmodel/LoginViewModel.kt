@@ -19,6 +19,9 @@ class LoginViewModel(
     
     var loginSuccess by mutableStateOf(false)
         private set
+
+    var userRole by mutableStateOf("pasajero")
+        private set
         
     var errorMessage by mutableStateOf<String?>(null)
         private set
@@ -33,6 +36,7 @@ class LoginViewModel(
                 user?.let {
                     sessionManager.saveSession(it.id, it.username, token)
                     sessionManager.updateUserRole(it.role)
+                    userRole = it.role
                     loginSuccess = true
                 }
             } else {

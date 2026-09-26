@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.School
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -34,8 +35,10 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.navigation.NavController
 import com.example.appbanco.ui.viewmodel.LoginViewModel
 
@@ -82,224 +85,360 @@ fun PantallaLogin(
 
     LaunchedEffect(loginSuccess) {
         if (loginSuccess) {
-            val tutorialCompletado = sessionManager.hasCompletedTutorial.firstOrNull() ?: false
-            val destinoFinal = if (!tutorialCompletado) "tutorial" else "principal"
+            val role = viewModel.userRole
+            val destinoFinal = if (role == "conductor" || role == "admin") {
+                "inicio_conductor"
+            } else {
+                val tutorialCompletado = sessionManager.hasCompletedTutorial.firstOrNull() ?: false
+                if (!tutorialCompletado) "tutorial" else "principal"
+            }
             navController.navigate(destinoFinal) {
                 popUpTo("login") { inclusive = true }
             }
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .widthIn(max = 520.dp)
-            .padding(24.dp)
-            .verticalScroll(rememberScrollState())
-            .alpha(alpha),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.logo_blanco_vector),
-            contentDescription = null,
-            modifier = Modifier.size(90.dp)
-        )
+    val configuration = LocalConfiguration.current
+    val esTablet = configuration.screenWidthDp >= 600
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Image(
-            painter = painterResource(id = R.drawable.ic_miruta_texto),
-            contentDescription = "Mi Ruta Logo Texto",
+    if (esTablet) {
+        // 🖥️ DISEÑO ADAPTABLE DE DOS COLUMNAS PARA TABLETS (FRAME 7)
+        Row(
             modifier = Modifier
-                .width(180.dp)
-                .height(48.dp)
-                .semantics { heading() }
-        )
-        
-        Spacer(modifier = Modifier.height(32.dp))
-
-        if (errorMessage != null) {
-            Text(
-                text = errorMessage, 
-                color = Color(0xFFFFD2D2),
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 16.sp,
-                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-        }
-        
-        OutlinedTextField(
-            value = usuario,
-            onValueChange = { usuario = it },
-            label = {
-                Text("Usuario")
-            },
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Text,
-                imeAction = ImeAction.Next
-            ),
-            singleLine = true,
-            modifier = Modifier
-                .fillMaxWidth()
-                .semantics { contentDescription = "Campo para ingresar usuario" },
-            colors = OutlinedTextFieldDefaults.colors(
-                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                cursorColor = MaterialTheme.colorScheme.primary
-            )
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = {
-                Text("Contraseña")
-            },
-            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            trailingIcon = {
-                val image = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
-                val description = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña"
-                IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                    Icon(imageVector = image, contentDescription = description, tint = MaterialTheme.colorScheme.onSurface)
-                }
-            },
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Password,
-                imeAction = ImeAction.Done
-            ),
-            keyboardActions = KeyboardActions(
-                onDone = {
-                    viewModel.onLoginClick(usuario, password)
-                }
-            ),
-            singleLine = true,
-            modifier = Modifier
-                .fillMaxWidth()
-                .semantics { contentDescription = "Campo para ingresar contraseña" },
-            colors = OutlinedTextFieldDefaults.colors(
-                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                cursorColor = MaterialTheme.colorScheme.primary
-            )
-        )
-        
-        Spacer(modifier = Modifier.height(32.dp))
-        
-        Button(
-            onClick = {
-                viewModel.onLoginClick(usuario, password)
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp)
-                .semantics {
-                    role = Role.Button
-                    contentDescription = "Boton iniciar sesión"
-                },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFFFEB30F),
-                contentColor = Color.White
-            )
+                .fillMaxSize()
+                .padding(48.dp)
+                .alpha(alpha),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
         ) {
-            Text("Iniciar Sesión", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-        }
-        
-        Spacer(modifier = Modifier.height(8.dp))
-
-        TextButton(
-            onClick = {
-                navController.navigate("registro")
-            },
-            modifier = Modifier.semantics {
-                role = Role.Button
-                contentDescription = "Crear nueva cuenta"
-            }
-        ) {
-            Text(
-                text = "¿No tienes cuenta? Crear cuenta",
-                color = Color.White,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-        
-        Button(
-            onClick = {
-                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                mostrarDialogoGoogle = true
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp)
-                .shadow(4.dp, RoundedCornerShape(25.dp))
-                .semantics {
-                    role = Role.Button
-                    contentDescription = "Iniciar sesión con Google"
-                },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.White,
-                contentColor = Color(0xFF3C4043)
-            ),
-            shape = RoundedCornerShape(25.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
+            // COLUMNA IZQUIERDA: Marca / Logo
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                Text(
-                    text = "G",
-                    color = Color(0xFF4285F4),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
+                Image(
+                    painter = painterResource(id = R.drawable.logo_blanco_vector),
+                    contentDescription = null,
+                    modifier = Modifier.size(140.dp)
                 )
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = "Iniciar sesión con Google",
-                    color = Color(0xFF3C4043),
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 15.sp
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Image(
+                    painter = painterResource(id = R.drawable.ic_miruta_texto),
+                    contentDescription = "Mi Ruta Logo",
+                    modifier = Modifier
+                        .width(240.dp)
+                        .height(64.dp)
+                        .semantics { heading() }
                 )
             }
-        }
-        
-        Spacer(modifier = Modifier.height(12.dp))
-        Text(text = "O", color = Color.White, fontSize = 18.sp, modifier = Modifier.semantics { contentDescription = "O" })
-        Spacer(modifier = Modifier.height(12.dp))
-        
-        Button(
-            onClick = {
-                scope.launch {
-                    sessionManager.saveSession(0, "Invitado", "token_invitado")
-                    val tutorialCompletado = sessionManager.hasCompletedTutorial.firstOrNull() ?: false
-                    val destinoFinal = if (!tutorialCompletado) "tutorial" else "principal"
-                    navController.navigate(destinoFinal) {
-                        popUpTo("login") { inclusive = true }
+
+            // COLUMNA DERECHA: Tarjeta de Formulario de Login
+            Surface(
+                modifier = Modifier
+                    .weight(1f)
+                    .widthIn(max = 480.dp),
+                shape = RoundedCornerShape(28.dp),
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.15f),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.2f))
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(32.dp)
+                        .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    if (errorMessage != null) {
+                        Text(
+                            text = errorMessage, 
+                            color = Color(0xFFFFD2D2),
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 15.sp,
+                            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+                    
+                    OutlinedTextField(
+                        value = usuario,
+                        onValueChange = { usuario = it },
+                        label = { Text("Usuario") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .semantics { contentDescription = "Campo para ingresar usuario" },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                            focusedContainerColor = MaterialTheme.colorScheme.surface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            cursorColor = MaterialTheme.colorScheme.primary
+                        )
+                    )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        label = { Text("Contraseña") },
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            val image = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
+                            val description = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña"
+                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                Icon(imageVector = image, contentDescription = description, tint = MaterialTheme.colorScheme.onSurface)
+                            }
+                        },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(onDone = { viewModel.onLoginClick(usuario, password) }),
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .semantics { contentDescription = "Campo para ingresar contraseña" },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                            focusedContainerColor = MaterialTheme.colorScheme.surface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            cursorColor = MaterialTheme.colorScheme.primary
+                        )
+                    )
+                    
+                    Spacer(modifier = Modifier.height(28.dp))
+                    
+                    Button(
+                        onClick = { viewModel.onLoginClick(usuario, password) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp)
+                            .semantics { role = Role.Button; contentDescription = "Boton iniciar sesión" },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFEB30F), contentColor = Color.White)
+                    ) {
+                        Text("Iniciar Sesión", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    }
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    TextButton(
+                        onClick = { navController.navigate("registro") },
+                        modifier = Modifier.semantics { role = Role.Button; contentDescription = "Crear nueva cuenta" }
+                    ) {
+                        Text(text = "¿No tienes cuenta? Crear cuenta", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    Button(
+                        onClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            mostrarDialogoGoogle = true
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp)
+                            .shadow(4.dp, RoundedCornerShape(25.dp))
+                            .semantics { role = Role.Button; contentDescription = "Iniciar sesión con Google" },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color(0xFF3C4043)),
+                        shape = RoundedCornerShape(25.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+                            Text(text = "G", color = Color(0xFF4285F4), fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(text = "Iniciar sesión con Google", color = Color(0xFF3C4043), fontWeight = FontWeight.Medium, fontSize = 14.sp)
+                        }
+                    }
+                    
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(text = "O", color = Color.White, fontSize = 16.sp, modifier = Modifier.semantics { contentDescription = "O" })
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                sessionManager.saveSession(0, "Invitado", "token_invitado")
+                                val tutorialCompletado = sessionManager.hasCompletedTutorial.firstOrNull() ?: false
+                                val destinoFinal = if (!tutorialCompletado) "tutorial" else "principal"
+                                navController.navigate(destinoFinal) {
+                                    popUpTo("login") { inclusive = true }
+                                }
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp)
+                            .semantics { role = Role.Button; contentDescription = "Boton continuar como invitado" },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.1f), contentColor = Color.White)
+                    ) {
+                        Text("Continuar como invitado", fontSize = 14.sp)
                     }
                 }
-            },
+            }
+        }
+    } else {
+        // 📱 DISEÑO VERTICAL TRADICIONAL PARA TELÉFONOS
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp)
-                .semantics {
-                    role = Role.Button
-                    contentDescription = "Boton continuar como invitado"
-                },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.White.copy(alpha = 0.1f), 
-                contentColor = Color.White
-            )
+                .fillMaxSize()
+                .widthIn(max = 520.dp)
+                .padding(24.dp)
+                .verticalScroll(rememberScrollState())
+                .alpha(alpha),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Text("Continuar como invitado")
+            Image(
+                painter = painterResource(id = R.drawable.logo_blanco_vector),
+                contentDescription = null,
+                modifier = Modifier.size(90.dp)
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Image(
+                painter = painterResource(id = R.drawable.ic_miruta_texto),
+                contentDescription = "Mi Ruta Logo Texto",
+                modifier = Modifier
+                    .width(180.dp)
+                    .height(48.dp)
+                    .semantics { heading() }
+            )
+            
+            Spacer(modifier = Modifier.height(32.dp))
+
+            if (errorMessage != null) {
+                Text(
+                    text = errorMessage, 
+                    color = Color(0xFFFFD2D2),
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 16.sp,
+                    modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+            
+            OutlinedTextField(
+                value = usuario,
+                onValueChange = { usuario = it },
+                label = { Text("Usuario") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
+                singleLine = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .semantics { contentDescription = "Campo para ingresar usuario" },
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    cursorColor = MaterialTheme.colorScheme.primary
+                )
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Contraseña") },
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                trailingIcon = {
+                    val image = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
+                    val description = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña"
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(imageVector = image, contentDescription = description, tint = MaterialTheme.colorScheme.onSurface)
+                    }
+                },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { viewModel.onLoginClick(usuario, password) }),
+                singleLine = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .semantics { contentDescription = "Campo para ingresar contraseña" },
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    cursorColor = MaterialTheme.colorScheme.primary
+                )
+            )
+            
+            Spacer(modifier = Modifier.height(32.dp))
+            
+            Button(
+                onClick = { viewModel.onLoginClick(usuario, password) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .semantics { role = Role.Button; contentDescription = "Boton iniciar sesión" },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFEB30F), contentColor = Color.White)
+            ) {
+                Text("Iniciar Sesión", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            }
+            
+            Spacer(modifier = Modifier.height(8.dp))
+
+            TextButton(
+                onClick = { navController.navigate("registro") },
+                modifier = Modifier.semantics { role = Role.Button; contentDescription = "Crear nueva cuenta" }
+            ) {
+                Text(text = "¿No tienes cuenta? Crear cuenta", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            Button(
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    mostrarDialogoGoogle = true
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .shadow(4.dp, RoundedCornerShape(25.dp))
+                    .semantics { role = Role.Button; contentDescription = "Iniciar sesión con Google" },
+                colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color(0xFF3C4043)),
+                shape = RoundedCornerShape(25.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+                    Text(text = "G", color = Color(0xFF4285F4), fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(text = "Iniciar sesión con Google", color = Color(0xFF3C4043), fontWeight = FontWeight.Medium, fontSize = 15.sp)
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(text = "O", color = Color.White, fontSize = 18.sp, modifier = Modifier.semantics { contentDescription = "O" })
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            Button(
+                onClick = {
+                    scope.launch {
+                        sessionManager.saveSession(0, "Invitado", "token_invitado")
+                        val tutorialCompletado = sessionManager.hasCompletedTutorial.firstOrNull() ?: false
+                        val destinoFinal = if (!tutorialCompletado) "tutorial" else "principal"
+                        navController.navigate(destinoFinal) {
+                            popUpTo("login") { inclusive = true }
+                        }
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .semantics { role = Role.Button; contentDescription = "Boton continuar como invitado" },
+                colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.1f), contentColor = Color.White)
+            ) {
+                Text("Continuar como invitado")
+            }
         }
     }
 

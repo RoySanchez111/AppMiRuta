@@ -258,7 +258,12 @@ class MainViewModel(private val sessionManager: SessionManager) : ViewModel() {
     private fun checkSession() {
         viewModelScope.launch {
             sessionManager.isLoggedIn.collectLatest { loggedIn ->
-                _startDestination.value = if (loggedIn) "principal" else "login"
+                if (loggedIn) {
+                    val role = sessionManager.userRole.firstOrNull() ?: "pasajero"
+                    _startDestination.value = if (role == "conductor" || role == "admin") "inicio_conductor" else "principal"
+                } else {
+                    _startDestination.value = "login"
+                }
             }
         }
     }
