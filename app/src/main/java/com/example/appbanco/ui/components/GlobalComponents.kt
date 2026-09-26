@@ -67,12 +67,20 @@ fun BarraNavegacionInferior(navController: NavController, rutaActual: String?, e
         containerColor = containerColor,
         contentColor = themeColor
     ) {
-        val items = listOf(
-            Triple(inicioRoute, "Inicio", Icons.Default.Home), 
-            Triple("horario", "Horario", Icons.Default.Schedule), 
-            Triple("alertas", "Alertas", Icons.Default.Notifications), 
-            Triple("cuenta", "Cuenta", Icons.Default.Person)
-        )
+        val items = if (esConductor) {
+            listOf(
+                Triple(inicioRoute, "Inicio", Icons.Default.Home), 
+                Triple("alertas", "Alertas", Icons.Default.Notifications), 
+                Triple("cuenta", "Cuenta", Icons.Default.Person)
+            )
+        } else {
+            listOf(
+                Triple(inicioRoute, "Inicio", Icons.Default.Home), 
+                Triple("horario", "Horario", Icons.Default.Schedule), 
+                Triple("alertas", "Alertas", Icons.Default.Notifications), 
+                Triple("cuenta", "Cuenta", Icons.Default.Person)
+            )
+        }
         items.forEach { (ruta, etiqueta, icono) ->
             NavigationBarItem(
                 icon = { Icon(icono, contentDescription = etiqueta) },
@@ -121,12 +129,20 @@ fun RielNavegacionLateral(navController: NavController, rutaActual: String?, esC
         modifier = Modifier.fillMaxHeight()
     ) {
         Spacer(modifier = Modifier.height(16.dp))
-        val items = listOf(
-            Triple(inicioRoute, "Inicio", Icons.Default.Home), 
-            Triple("horario", "Horario", Icons.Default.Schedule), 
-            Triple("alertas", "Alertas", Icons.Default.Notifications), 
-            Triple("cuenta", "Cuenta", Icons.Default.Person)
-        )
+        val items = if (esConductor) {
+            listOf(
+                Triple(inicioRoute, "Inicio", Icons.Default.Home), 
+                Triple("alertas", "Alertas", Icons.Default.Notifications), 
+                Triple("cuenta", "Cuenta", Icons.Default.Person)
+            )
+        } else {
+            listOf(
+                Triple(inicioRoute, "Inicio", Icons.Default.Home), 
+                Triple("horario", "Horario", Icons.Default.Schedule), 
+                Triple("alertas", "Alertas", Icons.Default.Notifications), 
+                Triple("cuenta", "Cuenta", Icons.Default.Person)
+            )
+        }
         items.forEach { (ruta, etiqueta, icono) ->
             NavigationRailItem(
                 icon = { Icon(icono, contentDescription = etiqueta) },
