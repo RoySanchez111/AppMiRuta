@@ -38,6 +38,7 @@ fun EncabezadoConductor(
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .statusBarsPadding()
             .background(
                 brush = fondoHorario,
                 shape = RoundedCornerShape(
