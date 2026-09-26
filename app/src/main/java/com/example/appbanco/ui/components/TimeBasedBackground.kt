@@ -35,19 +35,19 @@ fun obtenerColoresFondo(): List<Color> {
             Color(0xFF2C5364)
         )
         PeriodoDia.MANANA -> listOf(
-            Color(0xFF8E2DE2),
-            Color(0xFF4A00E0),
-            Color(0xFF00C6FF)
+            Color(0xFF7B2CBF),
+            Color(0xFF3A0CA3),
+            Color(0xFF0096C7)
         )
         PeriodoDia.ATARDECER -> listOf(
-            Color(0xFF2193B0),
-            Color(0xFF47B4CB),
-            Color(0xFF6DD5ED)
+            Color(0xFF1A759F),
+            Color(0xFF1E6091),
+            Color(0xFF34A0A4)
         )
         PeriodoDia.OCASO -> listOf(
-            Color(0xFFF12711),
-            Color(0xFFF5AF19),
-            Color(0xFF654EA3)
+            Color(0xFFF55F6C),
+            Color(0xFFE57A6F),
+            Color(0xFF8D35A8)
         )
         PeriodoDia.NOCHE -> listOf(
             Color(0xFF232526),
@@ -60,7 +60,13 @@ fun obtenerColoresFondo(): List<Color> {
 @Composable
 fun TimeBasedBackground(modifier: Modifier = Modifier.fillMaxSize(), content: @Composable () -> Unit) {
     val coloresFondo = remember { obtenerColoresFondo() }
-    val backgroundBrush = remember(coloresFondo) { Brush.verticalGradient(coloresFondo) }
+    val backgroundBrush = remember(coloresFondo) {
+        Brush.verticalGradient(
+            colors = coloresFondo,
+            startY = 0f,
+            endY = Float.POSITIVE_INFINITY
+        )
+    }
 
     Box(
         modifier = modifier.background(backgroundBrush)

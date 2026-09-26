@@ -377,11 +377,18 @@ fun DialogoDetalleLinea(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
-                        .size(36.dp)
+                        .size(42.dp)
                         .background(linea.color, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(linea.codigo, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text(
+                        text = linea.codigo,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = if (linea.codigo.length > 2) 11.sp else 14.sp,
+                        maxLines = 1,
+                        softWrap = false
+                    )
                 }
                 Spacer(modifier = Modifier.width(10.dp))
                 Column {
@@ -478,7 +485,7 @@ fun TarjetaLineaHorario(linea: LineaHorario, proximaSalida: String, onClick: () 
         ) {
             Box(
                 modifier = Modifier
-                    .size(36.dp)
+                    .size(42.dp)
                     .background(linea.color, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
@@ -486,7 +493,9 @@ fun TarjetaLineaHorario(linea: LineaHorario, proximaSalida: String, onClick: () 
                     text = linea.codigo,
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp
+                    fontSize = if (linea.codigo.length > 2) 11.sp else 14.sp,
+                    maxLines = 1,
+                    softWrap = false
                 )
             }
             Spacer(modifier = Modifier.width(12.dp))

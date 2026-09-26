@@ -59,12 +59,36 @@ fun DialogoAgregarRutaFrecuente(
         "Universidad CCU Angelópolis",
         "Hospital Norte Puebla",
         "Centro Histórico",
-        "Aeropuerto Hermanos Serdán"
+        "Aeropuerto Hermanos Serdán",
+        "Avenida Cuauhtémoc Poniente",
+        "Avenida Cuauhtémoc Oriente",
+        "Boulevard Cuauhtémoc Sur",
+        "Avenida Juárez, Centro",
+        "Boulevard 5 de Mayo, Analco",
+        "Calzada Zavaleta, La Paz",
+        "11 Sur, C.U. BUAP",
+        "Diagonal Defensores de la República",
+        "Blvd. Atlixcáyotl, Angelópolis"
     )
 
     val sugerenciasFiltradas = remember(ubicacion) {
-        if (ubicacion.isBlank()) emptyList()
-        else sugerenciasUbicacion.filter { it.contains(ubicacion, ignoreCase = true) && it != ubicacion }
+        if (ubicacion.isBlank()) {
+            emptyList()
+        } else {
+            val query = ubicacion.trim()
+            val baseFiltradas = sugerenciasUbicacion.filter { it.contains(query, ignoreCase = true) && !it.equals(query, ignoreCase = true) }
+            
+            // Generador dinámico inteligente de rumbos y orientaciones (Poniente, Oriente, Norte, Sur) ante cualquier búsqueda
+            val dinamicas = listOf(
+                "$query Poniente",
+                "$query Oriente",
+                "$query Norte",
+                "$query Sur",
+                "$query, Colonia Centro"
+            ).filter { it.lowercase() != query.lowercase() }
+
+            (baseFiltradas + dinamicas).distinct().take(5)
+        }
     }
 
     val coloresDisponibles = listOf(
