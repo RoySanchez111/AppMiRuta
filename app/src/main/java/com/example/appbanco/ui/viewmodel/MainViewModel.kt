@@ -186,16 +186,60 @@ class MainViewModel(private val sessionManager: SessionManager) : ViewModel() {
     private val syncManager = SyncManager()
 
     fun agregarIncidencia(nueva: Incidencia) {
-        listaIncidencias.add(0, nueva)
-        viewModelScope.launch {
-            syncManager.syncIncidenciaToCloud(
-                id = nueva.id,
-                tipo = nueva.tipo,
-                ruta = nueva.ruta,
-                titulo = nueva.titulo,
-                descripcion = nueva.descripcion,
-                tiempo = nueva.tiempo
-            )
+        val existente = listaIncidencias.find { it.ruta.equals(nueva.ruta, ignoreCase = true) && !it.esGlobal }
+        if (existente != null) {
+            existente.confirmaciones += 1
+            if (existente.confirmaciones >= 2) {
+                existente.esGlobal = true
+            }
+            viewModelScope.launch {
+                syncManager.syncIncidenciaToCloud(
+                    id = existente.id,
+                    tipo = existente.tipo,
+                    ruta = existente.ruta,
+                    titulo = existente.titulo,
+                    descripcion = existente.descripcion,
+                    tiempo = existente.tiempo,
+                    confirmaciones = existente.confirmaciones,
+                    esGlobal = existente.esGlobal
+                )
+            }
+        } else {
+            listaIncidencias.add(0, nueva)
+            viewModelScope.launch {
+                syncManager.syncIncidenciaToCloud(
+                    id = nueva.id,
+                    tipo = nueva.tipo,
+                    ruta = nueva.ruta,
+                    titulo = nueva.titulo,
+                    descripcion = nueva.descripcion,
+                    tiempo = nueva.tiempo,
+                    confirmaciones = nueva.confirmaciones,
+                    esGlobal = nueva.esGlobal
+                )
+            }
+        }
+    }
+
+    fun confirmarIncidencia(id: String) {
+        val alerta = listaIncidencias.find { it.id == id }
+        if (alerta != null) {
+            alerta.confirmaciones += 1
+            if (alerta.confirmaciones >= 2) {
+                alerta.esGlobal = true
+            }
+            viewModelScope.launch {
+                syncManager.syncIncidenciaToCloud(
+                    id = alerta.id,
+                    tipo = alerta.tipo,
+                    ruta = alerta.ruta,
+                    titulo = alerta.titulo,
+                    descripcion = alerta.descripcion,
+                    tiempo = alerta.tiempo,
+                    confirmaciones = alerta.confirmaciones,
+                    esGlobal = alerta.esGlobal
+                )
+            }
         }
     }
 
@@ -210,6 +254,8 @@ class MainViewModel(private val sessionManager: SessionManager) : ViewModel() {
                         val titulo = map["titulo"] as? String ?: "Incidencia"
                         val descripcion = map["descripcion"] as? String ?: ""
                         val tiempo = map["tiempo"] as? String ?: "Hace un momento"
+                        val confirmaciones = (map["confirmaciones"] as? Long)?.toInt() ?: 1
+                        val esGlobal = map["esGlobal"] as? Boolean ?: false
 
                         if (listaIncidencias.none { it.id == id }) {
                             listaIncidencias.add(
@@ -221,7 +267,9 @@ class MainViewModel(private val sessionManager: SessionManager) : ViewModel() {
                                     descripcion = descripcion,
                                     tiempo = tiempo,
                                     colorEtiqueta = Color(0xFFC0392B),
-                                    colorRuta = Color(0xFFF39C12)
+                                    colorRuta = Color(0xFFF39C12),
+                                    confirmaciones = confirmaciones,
+                                    esGlobal = esGlobal
                                 )
                             )
                         }

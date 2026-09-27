@@ -187,7 +187,16 @@ class SyncManager {
     }
 
     // Sincronizar incidencia / alerta a la nube
-    suspend fun syncIncidenciaToCloud(id: String, tipo: String, ruta: String, titulo: String, descripcion: String, tiempo: String) {
+    suspend fun syncIncidenciaToCloud(
+        id: String,
+        tipo: String,
+        ruta: String,
+        titulo: String,
+        descripcion: String,
+        tiempo: String,
+        confirmaciones: Int = 1,
+        esGlobal: Boolean = false
+    ) {
         withContext(Dispatchers.IO) {
             try {
                 val data = mapOf(
@@ -197,6 +206,8 @@ class SyncManager {
                     "titulo" to titulo,
                     "descripcion" to descripcion,
                     "tiempo" to tiempo,
+                    "confirmaciones" to confirmaciones,
+                    "esGlobal" to esGlobal,
                     "updatedAt" to System.currentTimeMillis()
                 )
                 Tasks.await(

@@ -8,7 +8,6 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -55,7 +54,9 @@ data class Incidencia(
     val descripcion: String,
     val tiempo: String,
     val colorEtiqueta: Color,
-    val colorRuta: Color
+    val colorRuta: Color,
+    var confirmaciones: Int = 1,
+    var esGlobal: Boolean = false
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,10 +66,14 @@ fun PantallaAlertas(navController: NavController, viewModel: MainViewModel) {
     val surfaceColor = MaterialTheme.colorScheme.surface
     val primaryColor = MaterialTheme.colorScheme.primary
     val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
 
     val listaIncidencias = viewModel.listaIncidencias
     var mostrarDialogo by remember { mutableStateOf(false) }
     var mostrarExito by remember { mutableStateOf(false) }
+
+    val alertasGlobales = listaIncidencias.filter { it.esGlobal }
+    val alertasPendientes = listaIncidencias.filter { !it.esGlobal }
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -84,88 +89,131 @@ fun PantallaAlertas(navController: NavController, viewModel: MainViewModel) {
                 contentPadding = PaddingValues(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-            if (listaIncidencias.isNotEmpty()) {
-                item {
-                    Text(
-                        text = "👈 Desliza una alerta a la izquierda para eliminarla",
-                        fontSize = 12.sp,
-                        color = onSurface.copy(alpha = 0.5f),
-                        modifier = Modifier
-                            .padding(bottom = 12.dp)
-                            .semantics { contentDescription = "Pista: Desliza cualquier tarjeta a la izquierda para eliminar la alerta" }
-                    )
-                }
-            } else {
-                item {
-                    Spacer(modifier = Modifier.height(40.dp))
-                    Surface(
-                        color = surfaceColor,
-                        shape = RoundedCornerShape(16.dp),
-                        border = BorderStroke(1.dp, primaryColor.copy(alpha = 0.2f)),
-                        modifier = Modifier.fillMaxWidth().padding(20.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(24.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                if (alertasGlobales.isEmpty() && alertasPendientes.isEmpty()) {
+                    item {
+                        Spacer(modifier = Modifier.height(40.dp))
+                        Surface(
+                            color = surfaceColor,
+                            shape = RoundedCornerShape(16.dp),
+                            border = BorderStroke(1.dp, primaryColor.copy(alpha = 0.2f)),
+                            modifier = Modifier.fillMaxWidth().padding(20.dp)
                         ) {
-                            Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color(0xFF2ECC71), modifier = Modifier.size(48.dp))
-                            Spacer(modifier = Modifier.height(12.dp))
-                            Text("¡No hay incidencias reportadas!", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = onSurface)
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Text("El servicio de transporte opera con normalidad.", fontSize = 13.sp, color = onSurface.copy(alpha = 0.6f))
+                            Column(
+                                modifier = Modifier.padding(24.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color(0xFF2ECC71), modifier = Modifier.size(48.dp))
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Text("¡No hay incidencias reportadas!", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = onSurface)
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text("El servicio de transporte opera con normalidad.", fontSize = 13.sp, color = onSurface.copy(alpha = 0.6f))
+                            }
                         }
                     }
-                }
-            }
-
-            items(
-                items = listaIncidencias,
-                key = { it.id }
-            ) { incidencia ->
-                ItemAlertaDeslizable(
-                    incidencia = incidencia,
-                    onEliminar = {
-                        listaIncidencias.remove(incidencia)
-                        Toast.makeText(context, "Alerta en ruta ${incidencia.ruta} eliminada", Toast.LENGTH_SHORT).show()
+                } else {
+                    item {
+                        Text(
+                            text = "👈 Desliza una alerta a la izquierda para eliminarla",
+                            fontSize = 12.sp,
+                            color = onSurface.copy(alpha = 0.5f),
+                            modifier = Modifier
+                                .padding(bottom = 12.dp)
+                                .semantics { contentDescription = "Pista: Desliza cualquier tarjeta a la izquierda para eliminar la alerta" }
+                        )
                     }
-                )
-                Spacer(modifier = Modifier.height(12.dp))
+                }
+
+                if (alertasGlobales.isNotEmpty()) {
+                    item {
+                        Text(
+                            text = "🟢 Alertas Verificadas y Globales",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp,
+                            color = Color(0xFF2ECC71),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 6.dp)
+                                .semantics { heading() }
+                        )
+                    }
+                    items(items = alertasGlobales, key = { it.id }) { incidencia ->
+                        ItemAlertaDeslizable(
+                            incidencia = incidencia,
+                            onEliminar = {
+                                listaIncidencias.remove(incidencia)
+                                Toast.makeText(context, "Alerta en ruta ${incidencia.ruta} eliminada", Toast.LENGTH_SHORT).show()
+                            },
+                            onConfirmar = {}
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
+                }
+
+                if (alertasPendientes.isNotEmpty()) {
+                    item {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(
+                            text = "📍 Reportes Cercanos por Verificar (Pendientes)",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp,
+                            color = Color(0xFFF39C12),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 6.dp)
+                                .semantics { heading() }
+                        )
+                    }
+                    items(items = alertasPendientes, key = { it.id }) { incidencia ->
+                        ItemAlertaDeslizable(
+                            incidencia = incidencia,
+                            onEliminar = {
+                                listaIncidencias.remove(incidencia)
+                                Toast.makeText(context, "Reporte cercano descartado", Toast.LENGTH_SHORT).show()
+                            },
+                            onConfirmar = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                viewModel.confirmarIncidencia(incidencia.id)
+                                Toast.makeText(context, "✅ ¡Alerta confirmada! Promovida a global para todos", Toast.LENGTH_LONG).show()
+                            }
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(100.dp))
+                }
             }
 
-            item {
-                Spacer(modifier = Modifier.height(100.dp))
-            }
-        }
-
-        Surface(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 24.dp)
-                .height(56.dp)
-                .width(280.dp)
-                .shadow(elevation = 8.dp, shape = RoundedCornerShape(28.dp))
-                .semantics(mergeDescendants = true) {
-                    role = Role.Button
-                    contentDescription = "Reportar nueva incidencia"
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 24.dp)
+                    .height(56.dp)
+                    .width(280.dp)
+                    .shadow(elevation = 8.dp, shape = RoundedCornerShape(28.dp))
+                    .semantics(mergeDescendants = true) {
+                        role = Role.Button
+                        contentDescription = "Reportar nueva incidencia"
+                    }
+                    .clickable { mostrarDialogo = true },
+                shape = RoundedCornerShape(28.dp),
+                color = surfaceColor,
+                border = BorderStroke(1.dp, onSurface.copy(alpha = 0.1f))
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+                    Box(modifier = Modifier.size(32.dp).background(primaryColor, CircleShape), contentAlignment = Alignment.Center) {
+                        Icon(Icons.Default.PriorityHigh, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = "Reportar Incidencia",
+                        color = onSurface,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
                 }
-                .clickable { mostrarDialogo = true },
-            shape = RoundedCornerShape(28.dp),
-            color = surfaceColor,
-            border = BorderStroke(1.dp, onSurface.copy(alpha = 0.1f))
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-                Box(modifier = Modifier.size(32.dp).background(primaryColor, CircleShape), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Default.PriorityHigh, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
-                }
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = "Reportar Incidencia",
-                    color = onSurface,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
-                )
             }
-        }
         }
     }
 
@@ -176,18 +224,21 @@ fun PantallaAlertas(navController: NavController, viewModel: MainViewModel) {
             onConfirm = { nuevaRuta, nuevaDescripcion ->
                 viewModel.agregarIncidencia(
                     Incidencia(
-                        tipo = "Reporte de Usuario",
+                        tipo = "Reporte Vecinal",
                         ruta = nuevaRuta.take(2).uppercase(),
                         titulo = "Incidencia en Ruta $nuevaRuta",
                         descripcion = nuevaDescripcion,
                         tiempo = "Hace un momento",
                         colorEtiqueta = Color(0xFF3498DB),
-                        colorRuta = Color.Gray
+                        colorRuta = Color.Gray,
+                        confirmaciones = 1,
+                        esGlobal = false // Inicia local/cercana pendiente de verificación
                     )
                 )
                 mostrarDialogo = false
                 mostrarExito = true
                 reproducirSonidoNotificacion(context)
+                Toast.makeText(context, "📍 Reporte enviado a usuarios cercanos para verificación", Toast.LENGTH_LONG).show()
             }
         )
     }
@@ -204,7 +255,8 @@ fun PantallaAlertas(navController: NavController, viewModel: MainViewModel) {
 @Composable
 fun ItemAlertaDeslizable(
     incidencia: Incidencia,
-    onEliminar: () -> Unit
+    onEliminar: () -> Unit,
+    onConfirmar: () -> Unit
 ) {
     var estaEliminado by remember { mutableStateOf(false) }
     val haptic = LocalHapticFeedback.current
@@ -277,7 +329,8 @@ fun ItemAlertaDeslizable(
                     incidencia = incidencia,
                     onEliminarClick = {
                         estaEliminado = true
-                    }
+                    },
+                    onConfirmarClick = onConfirmar
                 )
             }
         )
@@ -287,7 +340,8 @@ fun ItemAlertaDeslizable(
 @Composable
 fun TarjetaAlerta(
     incidencia: Incidencia,
-    onEliminarClick: () -> Unit = {}
+    onEliminarClick: () -> Unit = {},
+    onConfirmarClick: () -> Unit = {}
 ) {
     var expandida by remember { mutableStateOf(true) }
     val onSurfaceColor = MaterialTheme.colorScheme.onSurface
@@ -401,7 +455,7 @@ fun TarjetaAlerta(
                     .size(20.dp)
                     .constrainAs(expandIcon) {
                         top.linkTo(routeSurface.top)
-                        bottom.linkTo(routeSurface.bottom)
+                        bottom.linkTo(routeSurface.bottom, margin = 2.dp)
                         end.linkTo(parent.end)
                     }
             )
@@ -444,11 +498,7 @@ fun TarjetaAlerta(
             )
 
             if (expandida) {
-                Text(
-                    text = incidencia.descripcion,
-                    fontSize = 13.sp,
-                    color = onSurfaceColor.copy(alpha = 0.8f),
-                    lineHeight = 18.sp,
+                Column(
                     modifier = Modifier.constrainAs(descText) {
                         top.linkTo(titleText.bottom, margin = 6.dp)
                         start.linkTo(iconBox.end, margin = 12.dp)
@@ -456,7 +506,37 @@ fun TarjetaAlerta(
                         width = Dimension.fillToConstraints
                         bottom.linkTo(parent.bottom)
                     }
-                )
+                ) {
+                    Text(
+                        text = incidencia.descripcion,
+                        fontSize = 13.sp,
+                        color = onSurfaceColor.copy(alpha = 0.8f),
+                        lineHeight = 18.sp
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = if (incidencia.esGlobal) "🟢 Verificada (${incidencia.confirmaciones} confirmaciones)" else "🟡 Pendiente de confirmación cercana (${incidencia.confirmaciones}/2)",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (incidencia.esGlobal) Color(0xFF2ECC71) else Color(0xFFF39C12)
+                        )
+
+                        if (!incidencia.esGlobal) {
+                            OutlinedButton(
+                                onClick = onConfirmarClick,
+                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                modifier = Modifier.height(30.dp)
+                            ) {
+                                Text("✓ Confirmar", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -476,110 +556,34 @@ fun DialogoReporte(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = {
-            Text(
-                "Reportar nueva incidencia",
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp,
-                modifier = Modifier.semantics { heading() }
-            )
-        },
+        title = { Text("Reportar Incidencia") },
         text = {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-            ) {
-                Text("Selecciona o escribe la línea afectada:", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
-                Spacer(modifier = Modifier.height(6.dp))
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    rutasSugeridas.forEach { chipRuta ->
-                        val esSeleccionada = ruta == chipRuta
-                        Surface(
-                            shape = RoundedCornerShape(12.dp),
-                            color = if (esSeleccionada) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
-                            modifier = Modifier.clickable {
-                                ruta = chipRuta
-                                errorRuta = false
-                            }
-                        ) {
-                            Text(
-                                text = chipRuta,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (esSeleccionada) Color.White else MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(10.dp))
-
+            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                 OutlinedTextField(
                     value = ruta,
-                    onValueChange = {
-                        ruta = it
-                        errorRuta = false
-                    },
-                    label = { Text("Línea/Ruta (Ej. L4)") },
+                    onValueChange = { ruta = it },
+                    label = { Text("Línea o Ruta (Ej. L1, R10)") },
                     singleLine = true,
-                    isError = errorRuta,
                     modifier = Modifier.fillMaxWidth()
                 )
-
-                if (errorRuta) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Debes seleccionar o ingresar una línea.",
-                        color = MaterialTheme.colorScheme.error,
-                        fontSize = 12.sp
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
+                Spacer(modifier = Modifier.height(10.dp))
                 OutlinedTextField(
                     value = descripcion,
-                    onValueChange = {
-                        descripcion = it
-                        errorDescripcion = false
-                    },
-                    label = { Text("Descripción del problema") },
-                    isError = errorDescripcion,
-                    minLines = 3,
-                    maxLines = 5,
+                    onValueChange = { descripcion = it },
+                    label = { Text("Descripción del incidente") },
                     modifier = Modifier.fillMaxWidth()
                 )
-
-                if (errorDescripcion) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Debes ingresar una descripción del problema.",
-                        color = MaterialTheme.colorScheme.error,
-                        fontSize = 12.sp
-                    )
-                }
             }
         },
         confirmButton = {
             Button(
                 onClick = {
-                    errorRuta = ruta.isBlank()
-                    errorDescripcion = descripcion.isBlank()
-
-                    if (!errorRuta && !errorDescripcion) {
-                        onConfirm(ruta.trim(), descripcion.trim())
+                    if (ruta.isNotBlank() && descripcion.isNotBlank()) {
+                        onConfirm(ruta, descripcion)
                     }
                 }
             ) {
-                Text("Reportar Incidencia")
+                Text("Enviar Reporte")
             }
         },
         dismissButton = {
@@ -591,71 +595,15 @@ fun DialogoReporte(
 }
 
 @Composable
-fun AnimacionReporteExitoso(
-    onFinished: () -> Unit
-) {
-    val haptic = LocalHapticFeedback.current
-
+fun AnimacionReporteExitoso(onFinished: () -> Unit) {
     LaunchedEffect(Unit) {
-        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-        delay(1000)
+        delay(1200)
         onFinished()
     }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.35f))
-            .semantics {
-                liveRegion = LiveRegionMode.Polite
-                contentDescription = "¡Reporte enviado! La incidencia fue registrada correctamente."
-            },
-        contentAlignment = Alignment.Center
-    ) {
-        Surface(
-            modifier = Modifier
-                .width(280.dp)
-                .wrapContentHeight(),
-            shape = RoundedCornerShape(24.dp),
-            color = MaterialTheme.colorScheme.surface,
-            shadowElevation = 8.dp
-        ) {
-            Column(
-                modifier = Modifier.padding(horizontal = 30.dp, vertical = 28.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(90.dp)
-                        .background(Color(0xFFE8F5E9), CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "✓",
-                        fontSize = 55.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF4CAF50)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(18.dp))
-
-                Text(
-                    text = "¡Reporte enviado!",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-
-                Spacer(modifier = Modifier.height(6.dp))
-
-                Text(
-                    text = "La incidencia fue registrada correctamente.",
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
-    }
+    AlertDialog(
+        onDismissRequest = {},
+        title = { Text("¡Reporte Enviado!") },
+        text = { Text("Tu reporte ha sido enviado a la comunidad para su verificación cercana.") },
+        confirmButton = {}
+    )
 }
