@@ -57,11 +57,12 @@ fun BarraNavegacionConductor(
 
         // Alertas
         NavigationBarItem(
-            selected = rutaActual == "alertas",
+            selected = rutaActual == "alertas_conductor",
             onClick = {
-                if (rutaActual != "alertas") {
+                if (rutaActual != "alertas_conductor") {
                     haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                    navController.navigate("alertas") {
+
+                    navController.navigate("alertas_conductor") {
                         popUpTo("inicio_conductor") { saveState = true }
                         launchSingleTop = true
                         restoreState = true
@@ -81,11 +82,12 @@ fun BarraNavegacionConductor(
 
         // Cuenta
         NavigationBarItem(
-            selected = rutaActual == "cuenta",
+            selected = rutaActual == "cuenta_conductor",
             onClick = {
-                if (rutaActual != "cuenta") {
+                if (rutaActual != "cuenta_conductor") {
                     haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                    navController.navigate("cuenta") {
+
+                    navController.navigate("cuenta_conductor") {
                         popUpTo("inicio_conductor") { saveState = true }
                         launchSingleTop = true
                         restoreState = true

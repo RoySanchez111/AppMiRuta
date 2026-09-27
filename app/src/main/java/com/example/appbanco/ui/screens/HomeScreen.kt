@@ -379,6 +379,37 @@ fun PantallaPrincipal(navController: NavController) {
             Spacer(modifier = Modifier.height(12.dp))
         }
 
+// BOTÓN TEMPORAL - MODO CONDUCTOR
+// Eliminar cuando ya no sea necesario
+            Button(
+                onClick = {
+                    navController.navigate("inicio_conductor")
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF123847)
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.DirectionsBus,
+                    contentDescription = null,
+                    tint = Color.White
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Text(
+                    text = "Entrar como conductor",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
         // BUSCADOR PRINCIPAL
         OutlinedTextField(
             value = busquedaTexto,

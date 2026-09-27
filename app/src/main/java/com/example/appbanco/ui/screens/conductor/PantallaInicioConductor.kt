@@ -116,7 +116,7 @@ fun PantallaInicioConductor(
                 onAlerta = {
                     ejecutarVibracionHaptica(context, 60L)
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    navController.navigate("alertas")
+                    navController.navigate("alertas_conductor")
                 }
             )
         }

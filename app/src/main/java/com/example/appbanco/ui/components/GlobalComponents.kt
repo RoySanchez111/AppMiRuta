@@ -56,59 +56,70 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 
 @Composable
-fun BarraNavegacionInferior(navController: NavController, rutaActual: String?, esConductor: Boolean = false) {
+fun BarraNavegacionInferior(
+    navController: NavController,
+    rutaActual: String?,
+    esConductor: Boolean = false
+) {
     val themeColor = MaterialTheme.colorScheme.onSurface
     val containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
     val haptic = LocalHapticFeedback.current
-
-    val inicioRoute = if (esConductor) "inicio_conductor" else "principal"
 
     NavigationBar(
         containerColor = containerColor,
         contentColor = themeColor
     ) {
-        val items = if (esConductor) {
-            listOf(
-                Triple(inicioRoute, "Inicio", Icons.Default.Home), 
-                Triple("alertas", "Alertas", Icons.Default.Notifications), 
-                Triple("cuenta", "Cuenta", Icons.Default.Person)
-            )
-        } else {
-            listOf(
-                Triple(inicioRoute, "Inicio", Icons.Default.Home), 
-                Triple("horario", "Horario", Icons.Default.Schedule), 
-                Triple("alertas", "Alertas", Icons.Default.Notifications), 
-                Triple("cuenta", "Cuenta", Icons.Default.Person)
-            )
-        }
+
+        val items = listOf(
+            Triple("principal", "Inicio", Icons.Default.Home),
+            Triple("horario", "Horario", Icons.Default.Schedule),
+            Triple("alertas", "Alertas", Icons.Default.Notifications),
+            Triple("cuenta", "Cuenta", Icons.Default.Person)
+        )
+
         items.forEach { (ruta, etiqueta, icono) ->
+
             NavigationBarItem(
-                icon = { Icon(icono, contentDescription = etiqueta) },
-                label = { Text(etiqueta) },
+                icon = {
+                    Icon(
+                        imageVector = icono,
+                        contentDescription = etiqueta
+                    )
+                },
+
+                label = {
+                    Text(etiqueta)
+                },
+
                 selected = rutaActual == ruta,
+
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = MaterialTheme.colorScheme.primary, 
-                    selectedTextColor = MaterialTheme.colorScheme.primary, 
-                    unselectedIconColor = themeColor.copy(alpha = 0.6f), 
-                    unselectedTextColor = themeColor.copy(alpha = 0.6f), 
-                    indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                    selectedTextColor = MaterialTheme.colorScheme.primary,
+                    unselectedIconColor = themeColor.copy(alpha = 0.6f),
+                    unselectedTextColor = themeColor.copy(alpha = 0.6f),
+                    indicatorColor =
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                 ),
-                onClick = { 
+
+                onClick = {
+
                     if (rutaActual != ruta) {
-                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                        if (ruta == inicioRoute) {
-                            navController.popBackStack(inicioRoute, inclusive = false)
-                        } else {
-                            navController.navigate(ruta) { 
-                                popUpTo(inicioRoute) { 
-                                    saveState = true
-                                    inclusive = false
-                                }
-                                launchSingleTop = true
-                                restoreState = true 
-                            } 
+
+                        haptic.performHapticFeedback(
+                            HapticFeedbackType.TextHandleMove
+                        )
+
+                        navController.navigate(ruta) {
+
+                            popUpTo("principal") {
+                                saveState = true
+                            }
+
+                            launchSingleTop = true
+                            restoreState = true
                         }
-                    } 
+                    }
                 }
             )
         }

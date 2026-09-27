@@ -116,7 +116,11 @@ class MainViewModel(private val sessionManager: SessionManager) : ViewModel() {
         }
     }
 
-    fun actualizarNombreUsuario(userDao: UserDao, nuevoNombre: String, onFinished: (Boolean) -> Unit) {
+    fun actualizarNombreUsuario(
+        userDao: UserDao,
+        nuevoNombre: String,
+        onFinished: (Boolean) -> Unit
+    ) {
         viewModelScope.launch {
             if (nuevoNombre.isNotBlank()) {
                 val userId = sessionManager.currentUserId.firstOrNull()
@@ -186,7 +190,8 @@ class MainViewModel(private val sessionManager: SessionManager) : ViewModel() {
     private val syncManager = SyncManager()
 
     fun agregarIncidencia(nueva: Incidencia) {
-        val existente = listaIncidencias.find { it.ruta.equals(nueva.ruta, ignoreCase = true) && !it.esGlobal }
+        val existente =
+            listaIncidencias.find { it.ruta.equals(nueva.ruta, ignoreCase = true) && !it.esGlobal }
         if (existente != null) {
             existente.confirmaciones += 1
             if (existente.confirmaciones >= 2) {
@@ -306,9 +311,9 @@ class MainViewModel(private val sessionManager: SessionManager) : ViewModel() {
     private fun checkSession() {
         viewModelScope.launch {
             sessionManager.isLoggedIn.collectLatest { loggedIn ->
+
                 if (loggedIn) {
-                    val role = sessionManager.userRole.firstOrNull() ?: "pasajero"
-                    _startDestination.value = if (role == "conductor" || role == "admin") "inicio_conductor" else "principal"
+                    _startDestination.value = "principal"
                 } else {
                     _startDestination.value = "login"
                 }

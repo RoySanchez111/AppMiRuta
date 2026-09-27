@@ -87,15 +87,22 @@ fun PantallaLogin(
 
     LaunchedEffect(loginSuccess) {
         if (loginSuccess) {
-            val role = viewModel.userRole
-            val destinoFinal = if (role == "conductor" || role == "admin") {
-                "inicio_conductor"
-            } else {
-                val tutorialCompletado = sessionManager.hasCompletedTutorial.firstOrNull() ?: false
-                if (!tutorialCompletado) "tutorial" else "principal"
-            }
+
+            val tutorialCompletado =
+                sessionManager.hasCompletedTutorial.firstOrNull() ?: false
+
+            val destinoFinal =
+                if (!tutorialCompletado) {
+                    "tutorial"
+                } else {
+                    "principal"
+                }
+
             navController.navigate(destinoFinal) {
-                popUpTo("login") { inclusive = true }
+                popUpTo("login") {
+                    inclusive = true
+                }
+                launchSingleTop = true
             }
         }
     }
