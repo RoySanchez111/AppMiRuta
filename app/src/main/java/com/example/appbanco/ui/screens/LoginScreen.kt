@@ -306,22 +306,23 @@ fun PantallaLogin(
             Image(
                 painter = painterResource(id = R.drawable.logo_blanco_vector),
                 contentDescription = null,
-                modifier = Modifier.size(90.dp)
+                modifier = Modifier
+                    .width(250.dp)
+                    .height(165.dp)
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(0.dp))
 
             Image(
                 painter = painterResource(id = R.drawable.ic_miruta_texto),
                 contentDescription = "Mi Ruta Logo Texto",
                 modifier = Modifier
-                    .width(180.dp)
-                    .height(48.dp)
+                    .width(230.dp)
+                    .height(64.dp)
                     .semantics { heading() }
             )
-            
-            Spacer(modifier = Modifier.height(32.dp))
 
+            Spacer(modifier = Modifier.height(18.dp))
             if (errorMessage != null) {
                 Text(
                     text = errorMessage, 

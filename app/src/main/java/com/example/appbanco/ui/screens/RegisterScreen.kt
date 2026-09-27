@@ -79,33 +79,27 @@ fun PantallaRegistro(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+            // Logo superior
             Image(
                 painter = painterResource(id = R.drawable.logo_blanco_vector),
                 contentDescription = null,
-                modifier = Modifier.size(46.dp)
-            )
-            Spacer(modifier = Modifier.width(10.dp))
-            Image(
-                painter = painterResource(id = R.drawable.ic_miruta_texto),
-                contentDescription = "Mi Ruta Logo",
                 modifier = Modifier
-                    .width(130.dp)
-                    .height(34.dp)
+                    .width(210.dp)
+                    .height(150.dp)
             )
-        }
 
-        Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(0.dp))
 
-        Text(
-            text = "Crear cuenta",
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.semantics { heading() }
-        )
+// Título
+            Text(
+                text = "Crear Cuenta",
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                modifier = Modifier.semantics { heading() }
+            )
 
-        Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
         // TARJETA CONTENEDORA DE FORMULARIO
         Surface(
