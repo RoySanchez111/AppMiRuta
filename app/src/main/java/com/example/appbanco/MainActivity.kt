@@ -27,7 +27,11 @@ import com.example.appbanco.data.database.AppDatabase
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.example.appbanco.data.database.SyncManager
+import com.example.appbanco.data.database.UserEntity
+import com.example.appbanco.logic.SecurityUtils
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private lateinit var sessionManager: SessionManager
@@ -48,6 +52,28 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+
+        // 🛡️ PRE-POBLACIÓN SEGURA DE USUARIOS DE PRUEBA (Sin borrar cuentas nuevas)
+        lifecycleScope.launch {
+            val userDao = database.userDao()
+            val sync = SyncManager()
+
+            if (userDao.getUserByUsername("rafa") == null) {
+                val conductor = UserEntity(username = "rafa", passwordHash = SecurityUtils.hashPassword("123"), role = "conductor")
+                userDao.registerUser(conductor)
+                sync.syncUserToCloud(conductor)
+            }
+            if (userDao.getUserByUsername("roy") == null) {
+                val admin = UserEntity(username = "roy", passwordHash = SecurityUtils.hashPassword("123"), role = "admin")
+                userDao.registerUser(admin)
+                sync.syncUserToCloud(admin)
+            }
+            if (userDao.getUserByUsername("alex") == null) {
+                val pasajero = UserEntity(username = "alex", passwordHash = SecurityUtils.hashPassword("123"), role = "pasajero")
+                userDao.registerUser(pasajero)
+                sync.syncUserToCloud(pasajero)
+            }
+        }
 
         setContent {
             val mainViewModel: MainViewModel = viewModel(
