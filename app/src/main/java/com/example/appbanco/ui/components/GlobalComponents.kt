@@ -150,57 +150,64 @@ fun RielNavegacionLateral(navController: NavController, rutaActual: String?, esC
     val haptic = LocalHapticFeedback.current
 
     val inicioRoute = if (esConductor) "inicio_conductor" else "principal"
+    val alertasRoute = if (esConductor) "alertas_conductor" else "alertas"
+    val cuentaRoute = if (esConductor) "cuenta_conductor" else "cuenta"
 
     NavigationRail(
         containerColor = containerColor,
         contentColor = themeColor,
         modifier = Modifier.fillMaxHeight()
     ) {
-        Spacer(modifier = Modifier.height(16.dp))
-        val items = if (esConductor) {
-            listOf(
-                Triple(inicioRoute, "Inicio", Icons.Default.Home), 
-                Triple("alertas", "Alertas", Icons.Default.Notifications), 
-                Triple("cuenta", "Cuenta", Icons.Default.Person)
-            )
-        } else {
-            listOf(
-                Triple(inicioRoute, "Inicio", Icons.Default.Home), 
-                Triple("horario", "Horario", Icons.Default.Schedule), 
-                Triple("alertas", "Alertas", Icons.Default.Notifications), 
-                Triple("cuenta", "Cuenta", Icons.Default.Person)
-            )
-        }
-        items.forEach { (ruta, etiqueta, icono) ->
-            NavigationRailItem(
-                icon = { Icon(icono, contentDescription = etiqueta) },
-                label = { Text(etiqueta) },
-                selected = rutaActual == ruta,
-                colors = NavigationRailItemDefaults.colors(
-                    selectedIconColor = MaterialTheme.colorScheme.primary, 
-                    selectedTextColor = MaterialTheme.colorScheme.primary, 
-                    unselectedIconColor = themeColor.copy(alpha = 0.6f), 
-                    unselectedTextColor = themeColor.copy(alpha = 0.6f), 
-                    indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                ),
-                onClick = { 
-                    if (rutaActual != ruta) {
-                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                        if (ruta == inicioRoute) {
-                            navController.popBackStack(inicioRoute, inclusive = false)
-                        } else {
-                            navController.navigate(ruta) { 
-                                popUpTo(inicioRoute) { 
-                                    saveState = true
-                                    inclusive = false
-                                }
-                                launchSingleTop = true
-                                restoreState = true 
-                            } 
-                        }
-                    } 
-                }
-            )
+        Column(
+            modifier = Modifier.fillMaxHeight().padding(vertical = 32.dp),
+            verticalArrangement = Arrangement.SpaceEvenly,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            val items = if (esConductor) {
+                listOf(
+                    Triple(inicioRoute, "Inicio", Icons.Default.Home), 
+                    Triple(alertasRoute, "Alertas", Icons.Default.Notifications), 
+                    Triple(cuentaRoute, "Cuenta", Icons.Default.Person)
+                )
+            } else {
+                listOf(
+                    Triple(inicioRoute, "Inicio", Icons.Default.Home), 
+                    Triple("horario", "Horario", Icons.Default.Schedule), 
+                    Triple(alertasRoute, "Alertas", Icons.Default.Notifications), 
+                    Triple(cuentaRoute, "Cuenta", Icons.Default.Person)
+                )
+            }
+            items.forEach { (ruta, etiqueta, icono) ->
+                NavigationRailItem(
+                    icon = { Icon(icono, contentDescription = etiqueta) },
+                    label = { Text(etiqueta) },
+                    selected = rutaActual == ruta,
+                    colors = NavigationRailItemDefaults.colors(
+                        selectedIconColor = MaterialTheme.colorScheme.primary, 
+                        selectedTextColor = MaterialTheme.colorScheme.primary, 
+                        unselectedIconColor = themeColor.copy(alpha = 0.6f), 
+                        unselectedTextColor = themeColor.copy(alpha = 0.6f), 
+                        indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                    ),
+                    onClick = { 
+                        if (rutaActual != ruta) {
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            if (ruta == inicioRoute) {
+                                navController.popBackStack(inicioRoute, inclusive = false)
+                            } else {
+                                navController.navigate(ruta) { 
+                                    popUpTo(inicioRoute) { 
+                                        saveState = true
+                                        inclusive = false
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true 
+                                } 
+                            }
+                        } 
+                    }
+                )
+            }
         }
     }
 }

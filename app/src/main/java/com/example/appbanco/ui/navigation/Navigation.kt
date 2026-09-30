@@ -61,8 +61,8 @@ fun NavegacionMiRuta(
                 rutaActual != "login" &&
                 rutaActual != "loading" &&
                 rutaActual != "registro" &&
-                rutaActual != "tutorial" &&
-                !esPantallaConductor
+                rutaActual != "tutorial"
+
     val usuarioNombre by viewModel.usuarioActual.collectAsState()
     val fotoPerfilUri by viewModel.fotoPerfilUri.collectAsState()
     val mensajeBienvenida = obtenerMensajeBienvenida(usuarioNombre)
@@ -96,7 +96,7 @@ fun NavegacionMiRuta(
             containerColor = Color.Transparent,
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
             topBar = {
-                if (esPantallaApp) {
+                if (esPantallaApp && !esPantallaConductor) {
                     EncabezadoGlobal(
                         titulo = tituloHeader,
                         subtitulo = subtituloHeader,
@@ -131,13 +131,13 @@ fun NavegacionMiRuta(
                 }
             },
             bottomBar = {
-                if (esPantallaApp && !esPantallaAncha) {
+                if (esPantallaApp && !esPantallaAncha && !esPantallaConductor) {
                     BarraNavegacionInferior(navController, rutaActual, esConductor)
                 }
             }
         ) { paddingValues ->
             val modifier =
-                if (esPantallaApp) Modifier.padding(paddingValues) else Modifier.fillMaxSize()
+                if (esPantallaApp && !esPantallaConductor) Modifier.padding(paddingValues) else Modifier.fillMaxSize()
 
             NavHost(
                 navController = navController,

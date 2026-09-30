@@ -422,6 +422,61 @@ fun PantallaPrincipal(navController: NavController) {
                 }
             }
 
+
+            // INSIGNIA FLOTANTE DE PERFIL EN EL MAPA (TopStart)
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(20.dp)
+                    .shadow(4.dp, RoundedCornerShape(20.dp)),
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(contentAlignment = Alignment.BottomEnd) {
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(30.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Default.Person,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
+                        Box(
+                            modifier = Modifier
+                                .size(10.dp)
+                                .background(Color(0xFF2ECC71), CircleShape)
+                                .border(1.5.dp, Color.White, CircleShape)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Column {
+                        Text(
+                            text = nombreUsuario,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = "GPS Activo",
+                            fontSize = 10.sp,
+                            color = Color(0xFF2ECC71),
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+            }
+
             // CONTROLES FLOTANTES EN LA ESQUINA INFERIOR DERECHA (RECALCULAR Y CENTRAR GPS)
             Column(
                 modifier = Modifier
@@ -936,352 +991,6 @@ fun PantallaPrincipal(navController: NavController) {
             }
         }
     }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // RESULTADOS DE BÚSQUEDA RÁPIDA
-        if (busquedaTexto.isNotBlank()) {
-            Text(
-                text = "Resultados para '$busquedaTexto':",
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Bold,
-                color = onBackground.copy(alpha = 0.7f),
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-
-            if (paradasFiltradas.isEmpty()) {
-                Text(
-                    text = "No se encontraron paradas que coincidan.",
-                    fontSize = 12.sp,
-                    color = onBackground.copy(alpha = 0.5f),
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-            } else {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    paradasFiltradas.take(3).forEach { parada ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    paradaSeleccionada = parada
-                                    busquedaTexto = ""
-                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                },
-                            shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(containerColor = surfaceColor)
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(12.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    imageVector = if (parada.esIncidencia) Icons.Default.Warning else Icons.Default.Place,
-                                    contentDescription = null,
-                                    tint = if (parada.esIncidencia) Color(0xFFC0392B) else MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                Spacer(modifier = Modifier.width(10.dp))
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(parada.nombre, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = onSurface)
-                                    Text("Líneas: ${parada.lineas.joinToString(", ")} • ${parada.proximaLlegada}", fontSize = 12.sp, color = onSurface.copy(alpha = 0.6f))
-                                }
-                                Icon(Icons.Default.ChevronRight, contentDescription = null, tint = onSurface.copy(alpha = 0.4f), modifier = Modifier.size(18.dp))
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        if (modoOffline) {
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                color = Color(0xFFF39C12).copy(alpha = 0.15f),
-                border = BorderStroke(1.dp, Color(0xFFF39C12))
-            ) {
-                Row(
-                    modifier = Modifier.padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(Icons.Default.CloudOff, contentDescription = null, tint = Color(0xFFF39C12), modifier = Modifier.size(20.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Column {
-                        Text("Modo Offline Activo", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = Color(0xFFF39C12))
-                        Text("Ahorrando datos móviles. Actualización en tiempo real pausada.", fontSize = 11.sp, color = onSurface.copy(alpha = 0.7f))
-                    }
-                }
-            }
-            Spacer(modifier = Modifier.height(10.dp))
-        }
-
-        // MAPA INTERACTIVO NATIVO EN MAPBOX COMPOSE V11
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(380.dp)
-                .clip(RoundedCornerShape(20.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-                .semantics {
-                    contentDescription = "Mapa interactivo nativo Mapbox con líneas de transporte y ubicaciones"
-                }
-        ) {
-            if (isMapVisible) {
-                MapaOptimizadoContainer(
-                    modifier = Modifier.fillMaxSize(),
-                    paradas = paradasFiltradas,
-                    conductores = conductoresActivos,
-                    rutasOsm = rutasOsmReal,
-                    centroPoint = centroActual,
-                    ubicacionCentradaPoint = ubicacionGpsPoint,
-                    onParadaSelect = { parada ->
-                        paradaSeleccionada = parada
-                    }
-                )
-            }
-
-            // Capa superpuesta (FadeOut) que cubre el "borrón" inicial de Mapbox
-            // PERO evitamos mostrarla (o el círculo de carga) cuando el usuario ESTÁ SALIENDO de la pestaña
-            if (!mapReady && !isLeavingScreen) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text(
-                            text = "Actualizando GPS...",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-            } else if (!isMapVisible) {
-                // Durante la salida rápida, simplemente muestra el fondo liso para un desmonte instantáneo sin parpadeos
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                )
-            }
-
-            // INSIGNIA FLOTANTE DE PERFIL EN EL MAPA (TopStart)
-            Surface(
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(12.dp)
-                    .shadow(4.dp, RoundedCornerShape(20.dp)),
-                shape = RoundedCornerShape(20.dp),
-                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(contentAlignment = Alignment.BottomEnd) {
-                        Surface(
-                            shape = CircleShape,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(30.dp)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = Icons.Default.Person,
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
-                        }
-                        // Indicador Verde "GPS Activo"
-                        Box(
-                            modifier = Modifier
-                                .size(10.dp)
-                                .background(Color(0xFF2ECC71), CircleShape)
-                                .border(1.5.dp, Color.White, CircleShape)
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Column {
-                        Text(
-                            text = nombreUsuario,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 12.sp,
-                            color = onSurface
-                        )
-                        Text(
-                            text = "GPS Activo",
-                            fontSize = 10.sp,
-                            color = Color(0xFF2ECC71),
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-                }
-            }
-
-            // PANEL INFERIOR IZQUIERDO DE COORDENADAS GPS (BottomStart)
-            Surface(
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(12.dp)
-                    .shadow(4.dp, RoundedCornerShape(12.dp)),
-                shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
-                border = BorderStroke(1.dp, onBackground.copy(alpha = 0.1f))
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.MyLocation,
-                        contentDescription = null,
-                        tint = Color(0xFF4285F4),
-                        modifier = Modifier.size(14.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = textoCoordenadas,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = onSurface
-                    )
-                }
-            }
-
-            // CONTROLES DE ACCIÓN DEL MAPA (M3 UNIFICADO)
-            Column(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(12.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                horizontalAlignment = Alignment.End
-            ) {
-                // BOTÓN TRANSMITIR UBICACIÓN GPS EN VIVO (SOLO PARA CONDUCTORES AUTORIZADOS)
-                if (esConductor) {
-                    Surface(
-                        onClick = {
-                            ejecutarVibracionHaptica(context, 60L)
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            transmitiendoUbicacion = !transmitiendoUbicacion
-                            Toast.makeText(
-                                context,
-                                if (transmitiendoUbicacion) "📡 Transmitiendo ubicación GPS en tiempo real..." else "⏸️ Transmisión en vivo pausada",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        },
-                        shape = RoundedCornerShape(16.dp),
-                        color = if (transmitiendoUbicacion) Color(0xFFE74C3C) else Color(0xFF2ECC71),
-                        shadowElevation = 6.dp,
-                        modifier = Modifier.semantics {
-                            role = Role.Button
-                            contentDescription = "Transmitir ubicación en vivo a pasajeros"
-                        }
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = if (transmitiendoUbicacion) Icons.Default.Sensors else Icons.Default.SensorsOff,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = if (transmitiendoUbicacion) "EN VIVO" else "Transmitir",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                        }
-                    }
-                }
-
-                // 1. BOTÓN RECALCULAR / ACTUALIZAR RUTAS Y CONDUCTORES
-                Surface(
-                    onClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                        scope.launch {
-                            syncManager.fetchConductoresActivos { lista ->
-                                conductoresActivos = lista
-                            }
-                        }
-                        Toast.makeText(context, "🔄 Rutas y autobuses recalculados en tiempo real", Toast.LENGTH_SHORT).show()
-                    },
-                    shape = RoundedCornerShape(16.dp),
-                    color = surfaceColor.copy(alpha = 0.95f),
-                    shadowElevation = 6.dp,
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)),
-                    modifier = Modifier.semantics {
-                        role = Role.Button
-                        contentDescription = "Recalcular y actualizar posiciones de autobuses"
-                    }
-                ) {
-                    Box(
-                        modifier = Modifier.padding(10.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Autorenew,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
-                }
-
-                // 2. BOTÓN CENTRAR EN MI UBICACIÓN GPS REAL
-                Surface(
-                    onClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        if (!tienePermisoUbicacion) {
-                            val perms = mutableListOf(
-                                Manifest.permission.ACCESS_FINE_LOCATION,
-                                Manifest.permission.ACCESS_COARSE_LOCATION
-                            )
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                perms.add(Manifest.permission.POST_NOTIFICATIONS)
-                            }
-                            permissionLauncher.launch(perms.toTypedArray())
-                        } else {
-                            obtenerUbicacionGpsReal { realPoint ->
-                                ubicacionGpsPoint = realPoint
-                                Toast.makeText(context, "🎯 Mapa centrado en tu posición GPS", Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                    },
-                    shape = RoundedCornerShape(16.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    shadowElevation = 6.dp,
-                    modifier = Modifier.semantics {
-                        role = Role.Button
-                        contentDescription = "Centrar mapa en mi ubicación GPS"
-                    }
-                ) {
-                    Box(
-                        modifier = Modifier.padding(10.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.GpsFixed,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
-                }
-            }
-        }
 
         if (paradaSeleccionada != null) {
             val parada = paradaSeleccionada!!
