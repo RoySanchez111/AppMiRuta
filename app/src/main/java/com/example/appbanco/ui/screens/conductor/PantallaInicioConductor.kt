@@ -118,6 +118,18 @@ fun PantallaInicioConductor(
                 }
                 delay(5000.milliseconds)
             }
+        } else {
+            // Notificar a Firestore que la transmisión del conductor se pausó
+            scope.launch {
+                syncManager.broadcastConductorLocation(
+                    conductorId = nombreConductor,
+                    nombre = nombreConductor,
+                    ruta = "Línea L1",
+                    lat = ubicacionActual.latitude(),
+                    lng = ubicacionActual.longitude(),
+                    activo = false
+                )
+            }
         }
     }
 
@@ -126,7 +138,8 @@ fun PantallaInicioConductor(
     ) {
         EncabezadoConductor(
             nombre = nombreConductor,
-            ubicacion = ubicacionTexto
+            ubicacion = ubicacionTexto,
+            enServicio = enServicio
         )
 
         Box(
@@ -136,6 +149,7 @@ fun PantallaInicioConductor(
         ) {
             MapaConductor(
                 ubicacionActual = ubicacionActual,
+                enServicio = enServicio,
                 onActualizar = {
                     ejecutarVibracionHaptica(context, 40L)
                     haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)

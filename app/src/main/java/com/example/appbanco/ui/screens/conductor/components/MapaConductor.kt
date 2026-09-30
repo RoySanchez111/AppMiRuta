@@ -11,22 +11,42 @@ import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.appbanco.data.database.ConductorUbicacion
 import com.example.appbanco.ui.screens.MapaOptimizadoContainer
 import com.mapbox.geojson.Point
 
 @Composable
 fun MapaConductor(
     ubicacionActual: Point,
+    enServicio: Boolean = true,
     onActualizar: () -> Unit = {},
     onCentrarUbicacion: () -> Unit = {},
     onAlerta: () -> Unit = {}
 ) {
     val surfaceColor = MaterialTheme.colorScheme.surface
     val primaryColor = MaterialTheme.colorScheme.primary
+
+    // Generar la lista con el marcador naranja del conductor en vivo solo cuando 'enServicio' está activado
+    val conductoresActivos = remember(ubicacionActual, enServicio) {
+        if (enServicio) {
+            listOf(
+                ConductorUbicacion(
+                    id = "actual",
+                    nombre = "Conductor",
+                    lat = ubicacionActual.latitude(),
+                    lng = ubicacionActual.longitude(),
+                    activo = true
+                )
+            )
+        } else {
+            emptyList()
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -37,7 +57,7 @@ fun MapaConductor(
         MapaOptimizadoContainer(
             modifier = Modifier.fillMaxSize(),
             paradas = emptyList(),
-            conductores = emptyList(),
+            conductores = conductoresActivos,
             centroPoint = ubicacionActual,
             ubicacionCentradaPoint = ubicacionActual,
             onParadaSelect = {}

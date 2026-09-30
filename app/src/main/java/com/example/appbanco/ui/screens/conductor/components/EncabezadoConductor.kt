@@ -22,7 +22,8 @@ import java.util.Calendar
 @Composable
 fun EncabezadoConductor(
     nombre: String = "Rafita",
-    ubicacion: String = "Puebla - Ruta Troncal Activa"
+    ubicacion: String = "Puebla - Ruta Troncal Activa",
+    enServicio: Boolean = true
 ) {
 
     // ==========================================
@@ -36,7 +37,8 @@ fun EncabezadoConductor(
         Brush.horizontalGradient(coloresFondo)
     }
 
-    val amarilloGps = Color(0xFFFFC107)
+    val colorGps = if (enServicio) Color(0xFFFFC107) else Color(0xFFB0BEC5)
+    val textoGps = if (enServicio) "GPS Activo" else "GPS Pausado"
 
     // ==========================================
     // SALUDO SEGÚN LA HORA
@@ -106,7 +108,7 @@ fun EncabezadoConductor(
                     modifier = Modifier.height(6.dp)
                 )
 
-                // GPS ACTIVO
+                // GPS ACTIVO / PAUSADO
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -114,7 +116,7 @@ fun EncabezadoConductor(
                     Surface(
                         modifier = Modifier.size(8.dp),
                         shape = CircleShape,
-                        color = amarilloGps
+                        color = colorGps
                     ) {}
 
                     Spacer(
@@ -122,8 +124,8 @@ fun EncabezadoConductor(
                     )
 
                     Text(
-                        text = "GPS Activo",
-                        color = amarilloGps,
+                        text = textoGps,
+                        color = colorGps,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold
                     )
