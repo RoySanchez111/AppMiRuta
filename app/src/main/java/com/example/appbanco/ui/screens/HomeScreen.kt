@@ -274,14 +274,12 @@ fun PantallaPrincipal(navController: NavController) {
         }
     }
 
-    // Cargar y actualizar conductores activos de la nube periódicamente (Free Tier Optimizado)
+    // Cargar y actualizar conductores activos de la nube usando Sincronización Real de Firestore
     LaunchedEffect(modoOffline) {
         if (!modoOffline) {
-            while (isActive) {
-                syncManager.fetchConductoresActivos { lista ->
-                    conductoresActivos = lista
-                }
-                delay(3000.milliseconds)
+            syncManager.observeConductoresActivos().collect { lista ->
+                conductoresActivos = lista
+                android.util.Log.d("LOCATION_SYNC", "Usuario recibió conductores: ${lista.map { it.id to it.activo }}")
             }
         } else {
             // Si entra en modo Offline, limpia los autobuses en vivo y ahorra batería/datos
@@ -292,21 +290,37 @@ fun PantallaPrincipal(navController: NavController) {
     // Si el usuario es Conductor, transmite su posición GPS de forma segura a Firebase
     var transmitiendoUbicacion by remember { mutableStateOf(false) }
     LaunchedEffect(transmitiendoUbicacion, esConductor) {
-        if (esConductor && transmitiendoUbicacion) {
-            while (isActive && transmitiendoUbicacion) {
-                obtenerUbicacionGpsReal { realPoint ->
-                    scope.launch {
-                        syncManager.broadcastConductorLocation(
-                            conductorId = nombreUsuario,
-                            nombre = "Conductor $nombreUsuario",
-                            ruta = "Línea L1",
-                            lat = realPoint.latitude(),
-                            lng = realPoint.longitude(),
-                            activo = true
-                        )
+        if (esConductor) {
+            if (transmitiendoUbicacion) {
+                android.util.Log.d("LOCATION_SYNC", "Driver activa ubicación: $nombreUsuario")
+                while (isActive && transmitiendoUbicacion) {
+                    obtenerUbicacionGpsReal { realPoint ->
+                        scope.launch {
+                            syncManager.broadcastConductorLocation(
+                                conductorId = nombreUsuario,
+                                nombre = "Conductor $nombreUsuario",
+                                ruta = "Línea L1",
+                                lat = realPoint.latitude(),
+                                lng = realPoint.longitude(),
+                                activo = true
+                            )
+                        }
                     }
+                    delay(5000.milliseconds)
                 }
-                delay(5000.milliseconds)
+            } else {
+                android.util.Log.d("LOCATION_SYNC", "Driver desactiva ubicación: $nombreUsuario")
+                scope.launch {
+                    syncManager.broadcastConductorLocation(
+                        conductorId = nombreUsuario,
+                        nombre = "Conductor $nombreUsuario",
+                        ruta = "Línea L1",
+                        lat = ubicacionGpsPoint?.latitude() ?: centroActual.latitude(),
+                        lng = ubicacionGpsPoint?.longitude() ?: centroActual.longitude(),
+                        activo = false
+                    )
+                    android.util.Log.d("LOCATION_SYNC", "Backend actualizado locationEnabled=false driver=$nombreUsuario")
+                }
             }
         }
     }

@@ -5,6 +5,7 @@ import com.google.android.gms.tasks.Tasks
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.channels.awaitClose
 
 data class ConductorUbicacion(
     val id: String = "",
@@ -112,6 +113,43 @@ class SyncManager {
     }
 
     // Consultar conductores activos en tiempo real para dibujarlos en el mapa de los usuarios
+
+    // Escuchar conductores activos en tiempo real con Firestore Listener (SIN POLLING)
+    fun observeConductoresActivos(): kotlinx.coroutines.flow.Flow<List<ConductorUbicacion>> = kotlinx.coroutines.flow.callbackFlow {
+        val listenerRegistration = firestore.collection("conductores")
+            .whereEqualTo("activo", true)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    Log.e("SyncManager", "Error escuchando conductores: ${error.message}")
+                    trySend(emptyList())
+                    return@addSnapshotListener
+                }
+                
+                val lista = snapshot?.documents?.mapNotNull { doc ->
+                    try {
+                        val lat = doc.getDouble("lat") ?: 0.0
+                        val lng = doc.getDouble("lng") ?: 0.0
+                        if (lat != 0.0 && lng != 0.0) {
+                            ConductorUbicacion(
+                                id = doc.getString("id") ?: doc.id,
+                                nombre = doc.getString("nombre") ?: "Conductor",
+                                ruta = doc.getString("ruta") ?: "L1",
+                                lat = lat,
+                                lng = lng,
+                                activo = true,
+                                updatedAt = doc.getLong("updatedAt") ?: 0L
+                            )
+                        } else null
+                    } catch (e: Exception) {
+                        null
+                    }
+                } ?: emptyList()
+                
+                trySend(lista)
+            }
+        awaitClose { listenerRegistration.remove() }
+    }
+
     suspend fun fetchConductoresActivos(onResult: (List<ConductorUbicacion>) -> Unit) {
         withContext(Dispatchers.IO) {
             try {

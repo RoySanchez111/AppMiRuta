@@ -102,6 +102,7 @@ fun PantallaInicioConductor(
     // Transmitir ubicación GPS en tiempo real a Firebase cuando el conductor está en servicio
     LaunchedEffect(enServicio) {
         if (enServicio) {
+            android.util.Log.d("LOCATION_SYNC", "Driver activa ubicación: $nombreConductor")
             while (isActive && enServicio) {
                 obtenerGpsReal { realPoint ->
                     ubicacionActual = realPoint
@@ -119,6 +120,7 @@ fun PantallaInicioConductor(
                 delay(5000.milliseconds)
             }
         } else {
+            android.util.Log.d("LOCATION_SYNC", "Driver desactiva ubicación: $nombreConductor")
             // Notificar a Firestore que la transmisión del conductor se pausó
             scope.launch {
                 syncManager.broadcastConductorLocation(
@@ -129,6 +131,7 @@ fun PantallaInicioConductor(
                     lng = ubicacionActual.longitude(),
                     activo = false
                 )
+                android.util.Log.d("LOCATION_SYNC", "Backend actualizado locationEnabled=false driver=$nombreConductor")
             }
         }
     }
