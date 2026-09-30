@@ -43,19 +43,19 @@ fun MapaConductor(
             onParadaSelect = {}
         )
 
-        // botones del lado derecho
+        // Botones flotantes en la zona inferior derecha (Accesibilidad táctil con holgura sobre la tarjeta)
         Column(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 16.dp, bottom = 20.dp),
+                .padding(end = 12.dp, bottom = 26.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // ACTUALIZAR
+            // ACTUALIZAR POSICIÓN
             Surface(
                 onClick = onActualizar,
-                modifier = Modifier.size(46.dp),
-                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.size(44.dp),
+                shape = RoundedCornerShape(14.dp),
                 color = surfaceColor.copy(alpha = 0.95f),
                 shadowElevation = 6.dp,
                 border = BorderStroke(1.dp, primaryColor.copy(alpha = 0.25f))
@@ -70,10 +70,10 @@ fun MapaConductor(
                 }
             }
 
-            // centrar gps
+            // CENTRAR GPS
             Surface(
                 onClick = onCentrarUbicacion,
-                modifier = Modifier.size(50.dp),
+                modifier = Modifier.size(48.dp),
                 shape = RoundedCornerShape(16.dp),
                 color = primaryColor,
                 shadowElevation = 8.dp
@@ -83,15 +83,15 @@ fun MapaConductor(
                         imageVector = Icons.Default.GpsFixed,
                         contentDescription = "Centrar ubicación",
                         tint = Color.White,
-                        modifier = Modifier.size(26.dp)
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             }
 
-            // boton de alertas
+            // BOTÓN DE REPORTAR ALERTA
             Surface(
                 onClick = onAlerta,
-                modifier = Modifier.size(56.dp),
+                modifier = Modifier.size(52.dp),
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.error,
                 shadowElevation = 8.dp
@@ -101,7 +101,7 @@ fun MapaConductor(
                         imageVector = Icons.Default.Campaign,
                         contentDescription = "Enviar alerta",
                         tint = Color.White,
-                        modifier = Modifier.size(30.dp)
+                        modifier = Modifier.size(28.dp)
                     )
                 }
             }

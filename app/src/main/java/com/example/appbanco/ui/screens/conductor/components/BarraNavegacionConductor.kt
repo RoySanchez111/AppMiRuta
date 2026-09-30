@@ -10,7 +10,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 
@@ -25,9 +24,7 @@ fun BarraNavegacionConductor(
     val haptic = LocalHapticFeedback.current
 
     NavigationBar(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(70.dp),
+        modifier = Modifier.fillMaxWidth(),
         containerColor = containerColor,
         contentColor = themeColor
     ) {

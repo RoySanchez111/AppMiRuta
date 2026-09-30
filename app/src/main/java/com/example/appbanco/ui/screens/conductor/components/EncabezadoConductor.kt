@@ -62,8 +62,8 @@ fun EncabezadoConductor(
             .background(
                 brush = fondoHorario,
                 shape = RoundedCornerShape(
-                    bottomStart = 24.dp,
-                    bottomEnd = 24.dp
+                    bottomStart = 20.dp,
+                    bottomEnd = 20.dp
                 )
             )
     ) {
@@ -71,12 +71,9 @@ fun EncabezadoConductor(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 150.dp)
                 .padding(
-                    start = 22.dp,
-                    end = 22.dp,
-                    top = 22.dp,
-                    bottom = 22.dp
+                    horizontal = 18.dp,
+                    vertical = 12.dp
                 ),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -89,25 +86,24 @@ fun EncabezadoConductor(
                 verticalArrangement = Arrangement.Center
             ) {
 
-                // SALUDO
+                // SALUDO Y NOMBRE EN LÍNEA COMPACTA
                 Text(
                     text = "$saludo,",
-                    color = Color.White.copy(alpha = 0.95f),
-                    fontSize = 19.sp,
-                    fontWeight = FontWeight.Bold
+                    color = Color.White.copy(alpha = 0.9f),
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold
                 )
 
-                // NOMBRE
                 Text(
                     text = nombre,
                     color = Color.White,
-                    fontSize = 28.sp,
+                    fontSize = 22.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    lineHeight = 31.sp
+                    lineHeight = 24.sp
                 )
 
                 Spacer(
-                    modifier = Modifier.height(14.dp)
+                    modifier = Modifier.height(6.dp)
                 )
 
                 // GPS ACTIVO
@@ -116,46 +112,46 @@ fun EncabezadoConductor(
                 ) {
 
                     Surface(
-                        modifier = Modifier.size(9.dp),
+                        modifier = Modifier.size(8.dp),
                         shape = CircleShape,
                         color = amarilloGps
                     ) {}
 
                     Spacer(
-                        modifier = Modifier.width(7.dp)
+                        modifier = Modifier.width(6.dp)
                     )
 
                     Text(
                         text = "GPS Activo",
                         color = amarilloGps,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.ExtraBold
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold
                     )
                 }
 
                 Spacer(
-                    modifier = Modifier.height(6.dp)
+                    modifier = Modifier.height(2.dp)
                 )
 
                 // UBICACIÓN / RUTA
                 Text(
                     text = ubicacion,
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    lineHeight = 22.sp
+                    color = Color.White.copy(alpha = 0.95f),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                    lineHeight = 16.sp
                 )
             }
 
             Spacer(
-                modifier = Modifier.width(16.dp)
+                modifier = Modifier.width(12.dp)
             )
 
             // ======================================
             // AVATAR
             // ======================================
             Surface(
-                modifier = Modifier.size(68.dp),
+                modifier = Modifier.size(52.dp),
                 shape = CircleShape,
                 color = Color.White.copy(alpha = 0.12f),
                 border = BorderStroke(
@@ -175,7 +171,7 @@ fun EncabezadoConductor(
                             ?.uppercase()
                             ?: "C",
                         color = Color.White,
-                        fontSize = 28.sp,
+                        fontSize = 22.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }
