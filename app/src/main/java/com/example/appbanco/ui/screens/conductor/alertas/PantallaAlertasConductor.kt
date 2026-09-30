@@ -1,8 +1,10 @@
 package com.example.appbanco.ui.screens.conductor.alertas
 
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
@@ -90,37 +92,58 @@ fun PantallaAlertasConductor(
                 contentAlignment = Alignment.CenterStart
             ) {
 
-                Column {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
 
-                    Text(
-                        text = "Alertas",
-                        color = Color.White.copy(alpha = 0.85f),
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                        Text(
+                            text = "Alertas",
+                            color = Color.White.copy(alpha = 0.85f),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
 
-                    Spacer(
-                        modifier = Modifier.height(3.dp)
-                    )
+                        Spacer(
+                            modifier = Modifier.height(3.dp)
+                        )
 
-                    Text(
-                        text = "Alertas importantes",
-                        color = Color.White,
-                        fontSize = 25.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        lineHeight = 29.sp
-                    )
+                        Text(
+                            text = "Alertas importantes",
+                            color = Color.White,
+                            fontSize = 25.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            lineHeight = 29.sp
+                        )
 
-                    Spacer(
-                        modifier = Modifier.height(5.dp)
-                    )
+                        Spacer(
+                            modifier = Modifier.height(5.dp)
+                        )
 
-                    Text(
-                        text = "Mantente informado durante tu ruta",
-                        color = Color.White.copy(alpha = 0.80f),
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Medium
-                    )
+                        Text(
+                            text = "Mantente informado durante tu ruta",
+                            color = Color.White.copy(alpha = 0.80f),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+
+                    Surface(
+                        modifier = Modifier.size(52.dp),
+                        shape = CircleShape,
+                        color = Color.White.copy(alpha = 0.12f),
+                        border = BorderStroke(1.dp, Color.White)
+                    ) {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(
+                                text = "R",
+                                color = Color.White,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
                 }
             }
         }

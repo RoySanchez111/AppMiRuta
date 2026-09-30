@@ -27,6 +27,7 @@ class SyncManager {
                     "id" to user.id,
                     "username" to user.username,
                     "role" to user.role,
+                    "tempPassword" to "123",
                     "updatedAt" to System.currentTimeMillis()
                 )
                 Tasks.await(

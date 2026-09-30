@@ -117,10 +117,10 @@ fun NavegacionMiRuta(
                             }
                         } else null,
                         onProfileClick = {
-                            if (rutaActual != "cuenta") {
-                                val destinoInicio =
-                                    if (esConductor) "inicio_conductor" else "principal"
-                                navController.navigate("cuenta") {
+                            if (rutaActual != "cuenta" && rutaActual != "cuenta_conductor") {
+                                val destinoCuenta = if (esConductor) "cuenta_conductor" else "cuenta"
+                                val destinoInicio = if (esConductor) "inicio_conductor" else "principal"
+                                navController.navigate(destinoCuenta) {
                                     popUpTo(destinoInicio) { saveState = true }
                                     launchSingleTop = true
                                     restoreState = true

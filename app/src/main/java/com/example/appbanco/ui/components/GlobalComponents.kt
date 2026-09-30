@@ -65,17 +65,29 @@ fun BarraNavegacionInferior(
     val containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
     val haptic = LocalHapticFeedback.current
 
+    val inicioRoute = if (esConductor) "inicio_conductor" else "principal"
+    val alertasRoute = if (esConductor) "alertas_conductor" else "alertas"
+    val cuentaRoute = if (esConductor) "cuenta_conductor" else "cuenta"
+
     NavigationBar(
         containerColor = containerColor,
         contentColor = themeColor
     ) {
 
-        val items = listOf(
-            Triple("principal", "Inicio", Icons.Default.Home),
-            Triple("horario", "Horario", Icons.Default.Schedule),
-            Triple("alertas", "Alertas", Icons.Default.Notifications),
-            Triple("cuenta", "Cuenta", Icons.Default.Person)
-        )
+        val items = if (esConductor) {
+            listOf(
+                Triple(inicioRoute, "Inicio", Icons.Default.Home),
+                Triple(alertasRoute, "Alertas", Icons.Default.Notifications),
+                Triple(cuentaRoute, "Cuenta", Icons.Default.Person)
+            )
+        } else {
+            listOf(
+                Triple(inicioRoute, "Inicio", Icons.Default.Home),
+                Triple("horario", "Horario", Icons.Default.Schedule),
+                Triple(alertasRoute, "Alertas", Icons.Default.Notifications),
+                Triple(cuentaRoute, "Cuenta", Icons.Default.Person)
+            )
+        }
 
         items.forEach { (ruta, etiqueta, icono) ->
 
@@ -110,14 +122,19 @@ fun BarraNavegacionInferior(
                             HapticFeedbackType.TextHandleMove
                         )
 
-                        navController.navigate(ruta) {
+                        if (ruta == inicioRoute) {
+                            navController.popBackStack(inicioRoute, inclusive = false)
+                        } else {
+                            navController.navigate(ruta) {
 
-                            popUpTo("principal") {
-                                saveState = true
+                                popUpTo(inicioRoute) {
+                                    saveState = true
+                                    inclusive = false
+                                }
+
+                                launchSingleTop = true
+                                restoreState = true
                             }
-
-                            launchSingleTop = true
-                            restoreState = true
                         }
                     }
                 }

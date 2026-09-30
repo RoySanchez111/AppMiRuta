@@ -1,7 +1,10 @@
 package com.example.appbanco.ui.screens
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationManager
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -147,7 +150,30 @@ fun DialogoAgregarRutaFrecuente(
                                     if (loc != null) {
                                         ubicacion = String.format(Locale.US, "GPS: %.4f, %.4f", loc.latitude, loc.longitude)
                                     } else {
-                                        ubicacion = "Ubicación GPS Seleccionada"
+                                        val nativeLoc = try {
+                                            val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager
+                                            if (locationManager != null) {
+                                                val hasFine = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                                                var l: Location? = null
+                                                if (locationManager.isProviderEnabled(
+                                                        LocationManager.GPS_PROVIDER) && hasFine) {
+                                                    l = locationManager.getLastKnownLocation(
+                                                        LocationManager.GPS_PROVIDER)
+                                                }
+                                                if (l == null && locationManager.isProviderEnabled(
+                                                        LocationManager.NETWORK_PROVIDER)) {
+                                                    l = locationManager.getLastKnownLocation(
+                                                        LocationManager.NETWORK_PROVIDER)
+                                                }
+                                                l
+                                            } else null
+                                        } catch (_: Exception) { null }
+
+                                        if (nativeLoc != null) {
+                                            ubicacion = String.format(Locale.US, "GPS: %.4f, %.4f", nativeLoc.latitude, nativeLoc.longitude)
+                                        } else {
+                                            ubicacion = "Ubicación GPS Seleccionada"
+                                        }
                                     }
                                     errorMsg = ""
                                 }.addOnFailureListener {

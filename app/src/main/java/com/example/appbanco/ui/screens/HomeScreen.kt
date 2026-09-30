@@ -2,7 +2,10 @@ package com.example.appbanco.ui.screens
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationManager
 import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -145,6 +148,32 @@ fun PantallaPrincipal(navController: NavController) {
         }
     }
 
+    fun fallbackToNativeLocation(context: Context, onSuccess: (Point) -> Unit, defaultPoint: Point) {
+        try {
+            val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager
+            if (locationManager != null) {
+                val hasFine = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                val hasCoarse = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                if (hasFine || hasCoarse) {
+                    var loc: Location? = null
+                    if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) && hasFine) {
+                        loc = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+                    }
+                    if (loc == null && locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                        loc = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+                    }
+                    if (loc != null) {
+                        onSuccess(Point.fromLngLat(loc.longitude, loc.latitude))
+                        return
+                    }
+                }
+            }
+            onSuccess(defaultPoint)
+        } catch (e: Exception) {
+            onSuccess(defaultPoint)
+        }
+    }
+
     fun obtenerUbicacionGpsReal(onSuccess: (Point) -> Unit) {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
             ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -155,7 +184,7 @@ fun PantallaPrincipal(navController: NavController) {
                         textoCoordenadas = String.format(Locale.US, "%.4f° N, %.4f° W", loc.latitude, abs(loc.longitude))
                         onSuccess(pt)
                     } else {
-                        // Fallback de alta precisión para dispositivos físicos cuando lastLocation es null
+                        // Fallback de alta precisión para dispositivos físicos cuando lastLocation es null o GMS falla
                         try {
                             fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
                                 .addOnSuccessListener { currentLoc ->
@@ -164,19 +193,21 @@ fun PantallaPrincipal(navController: NavController) {
                                         textoCoordenadas = String.format(Locale.US, "%.4f° N, %.4f° W", currentLoc.latitude, abs(currentLoc.longitude))
                                         onSuccess(pt)
                                     } else {
-                                        onSuccess(centroPredeterminado)
+                                        fallbackToNativeLocation(context, onSuccess, centroPredeterminado)
                                     }
                                 }
-                                .addOnFailureListener { onSuccess(centroPredeterminado) }
+                                .addOnFailureListener {
+                                    fallbackToNativeLocation(context, onSuccess, centroPredeterminado)
+                                }
                         } catch (e: Exception) {
-                            onSuccess(centroPredeterminado)
+                            fallbackToNativeLocation(context, onSuccess, centroPredeterminado)
                         }
                     }
                 }.addOnFailureListener {
-                    onSuccess(centroPredeterminado)
+                    fallbackToNativeLocation(context, onSuccess, centroPredeterminado)
                 }
             } catch (e: Exception) {
-                onSuccess(centroPredeterminado)
+                fallbackToNativeLocation(context, onSuccess, centroPredeterminado)
             }
         } else {
             onSuccess(centroPredeterminado)

@@ -39,6 +39,7 @@ import androidx.navigation.NavController
 import com.example.appbanco.R
 import com.example.appbanco.logic.SessionManager
 import com.example.appbanco.ui.components.obtenerColoresFondo
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
 data class PaginaTutorial(
@@ -233,7 +234,9 @@ fun PantallaTutorial(
                                     scope.launch {
                                         sessionManager.setTutorialCompleted(true)
                                         onFinalizarTutorial()
-                                        navController.navigate("principal") {
+                                        val userRole = sessionManager.userRole.firstOrNull() ?: "pasajero"
+                                        val destinoInicio = if (userRole == "conductor" || userRole == "admin") "inicio_conductor" else "principal"
+                                        navController.navigate(destinoInicio) {
                                             popUpTo("tutorial") { inclusive = true }
                                             popUpTo("splash") { inclusive = true }
                                         }

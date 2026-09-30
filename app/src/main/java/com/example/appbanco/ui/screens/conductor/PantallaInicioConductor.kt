@@ -1,7 +1,10 @@
 package com.example.appbanco.ui.screens.conductor
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationManager
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
@@ -47,16 +50,52 @@ fun PantallaInicioConductor(
     var enServicio by remember { mutableStateOf(true) }
     val fusedLocationClient = remember(context) { LocationServices.getFusedLocationProviderClient(context.applicationContext) }
 
+    fun fallbackToNativeLocation(context: Context, onSuccess: (Point) -> Unit, defaultPoint: Point) {
+        try {
+            val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager
+            if (locationManager != null) {
+                val hasFine = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                val hasCoarse = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                if (hasFine || hasCoarse) {
+                    var loc: Location? = null
+                    if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) && hasFine) {
+                        loc = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+                    }
+                    if (loc == null && locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                        loc = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+                    }
+                    if (loc != null) {
+                        onSuccess(Point.fromLngLat(loc.longitude, loc.latitude))
+                        return
+                    }
+                }
+            }
+            onSuccess(defaultPoint)
+        } catch (_: Exception) {
+            onSuccess(defaultPoint)
+        }
+    }
+
     fun obtenerGpsReal(onSuccess: (Point) -> Unit) {
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+        val defaultPoint = Point.fromLngLat(-98.261833, 18.999446)
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+            ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             try {
                 fusedLocationClient.lastLocation.addOnSuccessListener { loc ->
                     if (loc != null) {
                         val pt = Point.fromLngLat(loc.longitude, loc.latitude)
                         onSuccess(pt)
+                    } else {
+                        fallbackToNativeLocation(context, onSuccess, defaultPoint)
                     }
+                }.addOnFailureListener {
+                    fallbackToNativeLocation(context, onSuccess, defaultPoint)
                 }
-            } catch (_: Exception) { }
+            } catch (e: Exception) {
+                fallbackToNativeLocation(context, onSuccess, defaultPoint)
+            }
+        } else {
+            onSuccess(defaultPoint)
         }
     }
 

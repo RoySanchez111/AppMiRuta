@@ -53,26 +53,45 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
-        // 🛡️ PRE-POBLACIÓN SEGURA DE USUARIOS DE PRUEBA (Sin borrar cuentas nuevas)
+        // 🛡️ PRE-POBLACIÓN SEGURA Y AUTOSINCRONIZACIÓN A FIRESTORE
         lifecycleScope.launch {
             val userDao = database.userDao()
             val sync = SyncManager()
 
-            if (userDao.getUserByUsername("rafa") == null) {
-                val conductor = UserEntity(username = "rafa", passwordHash = SecurityUtils.hashPassword("123"), role = "conductor")
-                userDao.registerUser(conductor)
-                sync.syncUserToCloud(conductor)
-            }
-            if (userDao.getUserByUsername("roy") == null) {
-                val admin = UserEntity(username = "roy", passwordHash = SecurityUtils.hashPassword("123"), role = "admin")
-                userDao.registerUser(admin)
-                sync.syncUserToCloud(admin)
-            }
-            if (userDao.getUserByUsername("alex") == null) {
-                val pasajero = UserEntity(username = "alex", passwordHash = SecurityUtils.hashPassword("123"), role = "pasajero")
-                userDao.registerUser(pasajero)
-                sync.syncUserToCloud(pasajero)
-            }
+            val conductor = userDao.getUserByUsername("rafa") ?: UserEntity(username = "rafa", passwordHash = SecurityUtils.hashPassword("123"), role = "conductor").also { userDao.registerUser(it) }
+            val admin = userDao.getUserByUsername("roy") ?: UserEntity(username = "roy", passwordHash = SecurityUtils.hashPassword("123"), role = "admin").also { userDao.registerUser(it) }
+            val pasajero = userDao.getUserByUsername("alex") ?: UserEntity(username = "alex", passwordHash = SecurityUtils.hashPassword("123"), role = "pasajero").also { userDao.registerUser(it) }
+
+            val uRafa = userDao.getUserByUsername("rafa") ?: conductor
+            val uRoy = userDao.getUserByUsername("roy") ?: admin
+            val uAlex = userDao.getUserByUsername("alex") ?: pasajero
+
+            // Sincronizar usuarios por defecto hacia Firestore
+            sync.syncUserToCloud(uRafa)
+            sync.syncUserToCloud(uRoy)
+            sync.syncUserToCloud(uAlex)
+
+            // Posición inicial del conductor de prueba en Firestore
+            sync.broadcastConductorLocation(
+                conductorId = "rafa",
+                nombre = "Rafael",
+                ruta = "Línea L1",
+                lat = 18.999446,
+                lng = -98.261833,
+                activo = true
+            )
+
+            // Incidencia inicial de prueba en Firestore
+            sync.syncIncidenciaToCloud(
+                id = "inc-101",
+                tipo = "Tráfico",
+                ruta = "L1",
+                titulo = "Tráfico fluido en Blvd. Atlixco",
+                descripcion = "Unidades operando con normalidad.",
+                tiempo = "Hace 5 min",
+                confirmaciones = 2,
+                esGlobal = true
+            )
         }
 
         setContent {
