@@ -23,6 +23,7 @@ class SyncManager {
     suspend fun syncUserToCloud(user: UserEntity) {
         withContext(Dispatchers.IO) {
             try {
+                val docId = user.username.lowercase().trim()
                 val userMap = mapOf(
                     "id" to user.id,
                     "username" to user.username,
@@ -32,10 +33,10 @@ class SyncManager {
                 )
                 Tasks.await(
                     firestore.collection("users")
-                        .document(user.username)
+                        .document(docId)
                         .set(userMap)
                 )
-                Log.d("SyncManager", "Usuario sincronizado con la nube exitosamente")
+                Log.d("SyncManager", "Usuario $docId sincronizado con la nube exitosamente")
             } catch (e: Exception) {
                 Log.e("SyncManager", "Excepción en syncUserToCloud", e)
             }
@@ -46,9 +47,10 @@ class SyncManager {
     suspend fun fetchUserFromCloud(username: String, onResult: (Map<String, Any>?) -> Unit) {
         withContext(Dispatchers.IO) {
             try {
+                val docId = username.lowercase().trim()
                 val document = Tasks.await(
                     firestore.collection("users")
-                        .document(username)
+                        .document(docId)
                         .get()
                 )
                 val data = if (document != null && document.exists()) document.data else null
@@ -75,19 +77,21 @@ class SyncManager {
     ) {
         withContext(Dispatchers.IO) {
             try {
+                val docId = conductorId.lowercase().trim()
+
                 // Validación de cuenta autorizada
                 val userDoc = try {
-                    Tasks.await(firestore.collection("users").document(conductorId).get())
+                    Tasks.await(firestore.collection("users").document(docId).get())
                 } catch (e: Exception) { null }
 
                 val rol = userDoc?.getString("role") ?: "conductor"
                 if (rol != "conductor" && rol != "admin") {
-                    Log.w("SyncManager", "Acceso denegado: El usuario $conductorId no está autorizado como conductor")
+                    Log.w("SyncManager", "Acceso denegado: El usuario $docId no está autorizado como conductor")
                     return@withContext
                 }
 
                 val data = mapOf(
-                    "id" to conductorId,
+                    "id" to docId,
                     "nombre" to nombre,
                     "ruta" to ruta,
                     "lat" to lat,
@@ -97,10 +101,10 @@ class SyncManager {
                 )
                 Tasks.await(
                     firestore.collection("conductores")
-                        .document(conductorId)
+                        .document(docId)
                         .set(data)
                 )
-                Log.d("SyncManager", "Ubicación del conductor autorizado $nombre transmitida en tiempo real")
+                Log.d("SyncManager", "Ubicación del conductor autorizado $docId (activo=$activo) transmitida en tiempo real")
             } catch (e: Exception) {
                 Log.e("SyncManager", "Excepción en broadcastConductorLocation", e)
             }
@@ -112,9 +116,16 @@ class SyncManager {
         withContext(Dispatchers.IO) {
             try {
                 val snapshot = Tasks.await(firestore.collection("conductores").get())
+                if (snapshot.isEmpty) {
+                    withContext(Dispatchers.Main) {
+                        onResult(emptyList())
+                    }
+                    return@withContext
+                }
+
                 val lista = snapshot.documents.mapNotNull { doc ->
                     try {
-                        val activo = doc.getBoolean("activo") ?: true
+                        val activo = doc.getBoolean("activo") ?: false
                         val lat = doc.getDouble("lat") ?: 0.0
                         val lng = doc.getDouble("lng") ?: 0.0
                         if (activo && lat != 0.0 && lng != 0.0) {
@@ -132,6 +143,7 @@ class SyncManager {
                         null
                     }
                 }
+
                 withContext(Dispatchers.Main) {
                     onResult(lista)
                 }

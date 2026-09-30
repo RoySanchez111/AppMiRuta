@@ -36,8 +36,8 @@ fun PantallaInicioConductor(
     val sessionManager = remember { SessionManager(context) }
     val syncManager = remember { SyncManager() }
 
-    val currentUsernameState = sessionManager.currentUsername.collectAsState(initial = "Rafael")
-    val nombreConductor = currentUsernameState.value ?: "Rafael"
+    val currentUsernameState = sessionManager.currentUsername.collectAsState(initial = "rafa")
+    val nombreConductor = currentUsernameState.value ?: "rafa"
     val ubicacionTexto = "Puebla - Ruta Troncal Activa"
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
