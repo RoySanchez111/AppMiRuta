@@ -1,133 +1,116 @@
 package com.example.appbanco.ui.screens.conductor.perfil.components
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.appbanco.ui.theme.EscalaAccesibilidad
+import com.example.appbanco.ui.viewmodel.MainViewModel
 
 @Composable
-fun OpcionesAccesibilidad() {
-
-    var textoNormal by remember { mutableStateOf(true) }
-    var textoBold by remember { mutableStateOf(false) }
-    var textoGrande by remember { mutableStateOf(false) }
+fun OpcionesAccesibilidad(
+    viewModel: MainViewModel? = null
+) {
+    val haptic = LocalHapticFeedback.current
+    val escalaActual = viewModel?.escalaFuente?.collectAsState()?.value ?: EscalaAccesibilidad.MEDIANO
+    val onSurfaceColor = MaterialTheme.colorScheme.onBackground
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val currentDensity = LocalDensity.current
 
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
-
-        // TÍTULO
+        // TÍTULO LIMPIO
         Text(
-            text = "Accesibilidad",
-            color = MaterialTheme.colorScheme.onBackground,
+            text = "Tamaño de letra",
+            color = onSurfaceColor,
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // TARJETA
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    color = Color(0xFF4A4A4D),
-                    shape = RoundedCornerShape(8.dp)
-                )
-                .padding(
-                    horizontal = 14.dp,
-                    vertical = 12.dp
-                )
+        // BARRA DE SELECCIÓN CON DENSIDAD FIJA PARA EVITAR DESBORDAMIENTO DE TEXTO AL ESCALAR
+        CompositionLocalProvider(
+            LocalDensity provides Density(
+                density = currentDensity.density,
+                fontScale = 1.0f
+            )
         ) {
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                border = BorderStroke(1.dp, primaryColor.copy(alpha = 0.15f)),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(5.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    EscalaAccesibilidad.entries.forEach { nivel ->
+                        val seleccionado = escalaActual == nivel
 
-            Text(
-                text = "Escalado de texto",
-                color = Color.White,
-                fontSize = 13.sp
-            )
+                        Surface(
+                            onClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                viewModel?.cambiarEscalaFuente(nivel)
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(46.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            color = if (seleccionado) primaryColor else Color.Transparent,
+                            shadowElevation = if (seleccionado) 2.dp else 0.dp
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(horizontal = 2.dp),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = nivel.simboloAa,
+                                    fontSize = when (nivel) {
+                                        EscalaAccesibilidad.PEQUEÑO -> 12.sp
+                                        EscalaAccesibilidad.MEDIANO -> 14.sp
+                                        EscalaAccesibilidad.GRANDE -> 16.sp
+                                        EscalaAccesibilidad.EXTRA_GRANDE -> 18.sp
+                                    },
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = if (seleccionado) Color.White else primaryColor,
+                                    maxLines = 1
+                                )
 
-            Spacer(modifier = Modifier.height(4.dp))
+                                Spacer(modifier = Modifier.width(3.dp))
 
-            // NORMAL
-            OpcionAccesibilidad(
-                texto = "Normal",
-                checked = textoNormal,
-                onCheckedChange = {
-                    textoNormal = true
-                    textoBold = false
-                    textoGrande = false
+                                Text(
+                                    text = nivel.nombre.substringBefore(" "),
+                                    fontSize = 11.sp,
+                                    fontWeight = if (seleccionado) FontWeight.Bold else FontWeight.Medium,
+                                    color = if (seleccionado) Color.White else onSurfaceColor.copy(alpha = 0.8f),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+                    }
                 }
-            )
-
-            // BOLD
-            OpcionAccesibilidad(
-                texto = "Bold",
-                checked = textoBold,
-                onCheckedChange = {
-                    textoNormal = false
-                    textoBold = true
-                    textoGrande = false
-                }
-            )
-
-            // GRANDE
-            OpcionAccesibilidad(
-                texto = "Grande",
-                checked = textoGrande,
-                onCheckedChange = {
-                    textoNormal = false
-                    textoBold = false
-                    textoGrande = true
-                }
-            )
+            }
         }
-    }
-}
-
-@Composable
-private fun OpcionAccesibilidad(
-    texto: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
-) {
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(42.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
-    ) {
-
-        Text(
-            text = texto,
-            color = Color.White,
-            fontSize = 13.sp
-        )
-
-        Switch(
-            checked = checked,
-            onCheckedChange = {
-                if (it) {
-                    onCheckedChange(true)
-                }
-            },
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = Color.White,
-                checkedTrackColor = Color(0xFFF26767),
-                uncheckedThumbColor = Color.White,
-                uncheckedTrackColor = Color(0xFF9EA3AA),
-                uncheckedBorderColor = Color.Transparent
-            )
-        )
     }
 }

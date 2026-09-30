@@ -25,6 +25,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -32,6 +33,8 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -340,40 +343,39 @@ fun PantallaCuenta(
                         colors = CardDefaults.cardColors(containerColor = onSurface.copy(alpha = 0.05f)),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(6.dp),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        CompositionLocalProvider(
+                            LocalDensity provides Density(
+                                density = LocalDensity.current.density,
+                                fontScale = 1.0f
+                            )
                         ) {
-                            val escalaActual by viewModel.escalaFuente.collectAsState()
-                            listOf(
-                                EscalaAccesibilidad.PEQUEÑO,
-                                EscalaAccesibilidad.MEDIANO,
-                                EscalaAccesibilidad.GRANDE
-                            ).forEach { nivel ->
-                                val seleccionado = escalaActual == nivel
-                                Button(
-                                    onClick = { viewModel.cambiarEscalaFuente(nivel) },
-                                    modifier = Modifier.weight(1f).height(40.dp),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = if (seleccionado) Color(0xFFFEB30F) else Color.Transparent,
-                                        contentColor = if (seleccionado) Color.White else onSurface.copy(
-                                            alpha = 0.8f
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(6.dp),
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                val escalaActual by viewModel.escalaFuente.collectAsState()
+                                EscalaAccesibilidad.entries.forEach { nivel ->
+                                    val seleccionado = escalaActual == nivel
+                                    Button(
+                                        onClick = { viewModel.cambiarEscalaFuente(nivel) },
+                                        modifier = Modifier.weight(1f).height(44.dp),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = if (seleccionado) Color(0xFFFEB30F) else Color.Transparent,
+                                            contentColor = if (seleccionado) Color.White else onSurface.copy(
+                                                alpha = 0.8f
+                                            )
+                                        ),
+                                        elevation = null,
+                                        shape = RoundedCornerShape(12.dp),
+                                        contentPadding = PaddingValues(horizontal = 2.dp, vertical = 0.dp)
+                                    ) {
+                                        Text(
+                                            text = "${nivel.simboloAa} ${nivel.nombre.substringBefore(" ")}",
+                                            fontSize = 11.sp,
+                                            maxLines = 1,
+                                            fontWeight = if (seleccionado) FontWeight.Bold else FontWeight.Medium
                                         )
-                                    ),
-                                    elevation = null,
-                                    shape = RoundedCornerShape(14.dp),
-                                    contentPadding = PaddingValues(0.dp)
-                                ) {
-                                    val prefijoIcono = when (nivel) {
-                                        EscalaAccesibilidad.PEQUEÑO -> "Aa "
-                                        EscalaAccesibilidad.MEDIANO -> "Aa "
-                                        EscalaAccesibilidad.GRANDE -> "AA "
                                     }
-                                    Text(
-                                        text = prefijoIcono + nivel.nombre,
-                                        fontSize = 12.sp,
-                                        fontWeight = if (seleccionado) FontWeight.Bold else FontWeight.Medium
-                                    )
                                 }
                             }
                         }

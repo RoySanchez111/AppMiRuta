@@ -30,11 +30,13 @@ import com.example.appbanco.ui.components.obtenerColoresFondo
 import com.example.appbanco.ui.screens.conductor.components.BarraNavegacionConductor
 import com.example.appbanco.ui.screens.conductor.perfil.components.FichaUnidad
 import com.example.appbanco.ui.screens.conductor.perfil.components.OpcionesAccesibilidad
+import com.example.appbanco.ui.viewmodel.MainViewModel
 import kotlinx.coroutines.launch
 
 @Composable
 fun PantallaPerfilConductor(
-    navController: NavController
+    navController: NavController,
+    viewModel: MainViewModel? = null
 ) {
 
     val context = LocalContext.current
@@ -278,7 +280,7 @@ fun PantallaPerfilConductor(
             )
 
             // Accesibilidad
-            OpcionesAccesibilidad()
+            OpcionesAccesibilidad(viewModel = viewModel)
 
             Spacer(
                 modifier = Modifier.height(20.dp)

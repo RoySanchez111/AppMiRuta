@@ -230,7 +230,7 @@ fun NavegacionMiRuta(
                     PantallaAyudaYSoporte(navController)
                 }
                 composable("cuenta_conductor") {
-                    PantallaPerfilConductor(navController)
+                    PantallaPerfilConductor(navController, viewModel)
                 }
                 composable("configuracion_conductor") {
                     PantallaConfiguracionConductor(navController)
