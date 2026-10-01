@@ -9,18 +9,18 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
+import kotlin.math.pow
 
 class ServicioOverpassPuebla {
     companion object {
         private const val TAG = "ServicioOverpassPuebla"
-        // Endpoint público oficial de Overpass API (OpenStreetMap) - 100% Gratuito y sin requerir API Key
         private const val OVERPASS_URL = "https://overpass-api.de/api/interpreter"
     }
 
-    suspend fun obtenerCoordenadasRutasBusPuebla(): List<List<Point>> = withContext(Dispatchers.IO) {
-        val rutasCompletas = mutableListOf<List<Point>>()
+    // Retorna un mapa: "Nombre de la Ruta" -> Lista continua de Puntos
+    suspend fun obtenerRutasBusMap(): Map<String, List<Point>> = withContext(Dispatchers.IO) {
+        val mapaRutas = mutableMapOf<String, List<Point>>()
         try {
-            // Consulta Overpass QL optimizada para rutas de autobús (route=bus) en el área metropolitana de Puebla
             val query = """
                 [out:json][timeout:25];
                 (
@@ -57,27 +57,58 @@ class ServicioOverpassPuebla {
                 val elements = jsonRoot.getJSONArray("elements")
 
                 val nodeMap = mutableMapOf<Long, Point>()
+                val wayMap = mutableMapOf<Long, List<Point>>()
+
+                // 1. Nodos
                 for (i in 0 until elements.length()) {
                     val el = elements.getJSONObject(i)
                     if (el.getString("type") == "node") {
-                        val id = el.getLong("id")
-                        val lat = el.getDouble("lat")
-                        val lon = el.getDouble("lon")
-                        nodeMap[id] = Point.fromLngLat(lon, lat)
+                        nodeMap[el.getLong("id")] = Point.fromLngLat(el.getDouble("lon"), el.getDouble("lat"))
                     }
                 }
 
+                // 2. Ways (Segmentos de calle)
                 for (i in 0 until elements.length()) {
                     val el = elements.getJSONObject(i)
                     if (el.getString("type") == "way") {
                         val nodesArray = el.getJSONArray("nodes")
-                        val routePoints = mutableListOf<Point>()
+                        val wayPts = mutableListOf<Point>()
                         for (j in 0 until nodesArray.length()) {
-                            val nodeId = nodesArray.getLong(j)
-                            nodeMap[nodeId]?.let { routePoints.add(it) }
+                            nodeMap[nodesArray.getLong(j)]?.let { wayPts.add(it) }
                         }
-                        if (routePoints.size > 1) {
-                            rutasCompletas.add(routePoints)
+                        if (wayPts.size > 1) {
+                            wayMap[el.getLong("id")] = wayPts
+                        }
+                    }
+                }
+
+                // 3. Relaciones (Rutas completas)
+                for (i in 0 until elements.length()) {
+                    val el = elements.getJSONObject(i)
+                    if (el.getString("type") == "relation") {
+                        val tags = el.optJSONObject("tags")
+                        val name = tags?.optString("name") ?: tags?.optString("ref") ?: "Ruta ${el.getLong("id")}"
+                        val members = el.optJSONArray("members")
+                        
+                        if (members != null) {
+                            val segments = mutableListOf<List<Point>>()
+                            for (j in 0 until members.length()) {
+                                val member = members.getJSONObject(j)
+                                if (member.getString("type") == "way") {
+                                    val role = member.optString("role")
+                                    // Ignorar plataformas, quedarnos con la geometría de la ruta
+                                    if (role != "platform" && role != "stop") {
+                                        wayMap[member.getLong("ref")]?.let { way ->
+                                            segments.add(way)
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            if (segments.isNotEmpty()) {
+                                val connected = conectarSegmentos(segments)
+                                mapaRutas[name] = connected
+                            }
                         }
                     }
                 }
@@ -85,8 +116,68 @@ class ServicioOverpassPuebla {
                 Log.e(TAG, "Error en Overpass API: Código $responseCode")
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Excepción consultando Overpass API para Puebla", e)
+            Log.e(TAG, "Excepción consultando Overpass API", e)
         }
-        return@withContext rutasCompletas
+        return@withContext mapaRutas
+    }
+    
+    // Algoritmo para empalmar segmentos de OpenStreetMap y crear una polyline continua
+    private fun conectarSegmentos(segmentos: List<List<Point>>): List<Point> {
+        if (segmentos.isEmpty()) return emptyList()
+        val result = mutableListOf<Point>()
+        val pool = segmentos.toMutableList()
+        
+        var current = pool.removeAt(0).toMutableList()
+        result.addAll(current)
+        
+        while (pool.isNotEmpty()) {
+            val endPoint = result.last()
+            val startPoint = result.first()
+            
+            var matchedIdx = -1
+            var attachToEnd = true
+            var reverseSegment = false
+            
+            for (i in pool.indices) {
+                val seg = pool[i]
+                if (distanciaSq(endPoint, seg.first()) < 0.00000001) {
+                    matchedIdx = i; attachToEnd = true; reverseSegment = false; break
+                }
+                if (distanciaSq(endPoint, seg.last()) < 0.00000001) {
+                    matchedIdx = i; attachToEnd = true; reverseSegment = true; break
+                }
+                if (distanciaSq(startPoint, seg.last()) < 0.00000001) {
+                    matchedIdx = i; attachToEnd = false; reverseSegment = false; break
+                }
+                if (distanciaSq(startPoint, seg.first()) < 0.00000001) {
+                    matchedIdx = i; attachToEnd = false; reverseSegment = true; break
+                }
+            }
+            
+            if (matchedIdx != -1) {
+                val match = pool.removeAt(matchedIdx)
+                val toAdd = if (reverseSegment) match.reversed() else match
+                
+                if (attachToEnd) {
+                    result.addAll(toAdd.drop(1))
+                } else {
+                    result.addAll(0, toAdd.dropLast(1))
+                }
+            } else {
+                // Si hay una brecha, agregamos el siguiente segmento de todas formas para no estancarnos
+                val next = pool.removeAt(0)
+                result.addAll(next)
+            }
+        }
+        return result
+    }
+
+    private fun distanciaSq(p1: Point, p2: Point): Double {
+        return (p1.longitude() - p2.longitude()).pow(2) + (p1.latitude() - p2.latitude()).pow(2)
+    }
+
+    // Mantener la firma original por retrocompatibilidad temporal si es necesario
+    suspend fun obtenerCoordenadasRutasBusPuebla(): List<List<Point>> {
+        return obtenerRutasBusMap().values.toList()
     }
 }

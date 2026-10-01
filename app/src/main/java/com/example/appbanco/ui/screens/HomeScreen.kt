@@ -260,17 +260,34 @@ fun PantallaPrincipal(navController: NavController) {
     // MODO OFFLINE / AHORRO DE DATOS
     val modoOffline by sessionManager.modoOffline.collectAsState(initial = false)
 
-    var rutasOsmReal by remember { mutableStateOf<List<List<Point>>>(emptyList()) }
+    var todasLasRutasMap by remember { mutableStateOf<Map<String, List<Point>>>(emptyMap()) }
+    // En la UI, dejaremos de dibujar todas las rutas en verde al mismo tiempo para no saturar.
+    // Solo dibujaremos la ruta de la parada seleccionada.
+    var rutaActiva by remember { mutableStateOf<List<Point>>(emptyList()) }
     val overpassService = remember { ServicioOverpassPuebla() }
 
     LaunchedEffect(modoOffline) {
         if (!modoOffline) {
-            val resultado = overpassService.obtenerCoordenadasRutasBusPuebla()
-            if (resultado.isNotEmpty()) {
-                rutasOsmReal = resultado
+            val mapa = overpassService.obtenerRutasBusMap()
+            if (mapa.isNotEmpty()) {
+                todasLasRutasMap = mapa
             }
         } else {
-            rutasOsmReal = emptyList()
+            todasLasRutasMap = emptyMap()
+        }
+    }
+
+    // Cuando el usuario selecciona una parada, intentar encontrar la ruta que coincida con la línea
+    LaunchedEffect(paradaSeleccionada) {
+        if (paradaSeleccionada != null) {
+            val lineaPrincipal = paradaSeleccionada!!.lineas.firstOrNull() ?: ""
+            // Buscar en las rutas cargadas una que contenga el nombre de la línea
+            val rutaEncontrada = todasLasRutasMap.entries.firstOrNull { 
+                it.key.contains(lineaPrincipal, ignoreCase = true) 
+            }?.value
+            rutaActiva = rutaEncontrada ?: emptyList()
+        } else {
+            rutaActiva = emptyList()
         }
     }
 
@@ -354,7 +371,7 @@ fun PantallaPrincipal(navController: NavController) {
                 modifier = Modifier.fillMaxSize(),
                 paradas = paradasFiltradas,
                 conductores = conductoresActivos,
-                rutasOsm = rutasOsmReal,
+                rutaActiva = rutaActiva,
                 centroPoint = centroActual,
                 ubicacionCentradaPoint = ubicacionGpsPoint,
                 onParadaSelect = { parada ->
@@ -768,7 +785,7 @@ fun PantallaPrincipal(navController: NavController) {
                             modifier = Modifier.fillMaxSize(),
                             paradas = paradasFiltradas,
                             conductores = conductoresActivos,
-                            rutasOsm = rutasOsmReal,
+                            rutaActiva = rutaActiva,
                             centroPoint = centroActual,
                             ubicacionCentradaPoint = ubicacionGpsPoint,
                             onParadaSelect = { parada ->
@@ -1185,7 +1202,7 @@ fun MapaOptimizadoContainer(
     modifier: Modifier = Modifier,
     paradas: List<ParadaMapa>,
     conductores: List<ConductorUbicacion> = emptyList(),
-    rutasOsm: List<List<Point>> = emptyList(),
+    rutaActiva: List<Point> = emptyList(),
     centroPoint: Point,
     ubicacionCentradaPoint: Point? = null,
     onParadaSelect: (ParadaMapa) -> Unit
@@ -1222,6 +1239,39 @@ fun MapaOptimizadoContainer(
         conductores
     }
 
+    // Ajustar cámara cuando se carga una ruta
+    LaunchedEffect(rutaActiva) {
+        if (rutaActiva.isNotEmpty()) {
+            try {
+                // Calcular bounds
+                var minLat = 90.0
+                var maxLat = -90.0
+                var minLng = 180.0
+                var maxLng = -180.0
+                
+                rutaActiva.forEach { pt ->
+                    if (pt.latitude() < minLat) minLat = pt.latitude()
+                    if (pt.latitude() > maxLat) maxLat = pt.latitude()
+                    if (pt.longitude() < minLng) minLng = pt.longitude()
+                    if (pt.longitude() > maxLng) maxLng = pt.longitude()
+                }
+                
+                val centerLat = (minLat + maxLat) / 2.0
+                val centerLng = (minLng + maxLng) / 2.0
+                
+                // Mover cámara al centro de la ruta. En Mapbox Compose V11 se puede usar flyTo.
+                mapViewportState.flyTo(
+                    CameraOptions.Builder()
+                        .center(Point.fromLngLat(centerLng, centerLat))
+                        .zoom(13.0) // Zoom general para ver la ruta
+                        .build()
+                )
+            } catch (e: Exception) {
+                // Ignore bounds error
+            }
+        }
+    }
+
     Box(modifier = modifier) {
         MapboxMap(
             modifier = Modifier.fillMaxSize(),
@@ -1243,24 +1293,14 @@ fun MapaOptimizadoContainer(
                 } catch (_: Exception) { }
             }
 
-            PolylineAnnotation(
-                points = rutaNaranjaPoints,
-                lineColorString = "#FF8E56",
-                lineWidth = 5.0
-            )
+            // (Las rutas crudas fueron reemplazadas por la Ruta Activa real seleccionada)
 
-            PolylineAnnotation(
-                points = rutaAzulPoints,
-                lineColorString = "#327CF2",
-                lineWidth = 5.0
-            )
-
-            // Rutas reales de OpenStreetMap (Puebla) en tiempo real (100% Gratis)
-            rutasOsm.forEach { puntos ->
+            // Ruta activa seleccionada (Extraída y conectada desde Overpass)
+            if (rutaActiva.isNotEmpty()) {
                 PolylineAnnotation(
-                    points = puntos,
-                    lineColorString = "#16A085",
-                    lineWidth = 3.5
+                    points = rutaActiva,
+                    lineColorString = "#327CF2", // Azul prominente para la ruta activa
+                    lineWidth = 6.0
                 )
             }
 
