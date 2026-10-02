@@ -4,6 +4,8 @@ import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -15,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -64,7 +67,7 @@ fun PantallaAlertasConductor(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF1F1F21))
+            .background(MaterialTheme.colorScheme.background)
     ) {
 
         // ENCABEZADO
@@ -162,7 +165,7 @@ fun PantallaAlertasConductor(
 
             Text(
                 text = "Desliza una alerta a la izquierda para eliminarla",
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium
             )
@@ -182,32 +185,43 @@ fun PantallaAlertasConductor(
                 modifier = Modifier.height(14.dp)
             )
 
-            // ALERTAS
+            // ALERTAS DESDE EL VIEWMODEL CONECTADO
+            val listaIncidencias = viewModel.listaIncidencias
+            val alertasRuta = listaIncidencias.filter { !it.esGlobal }
+            val alertasGenerales = listaIncidencias.filter { it.esGlobal }
+
             if (tipoSeleccionado == "ruta") {
-
-                if (mostrarAlertaRuta) {
-
+                if (alertasRuta.isNotEmpty()) {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        items(items = alertasRuta, key = { it.id }) { incidencia ->
+                            TarjetaAlerta(
+                                incidencia = incidencia,
+                                onAplicarDesvio = {
+                                    Toast.makeText(context, "Desvío sugerido aplicado para ${incidencia.ruta}", Toast.LENGTH_SHORT).show()
+                                },
+                                onEliminar = {
+                                    listaIncidencias.remove(incidencia)
+                                    Toast.makeText(context, "Alerta eliminada", Toast.LENGTH_SHORT).show()
+                                }
+                            )
+                        }
+                    }
+                } else if (mostrarAlertaRuta) {
                     TarjetaAlerta(
                         onAplicarDesvio = {
-                            Toast.makeText(
-                                context,
-                                "Desvío sugerido aplicado",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            Toast.makeText(context, "Desvío sugerido aplicado", Toast.LENGTH_SHORT).show()
                         },
                         onEliminar = {
                             mostrarAlertaRuta = false
-
-                            Toast.makeText(
-                                context,
-                                "Alerta eliminada",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            Toast.makeText(context, "Alerta eliminada", Toast.LENGTH_SHORT).show()
                         }
                     )
-
                 } else {
-
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -216,28 +230,47 @@ fun PantallaAlertasConductor(
                     ) {
                         Text(
                             text = "No hay alertas de tu ruta",
-                            color = Color.Gray,
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium
                         )
                     }
                 }
-
-            } else  {
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 40.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-
-                    Text(
-                        text = "No hay alertas generales",
-                        color = Color.Gray,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium
-                    )
+            } else {
+                if (alertasGenerales.isNotEmpty()) {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        items(items = alertasGenerales, key = { it.id }) { incidencia ->
+                            TarjetaAlerta(
+                                incidencia = incidencia,
+                                onAplicarDesvio = {
+                                    Toast.makeText(context, "Desvío sugerido aplicado para ${incidencia.ruta}", Toast.LENGTH_SHORT).show()
+                                },
+                                onEliminar = {
+                                    listaIncidencias.remove(incidencia)
+                                    Toast.makeText(context, "Alerta general eliminada", Toast.LENGTH_SHORT).show()
+                                }
+                            )
+                        }
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 40.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No hay alertas generales",
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
                 }
             }
 
@@ -285,10 +318,14 @@ fun PantallaAlertasConductor(
         // ==========================================
         // NAVEGACIÓN DEL CONDUCTOR
         // ==========================================
-        BarraNavegacionConductor(
-            navController = navController,
-            rutaActual = rutaActual
-        )
+        val configuration = LocalConfiguration.current
+        val esPantallaAncha = configuration.screenWidthDp >= 600
+        if (!esPantallaAncha) {
+            BarraNavegacionConductor(
+                navController = navController,
+                rutaActual = rutaActual
+            )
+        }
     }
 
     // DIÁLOGO PARA REPORTAR INCIDENCIA

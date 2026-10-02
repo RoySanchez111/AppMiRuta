@@ -17,10 +17,12 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.appbanco.ui.screens.Incidencia
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TarjetaAlerta(
+    incidencia: Incidencia? = null,
     onAplicarDesvio: () -> Unit,
     onEliminar: () -> Unit
 ) {
@@ -123,7 +125,7 @@ fun TarjetaAlerta(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(4.dp),
             colors = CardDefaults.cardColors(
-                containerColor = Color(0xFFF4F4F4)
+                containerColor = MaterialTheme.colorScheme.surface
             )
         ) {
 
@@ -140,7 +142,7 @@ fun TarjetaAlerta(
                 ) {
 
                     Text(
-                        text = "Retraso Grave",
+                        text = incidencia?.tipo ?: "Retraso Grave",
                         color = Color.White,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
@@ -160,8 +162,8 @@ fun TarjetaAlerta(
                     )
 
                     Text(
-                        text = "Hace 10 min",
-                        color = Color.Gray,
+                        text = incidencia?.tiempo ?: "Hace 10 min",
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                         fontSize = 10.sp
                     )
                 }
@@ -200,15 +202,15 @@ fun TarjetaAlerta(
                     Column {
 
                         Text(
-                            text = "Retraso grave –",
-                            color = Color.Black,
+                            text = incidencia?.titulo ?: "Retraso grave –",
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
                         )
 
                         Text(
-                            text = "Ruta 15",
-                            color = Color.Black,
+                            text = if (incidencia != null) "Ruta ${incidencia.ruta}" else "Ruta 15",
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
                         )
@@ -221,8 +223,8 @@ fun TarjetaAlerta(
 
                 // DESCRIPCIÓN
                 Text(
-                    text = "Interrupción parcial del servicio en la Colonia Serdán. Retrasos de 10 a 30 min.",
-                    color = Color.DarkGray,
+                    text = incidencia?.descripcion ?: "Interrupción parcial del servicio en la Colonia Serdán. Retrasos de 10 a 30 min.",
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                     fontSize = 11.sp,
                     lineHeight = 14.sp
                 )

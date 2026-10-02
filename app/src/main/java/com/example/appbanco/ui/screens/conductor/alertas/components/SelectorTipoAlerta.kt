@@ -25,7 +25,7 @@ fun SelectorTipoAlerta(
             .fillMaxWidth()
             .height(48.dp)
             .background(
-                color = Color(0xFF4A4A4D),
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f),
                 shape = RoundedCornerShape(8.dp)
             )
             .padding(4.dp)
@@ -50,7 +50,7 @@ fun SelectorTipoAlerta(
         ) {
             Text(
                 text = "De mi ruta",
-                color = Color.White,
+                color = if (seleccionada == "ruta") Color.White else MaterialTheme.colorScheme.onBackground,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold
             )
@@ -75,7 +75,7 @@ fun SelectorTipoAlerta(
         ) {
             Text(
                 text = "Generales",
-                color = Color.White,
+                color = if (seleccionada == "generales") Color.White else MaterialTheme.colorScheme.onBackground,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold
             )
