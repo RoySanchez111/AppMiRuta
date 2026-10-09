@@ -133,6 +133,7 @@ fun PantallaAlertasConductor(
                     }
 
                     Surface(
+                        onClick = { navController.navigate("cuenta_conductor") },
                         modifier = Modifier.size(52.dp),
                         shape = CircleShape,
                         color = Color.White.copy(alpha = 0.12f),
@@ -288,8 +289,8 @@ fun PantallaAlertasConductor(
                     .height(54.dp),
                 shape = RoundedCornerShape(28.dp),
                 colors = ButtonDefaults.outlinedButtonColors(
-                    containerColor = Color(0xFF303033),
-                    contentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             ) {
 

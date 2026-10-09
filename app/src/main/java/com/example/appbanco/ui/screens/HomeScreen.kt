@@ -114,7 +114,7 @@ fun PantallaPrincipal(navController: NavController) {
     var textoCoordenadas by remember { mutableStateOf("18.9994° N, 98.2618° W") }
 
     val centroActual = ubicacionGpsPoint ?: centroPredeterminado
-    val paradasAdaptativas = remember { generarParadasAdaptativas() }
+    
 
     val fusedLocationClient = remember(context) { LocationServices.getFusedLocationProviderClient(context.applicationContext) }
 
@@ -261,6 +261,8 @@ fun PantallaPrincipal(navController: NavController) {
     val modoOffline by sessionManager.modoOffline.collectAsState(initial = false)
 
     var todasLasRutasMap by remember { mutableStateOf<Map<String, List<Point>>>(emptyMap()) }
+    var paradasRealesMap by remember { mutableStateOf<List<ParadaMapa>>(emptyList()) }
+    
     // En la UI, dejaremos de dibujar todas las rutas en verde al mismo tiempo para no saturar.
     // Solo dibujaremos la ruta de la parada seleccionada.
     var rutaActiva by remember { mutableStateOf<List<Point>>(emptyList()) }
@@ -268,12 +270,14 @@ fun PantallaPrincipal(navController: NavController) {
 
     LaunchedEffect(modoOffline) {
         if (!modoOffline) {
-            val mapa = overpassService.obtenerRutasBusMap()
-            if (mapa.isNotEmpty()) {
-                todasLasRutasMap = mapa
+            val rutasYParadas = overpassService.obtenerRutasYParadas()
+            if (rutasYParadas.rutas.isNotEmpty()) {
+                todasLasRutasMap = rutasYParadas.rutas
+                paradasRealesMap = rutasYParadas.paradas
             }
         } else {
             todasLasRutasMap = emptyMap()
+            paradasRealesMap = emptyList()
         }
     }
 
@@ -344,9 +348,9 @@ fun PantallaPrincipal(navController: NavController) {
 
 
 
-    val paradasFiltradas by remember(busquedaTexto, filtroActivo, paradasAdaptativas) {
+    val paradasFiltradas by remember(busquedaTexto, filtroActivo, paradasRealesMap) {
         derivedStateOf {
-            paradasAdaptativas.filter { parada ->
+            paradasRealesMap.filter { parada ->
                 val coincideTexto = busquedaTexto.isBlank() || 
                     parada.nombre.contains(busquedaTexto, ignoreCase = true) ||
                     parada.lineas.any { it.contains(busquedaTexto, ignoreCase = true) }
@@ -371,11 +375,16 @@ fun PantallaPrincipal(navController: NavController) {
                 modifier = Modifier.fillMaxSize(),
                 paradas = paradasFiltradas,
                 conductores = conductoresActivos,
+                todasLasRutas = todasLasRutasMap,
                 rutaActiva = rutaActiva,
                 centroPoint = centroActual,
                 ubicacionCentradaPoint = ubicacionGpsPoint,
                 onParadaSelect = { parada ->
                     paradaSeleccionada = parada
+                },
+                onRutaSelect = { rutaSeleccionada ->
+                    rutaActiva = rutaSeleccionada
+                    paradaSeleccionada = null // Limpiar parada si se selecciona una ruta libremente
                 }
             )
 
@@ -785,11 +794,16 @@ fun PantallaPrincipal(navController: NavController) {
                             modifier = Modifier.fillMaxSize(),
                             paradas = paradasFiltradas,
                             conductores = conductoresActivos,
+                            todasLasRutas = todasLasRutasMap,
                             rutaActiva = rutaActiva,
                             centroPoint = centroActual,
                             ubicacionCentradaPoint = ubicacionGpsPoint,
                             onParadaSelect = { parada ->
                                 paradaSeleccionada = parada
+                            },
+                            onRutaSelect = { rutaSeleccionada ->
+                                rutaActiva = rutaSeleccionada
+                                paradaSeleccionada = null
                             }
                         )
                     }
@@ -1202,10 +1216,12 @@ fun MapaOptimizadoContainer(
     modifier: Modifier = Modifier,
     paradas: List<ParadaMapa>,
     conductores: List<ConductorUbicacion> = emptyList(),
+    todasLasRutas: Map<String, List<Point>> = emptyMap(),
     rutaActiva: List<Point> = emptyList(),
     centroPoint: Point,
     ubicacionCentradaPoint: Point? = null,
-    onParadaSelect: (ParadaMapa) -> Unit
+    onParadaSelect: (ParadaMapa) -> Unit,
+    onRutaSelect: (List<Point>) -> Unit = {}
 ) {
     val mapViewportState = rememberMapViewportState {
         setCameraOptions {
@@ -1294,6 +1310,23 @@ fun MapaOptimizadoContainer(
             }
 
             // (Las rutas crudas fueron reemplazadas por la Ruta Activa real seleccionada)
+
+            // Rutas inactivas de fondo (Clicables)
+            key(todasLasRutas) {
+                todasLasRutas.forEach { (nombre, puntos) ->
+                    if (puntos != rutaActiva) {
+                        PolylineAnnotation(
+                            points = puntos,
+                            lineColorString = "#95A5A6", // Gris sutil
+                            lineWidth = 3.0,
+                            onClick = {
+                                onRutaSelect(puntos)
+                                true
+                            }
+                        )
+                    }
+                }
+            }
 
             // Ruta activa seleccionada (Extraída y conectada desde Overpass)
             if (rutaActiva.isNotEmpty()) {

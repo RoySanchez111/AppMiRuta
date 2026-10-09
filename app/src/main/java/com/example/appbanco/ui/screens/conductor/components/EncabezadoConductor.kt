@@ -19,11 +19,13 @@ import androidx.compose.ui.unit.sp
 import com.example.appbanco.ui.components.obtenerColoresFondo
 import java.util.Calendar
 
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 fun EncabezadoConductor(
     nombre: String = "Rafita",
     ubicacion: String = "Puebla - Ruta Troncal Activa",
-    enServicio: Boolean = true
+    enServicio: Boolean = true,
+    onAvatarClick: () -> Unit = {}
 ) {
 
     // ==========================================
@@ -153,6 +155,7 @@ fun EncabezadoConductor(
             // AVATAR
             // ======================================
             Surface(
+                onClick = onAvatarClick,
                 modifier = Modifier.size(52.dp),
                 shape = CircleShape,
                 color = Color.White.copy(alpha = 0.12f),

@@ -142,7 +142,8 @@ fun PantallaInicioConductor(
         EncabezadoConductor(
             nombre = nombreConductor,
             ubicacion = ubicacionTexto,
-            enServicio = enServicio
+            enServicio = enServicio,
+            onAvatarClick = { navController.navigate("cuenta_conductor") }
         )
 
         Box(

@@ -88,7 +88,7 @@ fun PantallaHorarios(navController: NavController, viewModel: MainViewModel) {
                 .fillMaxSize()
                 .widthIn(max = 850.dp)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
+                .padding(horizontal = 24.dp, vertical = 16.dp), // Aumentamos padding horizontal para tablet
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
         OutlinedTextField(
@@ -110,11 +110,11 @@ fun PantallaHorarios(navController: NavController, viewModel: MainViewModel) {
                 },
             shape = RoundedCornerShape(18.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                unfocusedBorderColor = onBackground.copy(alpha = 0.1f),
+                unfocusedBorderColor = Color.Transparent,
                 focusedBorderColor = MaterialTheme.colorScheme.primary,
                 cursorColor = onBackground,
-                unfocusedContainerColor = Color.Transparent,
-                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f),
                 unfocusedTextColor = onBackground,
                 focusedTextColor = onBackground
             ),
@@ -126,7 +126,8 @@ fun PantallaHorarios(navController: NavController, viewModel: MainViewModel) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
+                .horizontalScroll(rememberScrollState())
+                .padding(bottom = 8.dp), // Añadimos padding al final del scroll para evitar cortes
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             listOf("Principales", "Frecuentes", "Cercanas", "Todas").forEach { cat ->
@@ -213,9 +214,9 @@ fun PantallaHorarios(navController: NavController, viewModel: MainViewModel) {
                 lineaDestacada?.let { linea ->
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(20.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
+                        shape = RoundedCornerShape(24.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Row(
@@ -299,8 +300,8 @@ fun PantallaHorarios(navController: NavController, viewModel: MainViewModel) {
 
         Text(
             text = "Líneas y Rutas Activas",
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.ExtraBold,
             color = onSurface,
             modifier = Modifier
                 .align(Alignment.Start)
@@ -373,27 +374,29 @@ fun DialogoDetalleLinea(
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(28.dp),
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
-                        .size(42.dp)
+                        .size(48.dp)
                         .background(linea.color, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = linea.codigo,
                         color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = if (linea.codigo.length > 2) 11.sp else 14.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = if (linea.codigo.length > 2) 13.sp else 16.sp,
                         maxLines = 1,
                         softWrap = false
                     )
                 }
-                Spacer(modifier = Modifier.width(10.dp))
+                Spacer(modifier = Modifier.width(12.dp))
                 Column {
-                    Text(linea.nombre, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                    Text("Recorrido: ${linea.recorrido}", fontSize = 12.sp, color = onSurface.copy(alpha = 0.6f))
+                    Text(linea.nombre, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = onSurface)
+                    Text(linea.recorrido, fontSize = 13.sp, color = onSurface.copy(alpha = 0.6f), maxLines = 2, lineHeight = 16.sp)
                 }
             }
         },
@@ -404,13 +407,19 @@ fun DialogoDetalleLinea(
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(
-                        text = "Frecuencia de salida: Cada ${linea.frecuenciaMinutos} minutos",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = linea.color,
-                        modifier = Modifier.padding(10.dp)
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(12.dp)
+                    ) {
+                        Icon(Icons.Default.Timer, contentDescription = null, tint = linea.color, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Salidas cada ${linea.frecuenciaMinutos} minutos",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = linea.color
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(14.dp))
@@ -472,15 +481,15 @@ fun TarjetaLineaHorario(linea: LineaHorario, proximaSalida: String, onClick: () 
             }
             .clickable { onClick() },
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
         ),
-        shape = RoundedCornerShape(16.dp),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
+        shape = RoundedCornerShape(20.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(horizontal = 16.dp, vertical = 18.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
@@ -504,15 +513,21 @@ fun TarjetaLineaHorario(linea: LineaHorario, proximaSalida: String, onClick: () 
                 Text(
                     text = linea.nombre,
                     color = onSurfaceColor,
-                    fontSize = 16.sp,
+                    fontSize = 15.sp,
                     fontWeight = FontWeight.Bold
                 )
-                Text(
-                    text = linea.recorrido,
-                    color = onSurfaceColor.copy(alpha = 0.7f),
-                    fontSize = 13.sp,
-                    maxLines = 2
-                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Route, contentDescription = null, modifier = Modifier.size(12.dp), tint = onSurfaceColor.copy(alpha = 0.5f))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = linea.recorrido,
+                        color = onSurfaceColor.copy(alpha = 0.7f),
+                        fontSize = 12.sp,
+                        maxLines = 2,
+                        lineHeight = 14.sp
+                    )
+                }
             }
 
             Column(horizontalAlignment = Alignment.End) {

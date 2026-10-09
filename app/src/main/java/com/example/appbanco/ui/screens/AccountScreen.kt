@@ -330,7 +330,7 @@ fun PantallaCuenta(
                 Spacer(modifier = Modifier.height(24.dp))
                 Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)) {
                     Text(
-                        "Accesibilidad (Tamaño de Letra)",
+                        "Tamaño de Letra",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = onSurface,
