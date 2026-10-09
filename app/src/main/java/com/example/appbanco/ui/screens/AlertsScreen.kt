@@ -93,27 +93,33 @@ fun PantallaAlertas(navController: NavController, viewModel: MainViewModel) {
                     item {
                         Spacer(modifier = Modifier.height(40.dp))
                         Surface(
-                            color = surfaceColor,
-                            shape = RoundedCornerShape(16.dp),
-                            border = BorderStroke(1.dp, primaryColor.copy(alpha = 0.2f)),
-                            modifier = Modifier.fillMaxWidth().padding(20.dp)
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                            shape = RoundedCornerShape(28.dp),
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 32.dp)
                         ) {
                             Column(
                                 modifier = Modifier.padding(24.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color(0xFF2ECC71), modifier = Modifier.size(48.dp))
-                                Spacer(modifier = Modifier.height(12.dp))
-                                Text("¡No hay incidencias reportadas!", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = onSurface)
+                                Box(
+                                    modifier = Modifier
+                                        .size(64.dp)
+                                        .background(Color(0xFF2ECC71).copy(alpha = 0.1f), CircleShape),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(Icons.Default.Check, contentDescription = null, tint = Color(0xFF2ECC71), modifier = Modifier.size(32.dp))
+                                }
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text("Todo despejado", fontWeight = FontWeight.ExtraBold, fontSize = 18.sp, color = onSurface)
                                 Spacer(modifier = Modifier.height(6.dp))
-                                Text("El servicio de transporte opera con normalidad.", fontSize = 13.sp, color = onSurface.copy(alpha = 0.6f))
+                                Text("El transporte opera con normalidad", fontSize = 14.sp, color = onSurface.copy(alpha = 0.6f))
                             }
                         }
                     }
                 } else {
                     item {
                         Text(
-                            text = "👈 Desliza una alerta a la izquierda para eliminarla",
+                            text = "Desliza una alerta a la izquierda para eliminarla",
                             fontSize = 12.sp,
                             color = onSurface.copy(alpha = 0.5f),
                             modifier = Modifier
@@ -125,16 +131,24 @@ fun PantallaAlertas(navController: NavController, viewModel: MainViewModel) {
 
                 if (alertasGlobales.isNotEmpty()) {
                     item {
-                        Text(
-                            text = "🟢 Alertas Verificadas y Globales",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 15.sp,
-                            color = Color(0xFF2ECC71),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 6.dp)
-                                .semantics { heading() }
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp).semantics { heading() }) {
+                            Box(modifier = Modifier.size(8.dp).background(Color(0xFF2ECC71), CircleShape))
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Alertas Globales",
+                                    fontWeight = FontWeight.ExtraBold,
+                                    fontSize = 16.sp,
+                                    color = onSurface
+                                )
+                                Text(
+                                    text = "Verificadas por la comunidad",
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 12.sp,
+                                    color = onSurface.copy(alpha = 0.5f)
+                                )
+                            }
+                        }
                     }
                     items(items = alertasGlobales, key = { it.id }) { incidencia ->
                         ItemAlertaDeslizable(
@@ -152,16 +166,24 @@ fun PantallaAlertas(navController: NavController, viewModel: MainViewModel) {
                 if (alertasPendientes.isNotEmpty()) {
                     item {
                         Spacer(modifier = Modifier.height(10.dp))
-                        Text(
-                            text = "📍 Reportes Cercanos por Verificar (Pendientes)",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 15.sp,
-                            color = Color(0xFFF39C12),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 6.dp)
-                                .semantics { heading() }
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp).semantics { heading() }) {
+                            Box(modifier = Modifier.size(8.dp).background(Color(0xFFF39C12), CircleShape))
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Reportes Cercanos",
+                                    fontWeight = FontWeight.ExtraBold,
+                                    fontSize = 16.sp,
+                                    color = onSurface
+                                )
+                                Text(
+                                    text = "Pendientes de verificación vecinal",
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 12.sp,
+                                    color = onSurface.copy(alpha = 0.5f)
+                                )
+                            }
+                        }
                     }
                     items(items = alertasPendientes, key = { it.id }) { incidencia ->
                         ItemAlertaDeslizable(
@@ -173,7 +195,7 @@ fun PantallaAlertas(navController: NavController, viewModel: MainViewModel) {
                             onConfirmar = {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 viewModel.confirmarIncidencia(incidencia.id)
-                                Toast.makeText(context, "✅ ¡Alerta confirmada! Promovida a global para todos", Toast.LENGTH_LONG).show()
+                                Toast.makeText(context, "¡Alerta confirmada! Promovida a global para todos", Toast.LENGTH_LONG).show()
                             }
                         )
                         Spacer(modifier = Modifier.height(12.dp))
@@ -187,30 +209,26 @@ fun PantallaAlertas(navController: NavController, viewModel: MainViewModel) {
 
             Surface(
                 modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 24.dp)
+                    .align(Alignment.BottomEnd)
+                    .padding(bottom = 24.dp, end = 24.dp)
                     .height(56.dp)
-                    .width(280.dp)
-                    .shadow(elevation = 8.dp, shape = RoundedCornerShape(28.dp))
+                    .shadow(elevation = 4.dp, shape = RoundedCornerShape(16.dp))
                     .semantics(mergeDescendants = true) {
                         role = Role.Button
                         contentDescription = "Reportar nueva incidencia"
                     }
                     .clickable { mostrarDialogo = true },
-                shape = RoundedCornerShape(28.dp),
-                color = surfaceColor,
-                border = BorderStroke(1.dp, onSurface.copy(alpha = 0.1f))
+                shape = RoundedCornerShape(16.dp),
+                color = primaryColor
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-                    Box(modifier = Modifier.size(32.dp).background(primaryColor, CircleShape), contentAlignment = Alignment.Center) {
-                        Icon(Icons.Default.PriorityHigh, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
-                    }
-                    Spacer(modifier = Modifier.width(12.dp))
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 20.dp)) {
+                    Icon(Icons.Default.Add, contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Reportar Incidencia",
-                        color = onSurface,
+                        text = "Reportar",
+                        color = Color.White,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
+                        fontSize = 15.sp
                     )
                 }
             }
@@ -238,7 +256,7 @@ fun PantallaAlertas(navController: NavController, viewModel: MainViewModel) {
                 mostrarDialogo = false
                 mostrarExito = true
                 reproducirSonidoNotificacion(context)
-                Toast.makeText(context, "📍 Reporte enviado a usuarios cercanos para verificación", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, " Reporte enviado a usuarios cercanos para verificación", Toast.LENGTH_LONG).show()
             }
         )
     }
@@ -361,10 +379,10 @@ fun TarjetaAlerta(
             }
             .clickable { expandida = !expandida },
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+            containerColor = MaterialTheme.colorScheme.surface
         ),
-        shape = RoundedCornerShape(20.dp),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.18f))
+        shape = RoundedCornerShape(24.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         ConstraintLayout(
             modifier = Modifier
@@ -414,7 +432,7 @@ fun TarjetaAlerta(
             }
 
             Text(
-                text = incidencia.tiempo,
+                text = incidencia.tiempo.lowercase(),
                 fontSize = 11.sp,
                 color = onSurfaceColor.copy(alpha = 0.6f),
                 fontWeight = FontWeight.Medium,
@@ -425,27 +443,12 @@ fun TarjetaAlerta(
                 }
             )
 
-            IconButton(
-                onClick = onEliminarClick,
-                modifier = Modifier
-                    .size(28.dp)
-                    .constrainAs(deleteButton) {
+            // Boton eliminar fue movido solo a la accion de swipe to dismiss para hacer la tarjeta mas limpia
+            Spacer(modifier = Modifier.size(10.dp).constrainAs(deleteButton) {
                         top.linkTo(routeSurface.top)
                         bottom.linkTo(routeSurface.bottom)
                         end.linkTo(expandIcon.start, margin = 8.dp)
-                    }
-                    .semantics {
-                        role = Role.Button
-                        contentDescription = "Eliminar esta alerta"
-                    }
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Eliminar alerta",
-                    tint = Color(0xFFC0392B).copy(alpha = 0.8f),
-                    modifier = Modifier.size(18.dp)
-                )
-            }
+            })
 
             Icon(
                 imageVector = if (expandida) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
@@ -519,12 +522,21 @@ fun TarjetaAlerta(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = if (incidencia.esGlobal) "🟢 Verificada (${incidencia.confirmaciones} confirmaciones)" else "🟡 Pendiente de confirmación cercana (${incidencia.confirmaciones}/2)",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = if (incidencia.esGlobal) Color(0xFF2ECC71) else Color(0xFFF39C12)
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = if (incidencia.esGlobal) Icons.Default.CheckCircle else Icons.Default.PendingActions,
+                                contentDescription = null,
+                                tint = if (incidencia.esGlobal) Color(0xFF2ECC71) else Color(0xFFF39C12),
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = if (incidencia.esGlobal) "${incidencia.confirmaciones} confirmaciones" else "${incidencia.confirmaciones}/2 verificaciones",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (incidencia.esGlobal) Color(0xFF2ECC71) else Color(0xFFF39C12)
+                            )
+                        }
 
                         if (!incidencia.esGlobal) {
                             OutlinedButton(
